@@ -20,9 +20,9 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
 - Every painting needs a canvas, and supplies run out, so you'll need to stop and earn money.
 - The critic reviews each piece with a star rating, a funny line and a tip, then you sell it or keep it in your collection.
 
-## Art games (15)
+## Art games (17)
 
-Steady Hand, Color Mixer, Stickman Sketch, Speed Reveal, Guess the Masterpiece, Price Is Right, Shape Spotter, Art Auction, Shape Builder, Copycat, Mirror Me, One-Line Wonder, Paint by Number Race, Frame It and Pixel Copy.
+Steady Hand, Color Mixer, Stickman Sketch, Speed Reveal, Guess the Masterpiece, Price Is Right, Shape Spotter, Art Auction, Shape Builder, Copycat, Mirror Me, One-Line Wonder, Paint by Number Race, Frame It, Pixel Mystery, Pixel Artist and Treasure Dig.
 
 ## Player accounts
 
