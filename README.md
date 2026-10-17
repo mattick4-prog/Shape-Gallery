@@ -19,6 +19,7 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
   - **Make it myself**: drag, turn, resize and color shapes on the canvas. Paint dries 9 seconds after you stop touching it, and there's no erasing!
 - Every painting needs a canvas, and supplies run out, so you'll need to stop and earn money.
 - The critic reviews each piece with a star rating, a funny line and a tip, then you sell it or keep it in your collection.
+- Buyers have 18 different personalities (Animal fan, Bargain hunter, Monster fan and more). Use "Talk it up" sales pitches they like to raise the price, even on the street corner.
 
 ## Art games (17)
 

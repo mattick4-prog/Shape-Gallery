@@ -1140,6 +1140,8 @@ body.party .chip{pointer-events:none}
 .tdmini i.h,.tdkey i.h{background:#f4a69f}.tdmini i.w,.tdkey i.w{background:#f8e08a}.tdmini i.c,.tdkey i.c{background:#bcd3f3}.tdmini i.me{background:#8a5a35}
 .tdkey{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:13px}
 .tdkey span{display:flex;align-items:center;gap:4px}.tdkey i{width:14px;height:14px;border-radius:3px}
+.streettalk{margin:8px 0 10px;background:#fff8e6;border:2px dashed #f2c230;border-radius:14px;padding:8px 10px}
+.streettalk .lbl{margin-bottom:6px;text-transform:none;letter-spacing:0;font-size:14px}
 /* Modal */
 .modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));z-index:20}
 .sheet{background:var(--paper);border-radius:16px;padding:22px;width:min(720px,100%);max-height:90vh;overflow:auto}
@@ -1327,8 +1329,33 @@ const TRAITS=[
   {id:'big',label:'Big spender',desc:'Pays 50% more for everything and hates to haggle long.',patience:2,chase:.6,likes:['rare','bonus','color','hand'],f:()=>1.5},
   {id:'science',label:'Science teacher',desc:'Pays double for Earth Science pictures.',patience:3,likes:['theme'],theme:'science',f:a=>a.tags.includes('science')?2:.9},
   {id:'starry',label:'Star struck',desc:'Every star or heart in the piece raises the price.',patience:3,likes:['stars'],f:a=>1+a.parts.filter(p=>p.kind==='star'||p.kind==='heart').length*.3},
-  {id:'food',label:'Hungry foodie',desc:'Pays extra for food art.',patience:3,likes:['theme'],theme:'food',f:a=>a.tags.includes('food')?1.9:.7}
+  {id:'food',label:'Hungry foodie',desc:'Pays extra for food art.',patience:3,likes:['theme'],theme:'food',f:a=>a.tags.includes('food')?1.9:.7},
+  {id:'ocean',label:'Ocean lover',desc:'Pays double for anything from the ocean.',patience:3,likes:['theme','round'],theme:'ocean',f:a=>a.tags.includes('ocean')?2:.8},
+  {id:'bugs',label:'Bug collector',desc:'Goes buggy for bug art. Pays big.',patience:3,likes:['theme','simple'],dislikes:['color'],theme:'bug',f:a=>a.tags.includes('bug')?2:.75},
+  {id:'sports',label:'Sports fan',desc:'Pays extra for sports art. Loves a winner.',patience:2,chase:.6,likes:['theme','stars'],theme:'sports',f:a=>a.tags.includes('sports')?1.9:.8},
+  {id:'weather',label:'Weather watcher',desc:'Pays double for weather pictures.',patience:3,likes:['theme','likeness'],dislikes:['weird'],theme:'weather',f:a=>a.tags.includes('weather')?2:.85},
+  {id:'toys',label:'Toy collector',desc:'Pays extra for music and toy art.',patience:4,likes:['theme','color','hand'],theme:'toy',f:a=>a.tags.includes('toy')?1.9:.8},
+  {id:'magic',label:'Monster fan',desc:'Pays double for monsters and magic. The weirder the better.',patience:3,likes:['theme','weird'],dislikes:['simple'],theme:'magic',f:a=>a.tags.includes('magic')?2:.85*(1+((a.subs?.length||0))*.1)}
 ];
+const TRAIT_LINES={
+  round:{open:['Ooh, curves! I like curves. ${o}?'],like:['Round! Round is my favorite shape!','You had me at "round."'],dislike:['Pointy. I do not do pointy.','That is way too square for me.'],meh:['Hmm, needs more circles.']},
+  animal:{open:['Is that an animal? Take my money. Well, ${o} of it.'],like:['Aww, look at its little face!','I would adopt this painting.'],dislike:['Where are the animals? I only came for animals.'],meh:['Does it have fur? No? Okay.']},
+  color:{open:['So many colors! My eyes are dancing. ${o}?'],like:['MORE COLORS! YES!','This is a rainbow party!'],dislike:['Simple? I want LOUD.'],meh:['Could use a few more colors, honestly.']},
+  bargain:{open:['I never pay full price. ${o}, take it or leave it.'],like:['Rare, huh? Fine, I will bump it a little.','Okay, okay, that is worth a few bucks.'],dislike:['Fancy words cost extra. No thanks.'],meh:['Nice try. Still a bargain hunter.']},
+  weird:{open:['The weirder, the better. ${o}?'],like:['Wonderfully strange! I love it!','So odd. So perfect.'],dislike:['Looks too normal. Boring!','Exactly like the real thing? Yawn.'],meh:['Hmm. Not weird enough. Yet.']},
+  space:{open:['Is that from outer space? ${o}!'],like:['Out of this world!','To infinity and my wallet!'],dislike:['Not spacey. Houston, we have a problem.'],meh:['Needs more stars. Or planets. Or aliens.']},
+  mini:{open:['Clean. Simple. ${o}.'],like:['Less is more. Perfect.','Ahh, so calm and tidy.'],dislike:['Too many colors. My brain hurts.'],meh:['Hm. Still a bit busy.']},
+  big:{open:['I like it. I am rich. ${o}!'],like:['Splendid! Add it to my mansion!','Marvelous! Money is no object!'],dislike:['Let us not waste time, darling.'],meh:['Yes, yes, very nice. Hurry up.']},
+  science:{open:['Ooh, this could go in my classroom! ${o}?'],like:['Scientifically excellent!','I will show this to all my students!'],dislike:['Not very sciencey, is it?'],meh:['Interesting hypothesis. Not convinced.']},
+  starry:{open:['Stars and hearts make me swoon. ${o}?'],like:['Twinkle twinkle, take my money!','Star power! Love it!'],dislike:['Not a single star? Sad.'],meh:['Could use a little sparkle.']},
+  food:{open:['That looks delicious. ${o}?'],like:['My stomach just growled!','Yum! I can almost taste it!'],dislike:['That does not look tasty at all.'],meh:['Is it a snack? No? Hmm.']},
+  ocean:{open:['Ahoy! I smell the sea! ${o}?'],like:['That makes me want to go swimming!','Fin-tastic!'],dislike:['That is not fishy at all.'],meh:['Needs more waves.']},
+  bugs:{open:['Is that a bug? Bzzz-uy it for ${o}!'],like:['Un-bee-lievable!','I am bugging out!'],dislike:['Too fancy. Bugs are simple creatures.'],meh:['Buzz. Not sure yet.']},
+  sports:{open:['Score! ${o} for that one?'],like:['GOAL! Love it!','A slam dunk of a painting!'],dislike:['Not a sporty bone in it.'],meh:['Halftime. Still deciding.']},
+  weather:{open:['Looks like a forecast of awesome. ${o}?'],like:['Clear skies ahead! I love it!','That really rains on my parade, in a good way!'],dislike:['Too weird. Weather should be accurate!'],meh:['Partly cloudy on that one.']},
+  toys:{open:['Toys! Fun! ${o}!'],like:['This belongs in my toy box!','So playful! Love it!'],dislike:['Not playful enough.'],meh:['Hmm. Where is the fun part?']},
+  magic:{open:['A monster? Spooky! ${o}?'],like:['Magical! Monstrous! Marvelous!','RAWR! I love it!'],dislike:['Too plain. Where is the magic?'],meh:['Hmm, needs more fangs.']}
+};
 const FIRST=['Mabel','Otis','Priya','Desmond','Luz','Hank','Yuki','Bea','Rocco','Ines','Theo','Wanda','Kofi','Greta','Arlo','Nell','Ravi','Dot'];
 const LAST=['Pickering','Vance','Okafor','Bellweather','Moss','Quill','Sato','Fairbanks','Lumen','Crumb','Ruiz','Hollis','Pemberton','Nakamura'];
 const CRITICS=['Vivienne Starch','Reginald Pomp','Dr. Ophelia Snoot','Maximilian Gloom','Lady Beatrix Frown','Sir Percival Sneer'];
@@ -1928,7 +1955,7 @@ function paintClockHTML(){if(!maker||!maker.deadline)return '';const n=paintSecs
 function rand(a,b){return a+Math.random()*(b-a)}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function fill(s,v){return s.replace('${o}','$'+v.o).replace('${x}','$'+v.x)}
-function say(kind,v){const L=customer&&customer.trait.critic?CRITIC_LINES:LINES;return fill(pick(L[kind]||LINES[kind]),v||{})}
+function say(kind,v){const TL=customer&&TRAIT_LINES[customer.trait.id];if(TL&&TL[kind]&&Math.random()<.8)return fill(pick(TL[kind]),v||{});const L=customer&&customer.trait.critic?CRITIC_LINES:LINES;return fill(pick(L[kind]||LINES[kind]),v||{})}
 function weightedTrait(){const L=TRAITS.filter(t=>!t.critic),tot=L.reduce((s,t)=>s+(t.weight||1),0);let r=Math.random()*tot;for(const t of L){r-=(t.weight||1);if(r<=0)return t}return L[0]}
 function avatarSVG(seed,critic){
   const rnd=seeded(seed),pk=a=>a[Math.floor(rnd()*a.length)];
@@ -2055,7 +2082,7 @@ const poss=n=>/^you$/i.test(n.trim())?'Your':esc(n)+(/s$/i.test(n)?'\'':'\'s');
 const mi=(k,c)=>`<span class="mi">${miniSVG(k,c||SHAPE_ICON_COLOR[k])}</span>`;
 const dot=c=>`<span class="cdot" style="background:${COLORS[c]||c}"></span>`;
 const X_SVG=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="#c2412f"/><path d="M34 34 L66 66 M66 34 L34 66" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg>`;
-const TRAIT_ICON={critic:()=>`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="44" r="26" fill="#fff8" stroke="#1b2a2e" stroke-width="9"/><path d="M68 64 L84 92" stroke="#1b2a2e" stroke-width="6"/></svg>`,round:()=>miniSVG('circle','pink'),animal:()=>miniSVG('heart','orange'),color:()=>pitchIcon('color'),bargain:()=>gameIcon('price'),weird:()=>miniSVG('crescent','purple'),space:()=>miniSVG('star','yellow'),mini:()=>miniSVG('square','blue'),big:()=>coinSVG(),science:()=>miniSVG('hexagon','purple'),starry:()=>miniSVG('star','orange'),food:()=>miniSVG('circle','pink')};
+const TRAIT_ICON={ocean:()=>iconSVG('semicircle','blue'),bugs:()=>iconSVG('oval','green'),sports:()=>iconSVG('circle','orange'),weather:()=>iconSVG('oval','sky'),toys:()=>iconSVG('heart','red'),magic:()=>iconSVG('star','purple'),critic:()=>`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="44" r="26" fill="#fff8" stroke="#1b2a2e" stroke-width="9"/><path d="M68 64 L84 92" stroke="#1b2a2e" stroke-width="6"/></svg>`,round:()=>miniSVG('circle','pink'),animal:()=>miniSVG('heart','orange'),color:()=>pitchIcon('color'),bargain:()=>gameIcon('price'),weird:()=>miniSVG('crescent','purple'),space:()=>miniSVG('star','yellow'),mini:()=>miniSVG('square','blue'),big:()=>coinSVG(),science:()=>miniSVG('hexagon','purple'),starry:()=>miniSVG('star','orange'),food:()=>miniSVG('circle','pink')};
 function commIcon(c){
   switch(c.type){
     case 'cat':{const l=CAT_LOOK[c.p];return `<div class="cicon">${mi(l[0],l[1])}</div>`}
@@ -2754,8 +2781,8 @@ function custHTML(t){
           <div class="tile ask"><span class="ticon">${coinSVG()}</span><b>Ask for more</b><div class="counter"><button class="step" data-act="step" data-d="-5" aria-label="minus 5">−5</button><button class="step" data-act="step" data-d="-1" aria-label="minus 1">−1</button><input id="askInput" type="number" min="1" value="${c.ask}" aria-label="Your price"><button class="step" data-act="step" data-d="1" aria-label="plus 1">+1</button><button class="step" data-act="step" data-d="5" aria-label="plus 5">+5</button></div><button class="btn small" data-act="ask">Ask for this price</button><span class="hint">Too greedy costs hearts</span></div>
           <button class="tile walk" data-act="walkaway"><span class="ticon">${doorSVG()}</span><b>Walk away</b><span>A bluff! They might chase you with more</span></button>
         </div>
-        <div class="talkrow">${pitches.length?`<button class="talkbtn ${c.showTalk?'on':''}" data-act="toggleTalk"><span class="mi">${pitchIcon('color')}</span>Talk it up <small>${pitches.length} selling point${pitches.length>1?'s':''}</small></button>`:''}<button class="scrap" data-act="keep">No sale, let this buyer go</button></div>
-        ${pitches.length&&c.showTalk?`<div class="lbl" style="margin-top:2px">Tap one (each works once). Pick what this buyer likes!</div><div class="bubbles">${pitches.map(p=>`<button class="sbub" data-act="pitch" data-k="${p.id}"><span class="bico">${pitchIcon(p.id,a)}</span><span>"${esc(p.text)}"</span></button>`).join('')}</div>`:''}
+        <div class="talkrow">${pitches.length?`<button class="talkbtn ${c.showTalk!==false?'on':''}" data-act="toggleTalk"><span class="mi">${pitchIcon('color')}</span>💬 Talk it up <small>${c.showTalk!==false?'hide':'show'} ${pitches.length} sales pitch${pitches.length>1?'es':''}</small></button>`:''}<button class="scrap" data-act="keep">No sale, let this buyer go</button></div>
+        ${pitches.length&&c.showTalk!==false?`<div class="lbl" style="margin-top:2px">💬 Say something to raise the price! Pick what THIS buyer likes (each works once).</div><div class="bubbles">${pitches.map(p=>`<button class="sbub" data-act="pitch" data-k="${p.id}"><span class="bico">${pitchIcon(p.id,a)}</span><span>"${esc(p.text)}"</span></button>`).join('')}</div>`:''}
       </div>`;
     }else if((c.phase==='review'||c.phase==='reviewing')&&a){
       const aiReady=sampleFn&&imagesOK&&!freeBlocked;
@@ -3163,7 +3190,7 @@ function newPasser(t){
   m.streetLeft--;const name=pick(FIRST)+' '+pick(LAST);
   if(Math.random()<.2){m.passer={name,seed:name+Math.random(),look:true,line:pick(['Nice stuff! Just looking.','Cool art! No cash on me today.','Ooh, pretty. Maybe next time!'])};return}
   const a=pick(stock),offer=Math.max(1,Math.round(a.value*tm(a)*rand(.5,.55)));
-  m.passer={name,seed:name+Math.random(),artId:a.id,offer,line:pick([`Hey, I like that ${a.title.toLowerCase()}. $${offer}?`,`I'd give you $${offer} for that one.`,`$${offer} for the ${a.title.toLowerCase()}? That's all I've got.`])};
+  m.passer={name,seed:name+Math.random(),artId:a.id,offer,trait:weightedTrait(),line:pick([`Hey, I like that ${a.title.toLowerCase()}. $${offer}?`,`I'd give you $${offer} for that one.`,`$${offer} for the ${a.title.toLowerCase()}? That's all I've got.`])};
 }
 function newFair(t){
   const m=getMarket(),stock=forSale(t),buyers=TRAITS.filter(x=>!x.critic);
@@ -3189,7 +3216,8 @@ function venueHTML(t){
     if(!m.passer&&m.streetLeft>0&&!m.started){m.started=true;newPasser(t)}
     const p=m.passer,a=p&&!p.look&&t.gallery.find(x=>x.id===p.artId);
     body=`<div class="street"><div class="streetscene"><span class="vbig">${STAGE_ICON.street}</span></div>
-      ${p?`<div class="passer">${avatarMini(p.seed)}<div><b>${esc(p.name)}</b><div class="bubble">${esc(p.line)}</div></div>${a?`<span class="wantthumb">${artSVG(a.parts,false,a.title)}</span>`:''}</div>
+      ${p?`<div class="passer">${avatarMini(p.seed)}<div><b>${esc(p.name)}</b>${p.trait&&a?`<span class="trait"><span class="tico">${(TRAIT_ICON[p.trait.id]||(()=>''))()}</span>${p.trait.label}</span>`:''}<div class="bubble">${esc(p.line)}</div></div>${a?`<span class="wantthumb">${artSVG(a.parts,false,a.title)}</span>`:''}</div>
+        ${a&&p.trait&&!p.pitched?`<div class="streettalk"><div class="lbl">💬 Talk it up! One try. Pick what a <b>${p.trait.label.toLowerCase()}</b> would like:</div><div class="bubbles">${pitchesFor(a).map(q=>`<button class="sbub" data-act="streetPitch" data-k="${q.id}"><span class="bico">${pitchIcon(q.id,a)}</span><span>"${esc(q.text)}"</span></button>`).join('')}</div></div>`:''}
         <div class="cmchoices">${a?`<button class="cmc sell" data-act="streetSell"><span class="ticon">${checkSVG()}</span><b>Sell it</b><span class="num cmprice">$${p.offer}</span></button>${p.asked?'':`<button class="cmc ask" data-act="streetAsk"><span class="ticon">${coinSVG()}</span><b>Ask for more</b><span class="num cmprice" style="color:#9a6510!important">$${askFor(p)}</span><span>One try! They might say no.</span></button>`}<button class="cmc" data-act="streetNext"><span class="ticon">${X_SVG}</span><b>No thanks</b><span>Wait for someone else</span></button>`:`<button class="cmc" data-act="streetNext"><span class="ticon">${doorSVG()}</span><b>Next person</b><span>&nbsp;</span></button>`}</div>`
       :`<div class="vempty"><b>${m.streetLeft>0?'The street is quiet.':'That\'s everyone for this turn!'}</b><span>${m.streetLeft>0?'':'Come back next turn for more people walking by.'}</span></div>`}
       <div class="walkers">${Array.from({length:m.streetMax||4},(_,i)=>`<span class="walker ${i<m.streetLeft?'':'gone'}">${ART.person}</span>`).join('')}<span class="muted">${m.streetLeft} more walking by this turn</span></div></div>`;
@@ -3640,7 +3668,7 @@ document.addEventListener('click',e=>{
     case 'pitch':usePitch(el.dataset.k);break;
     case 'walkaway':walkAway();break;
     case 'ttPause':TT.paused=!TT.paused;updateTurnClock();break;
-    case 'toggleTalk':if(customer){customer.showTalk=!customer.showTalk;renderAll()}break;
+    case 'toggleTalk':if(customer){customer.showTalk=customer.showTalk===false;renderAll()}break;
     case 'hubMore':hubMore=!hubMore;renderAll();break;
     case 'buyUp':{const u=UPGRADES.find(x=>x.id===el.dataset.k);if(!t.up)t.up={};if(u&&!t.up[u.id]&&t.money>=u.price){t.money-=u.price;t.up[u.id]=true;toast(`${u.name} installed!`);renderAll()}break}
     case 'contest':openContest();break;
@@ -3654,6 +3682,13 @@ document.addEventListener('click',e=>{
     case 'cmToss':if(critic&&critic.phase==='decide'){const a=critArt();critic.soldArt=a;t.gallery=t.gallery.filter(x=>x.id!==critic.id);hist(t,critic.id,{status:'scrapped'});critic.result='tossed';critic.phase='done';critic.line='Into the bin it goes. Onward!';save();renderAll();renderCritic()}break;
     case 'cmColl':critic=null;$('#modalRoot').innerHTML='';tab='collection';renderAll();break;
     case 'venue':venue=+el.dataset.i;customer=null;renderAll();break;
+    case 'streetPitch':{const m=getMarket(),p=m.passer;if(!p||!p.artId||p.pitched)break;const a=t.gallery.find(x=>x.id===p.artId);if(!a)break;p.pitched=true;const id=el.dataset.k,tr=p.trait;
+      let mood='meh';if(id==='theme'&&tr.theme)mood=a.tags.includes(tr.theme)?'like':'dislike';else if((tr.likes||[]).includes(id))mood='like';else if((tr.dislikes||[]).includes(id))mood='dislike';
+      const TL=TRAIT_LINES[tr.id]||{},ln=k=>pick((TL[k]&&TL[k].length?TL[k]:LINES[k]));
+      if(mood==='like'){const o=p.offer;p.offer=Math.max(o+1,Math.round(o*1.25));p.line=`${ln('like')} Okay, $${p.offer}!`;toast(`They loved it! Offer up $${p.offer-o}`)}
+      else if(mood==='dislike'){if(Math.random()<.45){p.line=`${ln('dislike')} I'm out!`;p.artId=null;p.look=true;toast('Oops! They walked off.')}else{p.offer=Math.max(1,Math.round(p.offer*.9));p.line=`${ln('dislike')} $${p.offer}, tops.`;toast('They did not like that. Offer went down.')}}
+      else{p.line=ln('meh');toast('They shrugged. No change.')}
+      renderAll();break}
     case 'streetSell':{const m=getMarket(),p=m.passer;if(p&&p.artId){const a=sellPiece(t,p.artId,p.offer,p.name);toast(`Sold "${a?a.title:''}" for $${p.offer}!`);newPasser(t);renderAll()}break}
     case 'streetNext':newPasser(t);renderAll();break;
     case 'streetAsk':{const m=getMarket(),p=m.passer;if(p&&p.artId&&!p.asked){p.asked=true;const a=t.gallery.find(x=>x.id===p.artId),stars=a&&a.review?Math.round(a.review.score/2):3,ask=askFor(p);
