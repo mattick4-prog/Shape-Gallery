@@ -10,7 +10,7 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
 - **Classroom teams**: 1 to 8 teams take turns on the big screen. Paint, sell and grow an art career, with vocab review as a way to earn cash.
 - **Arcade game show**: 5 random art games, judged by Judge Pixelworth, who pays $1 to $100. The team with the most money wins.
 - **Artist journey**: 1 to 3 players take turns on one computer (no vocab), with optional robot rivals. Climb from Street corner to Craft fair, Online shop, Gallery and Museum.
-- **Creative studio**: unlimited supplies, no money. Just make art, with optional timer and paint-dry settings.
+- **Creative studio**: unlimited supplies, no money. Just make art, with optional timer and paint-dry settings, plus an Arcade button to play any art game just for fun.
 
 ## How the art works
 

@@ -2758,7 +2758,8 @@ function cur0(){return {vocab:quiz,spot,guess,steady,mix,sketch,reveal:rev,price
 function renderEarn(){
   const games=[...(isFun()?[]:[['vocab','Vocab review','Pick the right definition']]),
     ['steady','Steady Hand','Draw the shape as close as you can'],['mix','Color Mixer','Blend paints to match'],['sketch','Stickman Sketch','Draw it, get judged'],['reveal','Speed Reveal','Name it before it\'s done'],
-    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Frame It','Pick the perfect frame'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Find the hidden treasure']];
+    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()||isCreative()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Frame It','Pick the perfect frame'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Find the hidden treasure']];
+  if(isCreative()){for(let k=games.length-1;k>=0;k--)if(['auction','vocab'].includes(games[k][0]))games.splice(k,1)}
   if(!isParty()&&(!earnGame||!games.some(g=>g[0]===earnGame)))earnGame=games[0][0];
   const t=team(),R=state.settings.reward,max=isParty()?100:2*R;let body='',after=null;
   const SO=state.settings.solo;
@@ -2962,6 +2963,8 @@ function renderEarn(){
     $('#main').innerHTML=`<section class="panel">${partyBar()}${body.replace(/>Next team</,'>'+(P.plays>=state.teams.length-1?(P.idx>=P.games.length-1?'See who won! 🏆':'Next game ▸'):'Next team ▸')+'<')}</section>`;if(after)after();return}
   if(SO){const g=games.find(x=>x[0]===earnGame)||['','',''],fresh=SO.rolled&&Date.now()-SO.rolled<1500;
     $('#main').innerHTML=`<section class="panel"><div class="todaygame ${fresh?'roll':''}"><small>🎲 Your game this time</small><div class="tgrow"><span class="gico">${gameIcon(earnGame)}</span><div><b>${g[1]}</b><span>${g[2]}</span></div></div></div>${body}</section>`;if(after)after();return}
+  if(isCreative()){$('#main').innerHTML=`<section class="panel"><h2>Arcade</h2><p class="muted">Play any art game, as many times as you like. Just for fun!</p>
+    <div class="games">${games.map(([k,l,s])=>`<button class="${earnGame===k?'on':''}" data-act="game" data-k="${k}"><span class="gico">${gameIcon(k)}</span><span>${l}<small>${s}</small></span></button>`).join('')}</div>${body.replace(/>Next team</g,'>Play again<').replace(/>Next round</g,'>Play again<')}</section>`;if(after)after();return}
   $('#main').innerHTML=`<section class="panel"><h2>Earn money</h2><p class="muted">Pick a game for ${esc(t.name)}.${state.settings.autoRotate&&!SO?' Play passes to the next team after each round.':''}${SO?` <b>${3-(SO.played||0)} of 3 games left this round.</b>`:''} Skill games pay more the better you do.</p>
     <div class="games">${games.map(([k,l,s])=>`<button class="${earnGame===k?'on':''}" data-act="game" data-k="${k}"><span class="gico">${gameIcon(k)}</span><span>${l}<small>${s}</small></span></button>`).join('')}</div>${body}
     <div class="tools"><span class="muted">Teacher tools for ${esc(t.name)}:</span><button class="btn ghost small" data-act="adj" data-m="5">+$5</button><button class="btn ghost small" data-act="adj" data-m="-5">−$5</button><button class="btn ghost small" data-act="adj" data-b="1">+1 bonus star</button></div></section>`;
@@ -3035,9 +3038,10 @@ function renderHome(){
   const t=team();
   const btn=(k,ic,col,title,sub,hint,alert,extra)=>`<button class="hubbtn" data-act="${extra||'tab'}" data-tab="${k}" style="--tc:${col}">${alert?`<span class="hubalert">${alert}</span>`:''}<span class="hubicon">${ic}</span><b>${title}</b><span class="hubsub">${sub}</span>${hint?`<span class="hubhint">${hint}</span>`:''}</button>`;
   if(isCreative()){
-    $('#main').innerHTML=`<section class="hub"><div class="hubgrid three">
+    $('#main').innerHTML=`<section class="hub"><div class="hubgrid">
       ${btn('studio',ART.palette,'#7b4fae','Studio','Paint a picture',`${ALL_KEYS.length} pictures to choose from`)}
       ${btn('imagine',ART.robot('#7d4fb3'),'#c2416b','Imagine','Type anything','The AI paints your idea','', 'imagine')}
+      ${btn('earn',gameIcon('steady'),'#2f8a4c','Arcade','Play any game','All the art games, just for fun')}
       ${btn('collection',iconSVG('heart','red'),'#2e7fc9','Collection','Your saved art',`${(t.kept||[]).length} saved`)}
     </div>${shelfHTML(t)}</section>`;return;
   }
