@@ -1094,7 +1094,7 @@ body.party .chip{pointer-events:none}
 .tdwrap{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;align-items:start;margin-top:10px}
 @media (max-width:760px){.tdwrap{grid-template-columns:1fr}}
 .tdboard .mat svg{display:block;width:100%}
-.tdgrid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(12,1fr)}
+.tdgrid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(14,1fr);grid-template-rows:repeat(14,1fr)}
 .tdgrid i{display:grid;place-items:center;font-style:normal;font-size:clamp(12px,2.2vw,22px)}
 .tdgrid i.dirt{background:radial-gradient(circle at 30% 30%,#a4734a,#7a4f2e);box-shadow:inset 0 0 0 1px #5e3c2266;cursor:pointer}
 .tdgrid i.dirt:hover{filter:brightness(1.2)}
@@ -2476,7 +2476,7 @@ async function finishPixArt(){const g=pa;if(!g||g.done||g.judging)return;if(g.ti
   }catch(e){if(['images_unavailable','not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(e&&e.code))imagesOK=false;local()}
 }
 /* ===== Treasure Dig ===== */
-const TD_N=12,TD_MAX=12;
+const TD_N=14,TD_MAX=10;
 function newTreasure(){const key=pick(ALL_KEYS),rec=RECIPES[key],others=shuffle(ALL_KEYS.filter(k=>k!==key&&RECIPES[k].cat===rec.cat)).concat(shuffle(ALL_KEYS.filter(k=>RECIPES[k].cat!==rec.cat))).slice(0,3);let tt;do{tt=Math.floor(Math.random()*TD_N*TD_N)}while(tt===newTreasure.last);newTreasure.last=tt;td={key,opts:shuffle([key,...others]),bonus:false,prevD:null,treasure:tt,dug:Array(TD_N*TD_N).fill(false),heat:{},hint:null,found:false,done:false,teamIdx:state.active}}
 function tdHeat(d){return d===0?['💎','Treasure!','#f2c230']:d===1?['🔥','Super hot! It\'s right next to this spot!','#d8433a']:d<=3?['♨️','Hot! Very close.','#ee8a2b']:d<=5?['🌤️','Warm. Getting there.','#f2c230']:d<=8?['🌥️','Cool. Not very close.','#9ccfee']:['❄️','Freezing! Way off.','#2e62c9']}
 function tdBonus(k){const g=td;if(!g||!g.bonus||g.done)return;g.bonus=false;g.done=true;g.guess=k;g.bonusOk=k===g.key;
@@ -2484,14 +2484,15 @@ function tdBonus(k){const g=td;if(!g||!g.bonus||g.done)return;g.bonus=false;g.do
   g.bonusAmt=g.bonusOk?payTeam(g.teamIdx,isParty()?Math.round(10+40*bf):Math.max(1,Math.round(state.settings.reward*bf))):0;
   if(g.judge){g.judge.amount+=g.bonusAmt;g.judge.comment=g.bonusOk?`${g.judge.comment} And you named the buried painting! Bonus +$${g.bonusAmt}!`:`${g.judge.comment} But the buried painting fooled you. No bonus this time.`}
   save();renderAll()}
-const tdFrac=n=>clamp(1.2-n/10,.1,1);
+const tdFrac=n=>clamp(1.25-n/9,.1,1);
 function tdDig(i){const g=td;if(!g||g.done||g.bonus||g.dug[i])return;if(!g.t0)g.t0=Date.now();g.dug[i]=true;
   const tx=g.treasure%TD_N,ty=Math.floor(g.treasure/TD_N),x=i%TD_N,y=Math.floor(i/TD_N),d=Math.abs(tx-x)+Math.abs(ty-y);
   const n=g.dug.filter(Boolean).length;
   if(d===0){g.heat[i]=['💎','#f2c230'];g.found=true;g.bonus=true;g.tEnd=Date.now();g.earned=gamePay(g,tdFrac(n),{w:0,comment:n<=3?`Found it in ${n} dig${n===1?'':'s'}?! Do you have a treasure map?`:n<=7?'Nice digging! A true treasure hunter.':'Found it! Your shovel is very tired.'});save();renderAll();return}
   const ax=tx-x,ay=ty-y,[ar,word]=Math.abs(ax)>=Math.abs(ay)?(ax>0?['➡️','mostly to the right']:['⬅️','mostly to the left']):(ay>0?['⬇️','mostly below']:['⬆️','mostly above']);
-  const warm=g.prevD==null?(d<=3?'Hot!':d<=7?'Warm.':'Cold, it\'s far.'):d<g.prevD?'Warmer!':d>g.prevD?'Colder.':'Same distance.';
-  const h=[ar,d===1?`Burning! It's right next to this spot, ${word}!`:`${warm} The treasure is ${word}.`,d===1?'#d8433a':g.prevD==null?(d<=3?'#ee8a2b':d<=7?'#f2c230':'#2e62c9'):d<g.prevD?'#ee8a2b':d>g.prevD?'#2e62c9':'#8d939b'];
+  const band=d<=2?['🔥','Hot! The treasure is within 2 squares of here.','#d8433a']:d<=5?['🌤️','Warm. The treasure is within 5 squares of here.','#f2c230']:['❄️','Cold. The treasure is more than 5 squares away.','#2e62c9'];
+  const arrowDig=n%3===0;
+  const h=arrowDig?[ar,`🧭 Arrow dig! The treasure is ${word}. (${band[0]} ${band[1].split('.')[0].split('!')[0]})`,band[2]]:band;
   g.prevD=d;g.heat[i]=[h[0],h[2]];g.hint=`${h[0]} ${h[1]}`;
   if(n>=TD_MAX){g.done=true;g.tEnd=Date.now();g.earned=gamePay(g,0,{comment:'Out of digs! The treasure was hiding right there. Here is a dollar.'});save();renderAll();return}
   renderAll()}
@@ -2775,7 +2776,7 @@ function cur0(){return {vocab:quiz,spot,guess,steady,mix,sketch,reveal:rev,price
 function renderEarn(){
   const games=[...(isFun()?[]:[['vocab','Vocab review','Pick the right definition']]),
     ['steady','Steady Hand','Draw the shape as close as you can'],['mix','Color Mixer','Blend paints to match'],['sketch','Stickman Sketch','Draw it, get judged'],['reveal','Speed Reveal','Name it before it\'s done'],
-    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()||isCreative()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Frame It','Pick the perfect frame'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Follow the arrows to the hidden treasure']];
+    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()||isCreative()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Frame It','Pick the perfect frame'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Dig up the hidden treasure']];
   if(isCreative()){for(let k=games.length-1;k>=0;k--)if(['auction','vocab'].includes(games[k][0]))games.splice(k,1)}
   if(!isParty()&&(!earnGame||!games.some(g=>g[0]===earnGame)))earnGame=games[0][0];
   const t=team(),R=state.settings.reward,max=isParty()?100:2*R;let body='',after=null;
@@ -2946,13 +2947,13 @@ function renderEarn(){
     body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">${g.bonus?'💎 Found it! Bonus round!':g.found?'💎 You found the treasure!':g.done?'Out of digs!':'Find the hidden 💎!'}</div>
       ${g.bonus?`<div class="tdbonus big" id="tdBonus"><b>🖼️ BONUS: What's the painting buried under the dirt?</b><span>Look at the bits you dug up! Pick the right one for extra cash.</span>
         <div class="pxopts four">${g.opts.map(k=>`<button class="btn big" data-act="tdGuess" data-k="${k}">${esc(RECIPES[k].name)}</button>`).join('')}</div></div>`:''}
-      ${g.done||g.bonus?'':`<div class="tdgoal">🎯 <b>Goal:</b> find the ONE square hiding the treasure. Each arrow shows the MAIN direction to the treasure. Only 12 digs! Then guess the buried painting for a bonus.</div>`}
+      ${g.done||g.bonus?'':`<div class="tdgoal">🎯 <b>Goal:</b> find the ONE square hiding the treasure. Hot, warm or cold tells you how close. Every 3rd dig gives an arrow. Only 10 digs! Then guess the buried painting for a bonus.</div>`}
       <div class="tdwrap"><div class="tdboard frame"><div class="mat" style="position:relative">${artSVG(rec.parts,false,rec.name)}
         <div class="tdgrid" id="tdGrid">${g.dug.map((d,i)=>{const isT=i===g.treasure;if((g.done||g.bonus)&&isT)return `<i class="dug gem" data-c="${i}">💎</i>`;if(d){const [ic,col]=g.heat[i]||['?','#999'];return `<i class="dug" data-c="${i}" style="--hc:${col}">${g.bonus||g.done?'':`<span>${ic}</span>`}</i>`}return g.done?`<i class="gone" data-c="${i}"></i>`:`<i class="dirt" data-c="${i}"></i>`}).join('')}</div></div></div>
       <div class="tdside">${g.bonus?`<div class="pxprize"><small>Treasure prize</small><b class="num tdprz">+$${g.earned}</b><span>in ${n} dig${n===1?'':'s'}</span></div>`
-      :g.done?(g.judge?judgeCard(g.judge):''):`<div class="pxprize"><small>Prize if your next dig finds it</small><b id="pxPrize" class="num">$${prize}</b><span><b>${TD_MAX-n}</b> digs left</span></div>
+      :g.done?(g.judge?judgeCard(g.judge):''):`<div class="pxprize"><small>Prize if your next dig finds it</small><b id="pxPrize" class="num">$${prize}</b><span><b>${TD_MAX-n}</b> digs left · ${(n+1)%3===0?'<b>🧭 Next dig is an ARROW dig!</b>':`arrow dig in ${3-((n+1)%3)} dig${3-((n+1)%3)===1?'':'s'}`}</span></div>
         <div class="tdhint ${g.hint?'':'empty'}">${g.hint?esc(g.hint):'⛏️ Tap any tile to start digging!'}</div>
-        <div class="tdlegend"><span>➡️ Arrow = main direction to the treasure</span><span>🟧 Orange = warmer</span><span>🟦 Blue = colder</span></div>`}</div></div>
+        <div class="tdlegend"><span>🔥 Hot = within 2</span><span>🌤️ Warm = within 5</span><span>❄️ Cold = farther</span><span>🧭 Every 3rd dig = arrow</span></div>`}</div></div>
       ${g.done?`<div class="feedback resultbox ${g.found&&g.bonusOk?'okr':'badr'}" style="margin-top:10px"><span class="ricon">${g.found&&g.bonusOk?checkSVG():X_SVG}</span><span>The buried painting was ${/^[aeiou]/i.test(rec.name)?'an':'a'} <b>${esc(rec.name.toLowerCase())}</b>.${g.found?(g.bonusOk?` You got it! Bonus +$${g.bonusAmt}.`:` You guessed ${esc(RECIPES[g.guess].name.toLowerCase())}.`):''}</span></div>`:''}
       ${nextBtn(g.done)}</div>`;
     after=()=>{const bb=$('#tdBonus');if(bb){const r=bb.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)bb.scrollIntoView({behavior:'smooth',block:'center'})}const el=$('#tdGrid');if(el&&!g.done&&!g.bonus)el.onclick=e=>{const t=e.target.closest('[data-c]');if(t)tdDig(+t.dataset.c)}};
@@ -3390,7 +3391,7 @@ const DIRS={
   paintnum:[['🔢','Every part of the picture has a number. The key tells you which color each number is, like "3 = navy".'],['🎨','The paints have NO numbers, and some are tricky look-alikes! Pick the right one, then tap the parts.'],['⏱','45 seconds. A wrong color costs 3 seconds. Fill everything correctly, fast!']],
   frameit:[['🖼️','A painting needs a frame!'],['🤔','Look at the 4 frames and pick the one that suits it best.'],['🧑‍⚖️','The judge rates your taste. Quick picks earn a bit more.']],
   pxart:[['🖼️','You see a picture.'],['🟦','Make your best pixel version of it on the 12×12 grid. Pick a color, then tap or drag. Use 🪣 Fill to color big areas fast.'],['🧑‍⚖️','90 seconds. The judge scores accuracy, creativity and speed.']],
-  treasure:[['💎','Your goal: find the ONE hidden treasure under these 144 dirt tiles.'],['⛏️','Tap a tile to dig. Each dug square shows an arrow (⬆️ ➡️ ⬇️ ⬅️) for the MAIN direction to the treasure, and tells you if you are warmer or colder than your last dig.'],['🖼️','Fewer digs = more money. Only 12 digs! Then a BONUS: guess the painting buried under the dirt from the bits you dug up!']],
+  treasure:[['💎','Your goal: find the ONE hidden treasure under these 196 dirt tiles.'],['⛏️','Tap a tile to dig. Each dig tells you 🔥 HOT (within 2 squares), 🌤️ WARM (within 5) or ❄️ COLD (farther). Every 3rd dig is an 🧭 ARROW dig that shows the main direction (⬆️ ➡️ ⬇️ ⬅️).'],['🖼️','Fewer digs = more money. Only 10 digs! Then a BONUS: guess the painting buried under the dirt from the bits you dug up!']],
   pixel:[['❓','A pixel picture is hiding under 64 gray tiles.'],['👆','Tap tiles to uncover pixels one at a time. Every tile you flip makes the prize smaller!'],['🔔','Hit "I know it!" and pick the answer. Fewer tiles = more money. Wrong = $1.']],
   shapes:[['🧩','You get a few random shapes and a picture to build.'],['👆','Same tools as the Studio: drag to move, tap to turn, pinch or drag the corner to resize, plus the toolbar.'],['⏱','You have 90 seconds. Tap "Done! Call the judge" when finished.']],
   sketch:[['✏️','You get a silly thing to draw, like a stickman surfing.'],['⏱','You have 60 seconds. The clock starts when you start drawing.'],['🧑‍⚖️','Tap "Done! Call the judge" when you finish.']],
@@ -3405,7 +3406,7 @@ function partyDirs(){
   const P=state.settings.party,g=P.games[P.idx];
   return `<section class="panel">${partyBar()}<div class="dirs"><div class="dirhead"><span class="gico big">${gameIcon(g)}</span><div><small>How to play</small><h2>${GAME_NAMES[g]}</h2></div></div>
     <ol class="dirsteps">${DIRS[g].map(([ic,t],i)=>`<li><span class="dnum">${i+1}</span><span class="dico">${ic}</span><span>${t}</span></li>`).join('')}</ol>
-    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'?'Judged on 👌 taste and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 12 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':['copycat','mirror','paintnum'].includes(g)?'Judged on 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
+    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'?'Judged on 👌 taste and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 10 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':['copycat','mirror','paintnum'].includes(g)?'Judged on 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
     <div class="dirorder"><b>Order:</b> ${state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(state.active).concat(state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(0,state.active)).join(' ▸ ')}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn big readgo" data-act="partyGo">✓ We read it! Start ${GAME_NAMES[g]}</button></div></div></section>`;
 }
@@ -3580,6 +3581,18 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&$('#modalRoot').innerHTML&&!critic)$('#modalRoot').innerHTML='';
   if(maker&&maker.phase==='build'&&tab==='studio'&&maker.parts[maker.selIdx]&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(d){e.preventDefault();const p=maker.parts[maker.selIdx];if(!isWet(p))return;wetten(p);p.x=r1(clamp(p.x+d[0],-5,105));p.y=r1(clamp(p.y+d[1],-5,105));drawMaker(true)}else if(e.key==='r'||e.key==='R'){makerOp('rotR')}}
 });
+/* ===== Auto-scroll to the next thing to do ===== */
+function scrollToEl(sel,block){const el=[...document.querySelectorAll(sel)].find(x=>x.offsetParent!==null);if(!el)return;const r=el.getBoundingClientRect(),vh=innerHeight;
+  if(block==='start'){if(r.top<0||r.top>vh*.45){try{window.scrollBy({top:r.top-12,behavior:'smooth'})}catch(_){window.scrollBy(0,r.top-12)}}}
+  else if(r.top<0||r.bottom>vh){try{el.scrollIntoView({behavior:'smooth',block:r.height>vh*.8?'start':'center'})}catch(_){}}}
+const NAV_SCROLL={tab:'#tabs:not([hidden]),#main',home:'#main',team:'#status',endTurn:'#status',game:'#main .q',partyGo:'#main',partyHelp:'#main',next:'#main .q',
+  sel:'.plan',cat:'.pics',venue:'.venuebox',doors:'.customer',streetNext:'.customer',revStart:'#main .gameart',pxKnow:'.pxopts',again:'#main',openPiece:null};
+let lastResultSig=null;
+function resultScroll(){const sels=['#tdBonus','.judgecard','.resultbox','.donebig','.pxopts','#main .thinking','.nocanv'];
+  const present=sels.filter(x=>document.querySelector(x)&&!document.querySelector('#modalRoot .modal'));const sig=new Set(present.map(x=>x+'|'+tab+'|'+earnGame));
+  if(lastResultSig){const fresh=present.find(x=>!lastResultSig.has(x+'|'+tab+'|'+earnGame));if(fresh)setTimeout(()=>scrollToEl(fresh,'center'),80)}
+  lastResultSig=sig}
+{const _ra=renderAll;renderAll=function(){_ra.apply(this,arguments);try{resultScroll()}catch(_){}}}
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el)return;
   const act=el.dataset.act,t=team();
@@ -3728,6 +3741,8 @@ document.addEventListener('click',e=>{
 renderAll();
 state.seenIntro=true;openSetup();
 if(state.setupDone)startTurnTimer();
+
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.closest('#modalRoot'))return;const t=NAV_SCROLL[el.dataset.act];if(t)setTimeout(()=>scrollToEl(t,'start'),60)});
 </script>
 
 </body>
