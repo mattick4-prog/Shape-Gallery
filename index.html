@@ -1116,6 +1116,9 @@ body.party .chip{pointer-events:none}
 .pnkey b{font-size:18px}
 .pnsw.nonum{width:46px;height:46px}
 .tdgoal{text-align:center;background:#fff8e6;border:2px solid #f2c230;border-radius:12px;padding:8px 12px;font-size:17px;max-width:680px;margin:0 auto}
+.tdbonus{margin-top:12px;background:#f8f3ff;border:3px solid #7b4fae;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px;animation:enter .3s ease-out}
+.tdbonus b{font-size:18px}.tdbonus span{font-size:14px}
+.tdprz{display:block;font-family:var(--display);font-weight:400;font-size:clamp(34px,5vw,48px);line-height:1.1;color:#2f8a4c}
 /* Modal */
 .modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));z-index:20}
 .sheet{background:var(--paper);border-radius:16px;padding:22px;width:min(720px,100%);max-height:90vh;overflow:auto}
@@ -2469,12 +2472,17 @@ async function finishPixArt(){const g=pa;if(!g||g.done||g.judging)return;if(g.ti
 }
 /* ===== Treasure Dig ===== */
 const TD_N=10,TD_MAX=15;
-function newTreasure(){const key=pick(ALL_KEYS);td={key,treasure:Math.floor(Math.random()*TD_N*TD_N),dug:Array(TD_N*TD_N).fill(false),heat:{},hint:null,found:false,done:false,teamIdx:state.active}}
+function newTreasure(){const key=pick(ALL_KEYS),rec=RECIPES[key],others=shuffle(ALL_KEYS.filter(k=>k!==key&&RECIPES[k].cat===rec.cat)).concat(shuffle(ALL_KEYS.filter(k=>RECIPES[k].cat!==rec.cat))).slice(0,3);td={key,opts:shuffle([key,...others]),bonus:false,treasure:Math.floor(Math.random()*TD_N*TD_N),dug:Array(TD_N*TD_N).fill(false),heat:{},hint:null,found:false,done:false,teamIdx:state.active}}
 function tdHeat(d){return d===0?['💎','Treasure!','#f2c230']:d===1?['🔥','Super hot! It\'s right next to this spot!','#d8433a']:d<=3?['♨️','Hot! Very close.','#ee8a2b']:d<=5?['🌤️','Warm. Getting there.','#f2c230']:d<=8?['🌥️','Cool. Not very close.','#9ccfee']:['❄️','Freezing! Way off.','#2e62c9']}
+function tdBonus(k){const g=td;if(!g||!g.bonus||g.done)return;g.bonus=false;g.done=true;g.guess=k;g.bonusOk=k===g.key;
+  const shown=g.dug.filter(Boolean).length/g.dug.length,bf=clamp(1-shown*2,.3,1);
+  g.bonusAmt=g.bonusOk?payTeam(g.teamIdx,isParty()?Math.round(10+40*bf):Math.max(1,Math.round(state.settings.reward*bf))):0;
+  if(g.judge){g.judge.amount+=g.bonusAmt;g.judge.comment=g.bonusOk?`${g.judge.comment} And you named the buried painting! Bonus +$${g.bonusAmt}!`:`${g.judge.comment} But the buried painting fooled you. No bonus this time.`}
+  save();renderAll()}
 function tdDig(i){const g=td;if(!g||g.done||g.dug[i])return;if(!g.t0)g.t0=Date.now();g.dug[i]=true;
   const tx=g.treasure%TD_N,ty=Math.floor(g.treasure/TD_N),x=i%TD_N,y=Math.floor(i/TD_N),d=Math.abs(tx-x)+Math.abs(ty-y);g.heat[i]=d;
   const n=g.dug.filter(Boolean).length,[ic,txt]=tdHeat(d);
-  if(d===0){g.found=true;g.done=true;g.tEnd=Date.now();const frac=clamp(1.12-n/12,.1,1);g.earned=gamePay(g,frac,{w:0,comment:n<=3?`Found it in ${n} dig${n===1?'':'s'}?! Do you have a treasure map?`:n<=7?'Nice digging! A true treasure hunter.':'Found it! Your shovel is very tired.'});save();renderAll();return}
+  if(d===0){g.found=true;g.bonus=true;g.tEnd=Date.now();const frac=clamp(1.12-n/12,.1,1);g.earned=gamePay(g,frac,{w:0,comment:n<=3?`Found it in ${n} dig${n===1?'':'s'}?! Do you have a treasure map?`:n<=7?'Nice digging! A true treasure hunter.':'Found it! Your shovel is very tired.'});save();renderAll();return}
   g.hint=`${ic} ${txt}`;
   if(n>=TD_MAX){g.done=true;g.tEnd=Date.now();g.earned=gamePay(g,0,{comment:'Out of digs! The treasure was hiding right there. Here is a dollar.'});save();renderAll();return}
   renderAll()}
@@ -2926,16 +2934,19 @@ function renderEarn(){
   }else if(earnGame==='treasure'){
     if(!td||(!td.done&&td.teamIdx!==state.active&&!td.dug.some(Boolean)))newTreasure();
     const g=td,rec=RECIPES[g.key],n=g.dug.filter(Boolean).length,prize=isParty()?clamp(Math.round(1+99*clamp(1.12-(n+1)/12,.1,1)),1,100):Math.max(1,pay(clamp(1.12-(n+1)/12,.1,1)));
-    body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">${g.found?'💎 You found the treasure!':g.done?'Out of digs!':'Find the hidden 💎!'}</div>
-      ${g.done?'':`<div class="tdgoal">🎯 <b>Goal:</b> find the ONE square hiding the treasure. Dig, read the hint, and get closer!</div>`}
+    body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">${g.bonus?'💎 Found it! Bonus round!':g.found?'💎 You found the treasure!':g.done?'Out of digs!':'Find the hidden 💎!'}</div>
+      ${g.done||g.bonus?'':`<div class="tdgoal">🎯 <b>Goal:</b> find the ONE square hiding the treasure. Dig, read the hint, and get closer! Then guess the buried painting for a bonus.</div>`}
       <div class="tdwrap"><div class="tdboard frame"><div class="mat" style="position:relative">${artSVG(rec.parts,false,rec.name)}
-        <div class="tdgrid" id="tdGrid">${g.dug.map((d,i)=>{const isT=i===g.treasure;if(g.done&&isT)return `<i class="dug gem" data-c="${i}">💎</i>`;if(d){const [ic,,col]=tdHeat(g.heat[i]);return `<i class="dug" data-c="${i}" style="--hc:${col}"><span>${ic}</span></i>`}return g.done?`<i class="gone" data-c="${i}"></i>`:`<i class="dirt" data-c="${i}"></i>`}).join('')}</div></div></div>
-      <div class="tdside">${g.done?(g.judge?judgeCard(g.judge):''):`<div class="pxprize"><small>Prize if your next dig finds it</small><b id="pxPrize" class="num">$${prize}</b><span><b>${TD_MAX-n}</b> digs left</span></div>
+        <div class="tdgrid" id="tdGrid">${g.dug.map((d,i)=>{const isT=i===g.treasure;if((g.done||g.bonus)&&isT)return `<i class="dug gem" data-c="${i}">💎</i>`;if(d){const [ic,,col]=tdHeat(g.heat[i]);return `<i class="dug" data-c="${i}" style="--hc:${col}"><span>${ic}</span></i>`}return g.done?`<i class="gone" data-c="${i}"></i>`:`<i class="dirt" data-c="${i}"></i>`}).join('')}</div></div></div>
+      <div class="tdside">${g.bonus?`<div class="pxprize"><small>Treasure prize</small><b class="num tdprz">+$${g.earned}</b><span>in ${n} dig${n===1?'':'s'}</span></div>
+        <div class="tdbonus"><b>🖼️ Bonus: what's the buried painting?</b><span>Look at the bits you dug up! Right answer = extra cash (more if you dug fewer tiles).</span>
+        <div class="pxopts">${g.opts.map(k=>`<button class="btn ghost big" data-act="tdGuess" data-k="${k}">${esc(RECIPES[k].name)}</button>`).join('')}</div></div>`
+      :g.done?(g.judge?judgeCard(g.judge):''):`<div class="pxprize"><small>Prize if your next dig finds it</small><b id="pxPrize" class="num">$${prize}</b><span><b>${TD_MAX-n}</b> digs left</span></div>
         <div class="tdhint ${g.hint?'':'empty'}">${g.hint?esc(g.hint):'⛏️ Tap any tile to start digging!'}</div>
         <div class="tdlegend">${[1,3,5,8,9].map(d=>{const [ic,t]=tdHeat(d);return `<span>${ic} ${t.split('!')[0].split('.')[0]}</span>`}).join('')}</div>`}</div></div>
-      ${g.done?`<p class="muted" style="text-align:center">🎁 Bonus: the dirt blew away and uncovered a buried painting of ${/^[aeiou]/i.test(rec.name)?'an':'a'} <b>${esc(rec.name.toLowerCase())}</b>!</p>`:''}
+      ${g.done?`<div class="feedback resultbox ${g.found&&g.bonusOk?'okr':'badr'}" style="margin-top:10px"><span class="ricon">${g.found&&g.bonusOk?checkSVG():X_SVG}</span><span>The buried painting was ${/^[aeiou]/i.test(rec.name)?'an':'a'} <b>${esc(rec.name.toLowerCase())}</b>.${g.found?(g.bonusOk?` You got it! Bonus +$${g.bonusAmt}.`:` You guessed ${esc(RECIPES[g.guess].name.toLowerCase())}.`):''}</span></div>`:''}
       ${nextBtn(g.done)}</div>`;
-    after=()=>{const el=$('#tdGrid');if(el&&!g.done)el.onclick=e=>{const t=e.target.closest('[data-c]');if(t)tdDig(+t.dataset.c)}};
+    after=()=>{const el=$('#tdGrid');if(el&&!g.done&&!g.bonus)el.onclick=e=>{const t=e.target.closest('[data-c]');if(t)tdDig(+t.dataset.c)}};
   }else if(earnGame==='shapes'){
     if(!sb||sb.mode!=='build'||(!sb.done&&!sb.judging&&sb.teamIdx!==state.active&&!sb.mk.parts.length))newShapes('build');
     const g=sb,rec=RECIPES[g.key];
@@ -3370,7 +3381,7 @@ const DIRS={
   paintnum:[['🔢','Every part of the picture has a number. The key tells you which color each number is, like "3 = navy".'],['🎨','The paints have NO numbers, and some are tricky look-alikes! Pick the right one, then tap the parts.'],['⏱','45 seconds. A wrong color costs 3 seconds. Fill everything correctly, fast!']],
   frameit:[['🖼️','A painting needs a frame!'],['🤔','Look at the 4 frames and pick the one that suits it best.'],['🧑‍⚖️','The judge rates your taste. Quick picks earn a bit more.']],
   pxart:[['🖼️','You see a picture.'],['🟦','Make your best pixel version of it on the 12×12 grid. Pick a color, then tap or drag. Use 🪣 Fill to color big areas fast.'],['🧑‍⚖️','90 seconds. The judge scores accuracy, creativity and speed.']],
-  treasure:[['💎','Your goal: find the ONE hidden treasure under these 100 dirt tiles.'],['⛏️','Tap a tile to dig. Every dig gives a hint: 🔥 hot = close, ❄️ cold = far. Use the hints to close in!'],['🎁','Fewer digs = more money (15 digs max). Bonus surprise: when you find it, the dirt blows away and shows a painting buried underneath.']],
+  treasure:[['💎','Your goal: find the ONE hidden treasure under these 100 dirt tiles.'],['⛏️','Tap a tile to dig. Every dig gives a hint: 🔥 hot = close, ❄️ cold = far. Use the hints to close in!'],['🖼️','Fewer digs = more money (15 digs max). Then a BONUS: guess the painting buried under the dirt from the bits you dug up!']],
   pixel:[['❓','A pixel picture is hiding under 64 gray tiles.'],['👆','Tap tiles to uncover pixels one at a time. Every tile you flip makes the prize smaller!'],['🔔','Hit "I know it!" and pick the answer. Fewer tiles = more money. Wrong = $1.']],
   shapes:[['🧩','You get a few random shapes and a picture to build.'],['👆','Same tools as the Studio: drag to move, tap to turn, pinch or drag the corner to resize, plus the toolbar.'],['⏱','You have 90 seconds. Tap "Done! Call the judge" when finished.']],
   sketch:[['✏️','You get a silly thing to draw, like a stickman surfing.'],['⏱','You have 60 seconds. The clock starts when you start drawing.'],['🧑‍⚖️','Tap "Done! Call the judge" when you finish.']],
@@ -3385,7 +3396,7 @@ function partyDirs(){
   const P=state.settings.party,g=P.games[P.idx];
   return `<section class="panel">${partyBar()}<div class="dirs"><div class="dirhead"><span class="gico big">${gameIcon(g)}</span><div><small>How to play</small><h2>${GAME_NAMES[g]}</h2></div></div>
     <ol class="dirsteps">${DIRS[g].map(([ic,t],i)=>`<li><span class="dnum">${i+1}</span><span class="dico">${ic}</span><span>${t}</span></li>`).join('')}</ol>
-    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'?'Judged on 👌 taste and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize. Not found in 15 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':['copycat','mirror','paintnum'].includes(g)?'Judged on 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
+    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'?'Judged on 👌 taste and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 15 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':['copycat','mirror','paintnum'].includes(g)?'Judged on 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
     <div class="dirorder"><b>Order:</b> ${state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(state.active).concat(state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(0,state.active)).join(' ▸ ')}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn big readgo" data-act="partyGo">✓ We read it! Start ${GAME_NAMES[g]}</button></div></div></section>`;
 }
@@ -3672,6 +3683,7 @@ document.addEventListener('click',e=>{
     case 'game':stopTimers();earnGame=el.dataset.k;renderAll();break;
     case 'answer':answer(+el.dataset.i);break;
     case 'next':nextRound();break;
+    case 'tdGuess':tdBonus(el.dataset.k);break;
     case 'paSel':if(pa){pa.sel=el.dataset.k||null;document.querySelectorAll('[data-act=paSel]').forEach(b=>b.classList.toggle('on',b===el))}break;
     case 'paTool':if(pa){pa.tool=el.dataset.k;document.querySelectorAll('[data-act=paTool]').forEach(b=>b.classList.toggle('ghost',b!==el))}break;
     case 'paDone':finishPixArt();break;
