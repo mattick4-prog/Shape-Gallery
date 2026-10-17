@@ -1107,6 +1107,15 @@ body.party .chip{pointer-events:none}
 .tdhint.empty{border-style:dashed;color:var(--muted,#667);font-weight:500}
 .tdlegend{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px;font-size:13px}
 .tdlegend span{background:#faf8f2;border-radius:99px;padding:3px 10px}
+.steadyhead{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+.steadyref{width:72px;height:72px;background:#fff;border:2px solid var(--paper-2);border-radius:14px;padding:6px}
+.steadyref svg{width:100%;height:100%}
+.steadyref svg *{fill:none!important;stroke:#1b2a2e!important;stroke-width:4!important}
+.pnkey{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.pnkey span{background:#fff;border:2px solid var(--paper-2);border-radius:99px;padding:3px 12px;font-size:16px}
+.pnkey b{font-size:18px}
+.pnsw.nonum{width:46px;height:46px}
+.tdgoal{text-align:center;background:#fff8e6;border:2px solid #f2c230;border-radius:12px;padding:8px 12px;font-size:17px;max-width:680px;margin:0 auto}
 /* Modal */
 .modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));z-index:20}
 .sheet{background:var(--paper);border-radius:16px;padding:22px;width:min(720px,100%);max-height:90vh;overflow:auto}
@@ -2117,7 +2126,14 @@ const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 
 /* Steady Hand */
 const STEADY_TASKS={line:'the straightest line',circle:'the roundest circle',square:'the most perfect square'};
-function newSteady(task){steady={task:task||pick(Object.keys(STEADY_TASKS)),strokes:[],done:false,teamIdx:state.active,penW:.014,color:'#1b2a2e'}}
+const STEADY_SHAPES={circle:[60,60],oval:[66,40],square:[60,60],rectangle:[72,36],triangle:[64,56],semicircle:[72,36],diamond:[44,66],hexagon:[64,56],star:[64,62],heart:[62,58],crescent:[44,66]};
+const steadyLbl=t=>STEADY_TASKS[t]||`${/^[aeiou]/i.test(t)?'an':'a'} ${t}`;
+function shapeOutlinePts(kind){const [w,h]=STEADY_SHAPES[kind];const holder=document.createElement('div');holder.style.cssText='position:absolute;left:-9999px;width:100px;height:100px';
+  holder.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">${shapeMarkup({kind,x:50,y:50,w,h,color:'white'})}</svg>`;document.body.appendChild(holder);
+  const el=holder.querySelector('circle,ellipse,rect,polygon,path');let pts=[];try{const L=el.getTotalLength();for(let i=0;i<180;i++){const q=el.getPointAtLength(L*i/180);pts.push([q.x,q.y])}}catch(e){}holder.remove();return pts}
+function normPts(pts){const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),sz=Math.max(x1-x0,y1-y0)||1,cx=(x0+x1)/2,cy=(y0+y1)/2;return{pts:pts.map(p=>[(p[0]-cx)/sz,(p[1]-cy)/sz]),cx,cy,sz}}
+function avgNear(A,B){let t=0;for(const a of A){let m=1e9;for(const b of B){const d=(a[0]-b[0])**2+(a[1]-b[1])**2;if(d<m)m=d}t+=Math.sqrt(m)}return t/A.length}
+function newSteady(task){steady={task:task||pick(['line','circle','square',...Object.keys(STEADY_SHAPES).filter(k=>!['circle','square'].includes(k)),'star','heart','triangle']),strokes:[],done:false,teamIdx:state.active,penW:.014,color:'#1b2a2e'}}
 function scoreSteady(pts){
   const s=steady;let score=0,msg='',overlay=null;
   if(pts.length<5){msg='That was just a dot! Try a full stroke next time.'}
@@ -2135,6 +2151,12 @@ function scoreSteady(pts){
     else{const sd=Math.sqrt(ds.reduce((t,d)=>t+(d-r)**2,0)/ds.length);const gap=dist(pts[0],pts[pts.length-1])/r;
       score=clamp(Math.round(100-sd/r*350-Math.max(0,gap-.1)*40-Math.max(0,330-sweep)*.4),0,100);if(sweep<300)msg='Close the circle all the way around next time.'}
     overlay=(ctx,S)=>{ctx.strokeStyle='#e3a63b';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();ctx.arc(c[0]*S,c[1]*S,r*S,0,Math.PI*2);ctx.stroke();ctx.setLineDash([])};
+  }else if(s.task!=='square'){
+    const T=shapeOutlinePts(s.task),D0=pts.filter((p,i)=>i%Math.ceil(pts.length/220)===0),dn=normPts(D0),tn=normPts(T);
+    if(dn.sz<.15)msg='Too small! Make it bigger.';
+    else if(T.length){const d=(avgNear(dn.pts,tn.pts)+avgNear(tn.pts,dn.pts))/2,gap=dist(pts[0],pts[pts.length-1])/dn.sz;
+      score=clamp(Math.round(100-(d-.012)*800-Math.max(0,gap-.12)*60),0,100);if(gap>.25)msg=`Close up your ${s.task} next time so the ends meet.`}
+    overlay=(ctx,S)=>{if(!T.length)return;ctx.strokeStyle='#e3a63b';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();tn.pts.forEach((q,i)=>{const X=(dn.cx+q[0]*dn.sz)*S,Y=(dn.cy+q[1]*dn.sz)*S;i?ctx.lineTo(X,Y):ctx.moveTo(X,Y)});ctx.closePath();ctx.stroke();ctx.setLineDash([])};
   }else{
     const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),w=x1-x0,h=y1-y0,side=(w+h)/2;
     if(side<.15)msg='Too small! Make it bigger.';
@@ -2146,7 +2168,7 @@ function scoreSteady(pts){
     overlay=(ctx,S)=>{ctx.strokeStyle='#e3a63b';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.strokeRect((cx-side/2)*S,(cy-side/2)*S,side*S,side*S);ctx.setLineDash([])};
   }
   s.done=true;s.tEnd=Date.now();s.score=score;s.overlay=overlay;s.earned=gamePay(s,score/100,{fast:3,slow:20,w:.2,comment:score>=85?'Smooth as butter. I am impressed.':score>=60?'Nice and steady! A tiny wobble.':score>=30?'That line had a little dance party.':'Did an earthquake happen mid-draw?'});
-  if(pts.length>=5)saveSketch(s.teamIdx,{title:STEADY_TASKS[s.task][0].toUpperCase()+STEADY_TASKS[s.task].slice(1),game:'Steady Hand',strokes:slim(s.strokes),score:`${score}/100`,earned:s.earned});
+  if(pts.length>=5)saveSketch(s.teamIdx,{title:steadyLbl(s.task)[0].toUpperCase()+steadyLbl(s.task).slice(1),game:'Steady Hand',strokes:slim(s.strokes),score:`${score}/100`,earned:s.earned});
   s.msg=msg||(score>=90?'Incredible! Steady as a surgeon.':score>=70?'Nice and steady.':score>=40?'A little wobbly.':'Did the table shake?');
 }
 
@@ -2355,18 +2377,20 @@ async function judgeOneLine(){
 }
 /* Paint by number */
 function newPaintNum(){
-  const keys=ALL_KEYS.filter(k=>{const n=RECIPES[k].parts.filter(p=>p.w*p.h>=40).length;return n>=5&&n<=12});
-  const key=pick(keys),parts=RECIPES[key].parts.map(p=>({...p})),auto=parts.map(p=>p.w*p.h<40);
-  const colors=[...new Set(parts.filter((p,i)=>!auto[i]).map(p=>p.color))];
-  pn={key,parts,auto,colors,fills:parts.map((p,i)=>auto[i]?p.color:null),sel:0,need:auto.filter(a=>!a).length,done:false,teamIdx:state.active,left:60,timer:null,started:false};
+  const keys=ALL_KEYS.filter(k=>{const pp=RECIPES[k].parts,n=pp.filter(p=>p.w*p.h>=14).length;return n>=9&&n<=18&&new Set(pp.map(p=>p.color)).size>=4});
+  const key=pick(keys),parts=RECIPES[key].parts.map(p=>({...p})),auto=parts.map(p=>p.w*p.h<14);
+  const colors=shuffle([...new Set(parts.filter((p,i)=>!auto[i]).map(p=>p.color))]);
+  const decoys=shuffle(COLOR_ORDER.filter(c=>!colors.includes(c))).slice(0,Math.max(0,8-colors.length));
+  pn={key,parts,auto,colors,pal:shuffle([...colors,...decoys]),fills:parts.map((p,i)=>auto[i]?p.color:null),sel:null,need:auto.filter(a=>!a).length,done:false,teamIdx:state.active,left:45,timer:null,started:false,miss:0};
 }
 function pnSVG(){const g=pn;return `<rect width="100" height="100" fill="#fff"/>${g.parts.map((p,i)=>{const f=g.fills[i],q={...p,color:f||'white'};return `<g data-pp="${i}" style="cursor:${g.done||g.auto[i]?'default':'pointer'}"><g transform="${xf(q)}">${shapeMarkup(q)}</g></g>`}).join('')}${g.parts.map((p,i)=>{if(g.auto[i]||(g.fills[i]&&!g.done&&g.fills[i]===p.color))return '';const big=p.w>=95&&p.h>=95,fs=clamp(Math.min(p.w,p.h)*.45,3,7),[x,y]=big?pnFree(i,[[6,7],[94,7],[6,93],[94,93],[50,6]]):pnFree(i,[[p.x,p.y],[p.x,p.y-p.h*.3],[p.x,p.y+p.h*.3],[p.x-p.w*.3,p.y],[p.x+p.w*.3,p.y],[p.x-p.w*.3,p.y-p.h*.3],[p.x+p.w*.3,p.y+p.h*.3]]);const wrong=g.fills[i]&&g.fills[i]!==p.color;return `<text x="${x}" y="${y}" font-size="${fs}" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-weight="800" fill="${wrong?'#d8433a':'#1b2a2e'}" stroke="#fff" stroke-width="${fs*.12}" paint-order="stroke" pointer-events="none">${g.colors.indexOf(p.color)+1}</text>`}).join('')}`}
 function pnFree(i,cands){const above=pn.parts.slice(i+1).filter(q=>!(q.w>=95&&q.h>=95));for(const c of cands){if(!above.some(q=>Math.abs(c[0]-q.x)<q.w/2+1&&Math.abs(c[1]-q.y)<q.h/2+1))return c}return cands[0]}
-function pnTap(i){const g=pn;if(!g||g.done||g.auto[i])return;if(!g.started){g.started=true;g.t0=Date.now();gClock(g,'pnTime',finishPaintNum)}g.fills[i]=g.colors[g.sel];
+function pnTap(i){const g=pn;if(!g||g.done||g.auto[i])return;if(!g.sel){toast('Pick a paint color first!');return}if(!g.started){g.started=true;g.t0=Date.now();gClock(g,'pnTime',finishPaintNum)}
+  if(g.fills[i]===g.sel)return;g.fills[i]=g.sel;if(g.sel!==g.parts[i].color){g.miss++;g.left=Math.max(1,g.left-3);toast('Wrong color! −3 seconds')}
   if(g.parts.every((p,k)=>g.fills[k]===p.color)){finishPaintNum();return}renderAll()}
 function finishPaintNum(){const g=pn;if(!g||g.done)return;if(g.timer){clearInterval(g.timer);g.timer=null}g.tEnd=Date.now();g.done=true;
   let ok=0;g.parts.forEach((p,i)=>{if(!g.auto[i]&&g.fills[i]===p.color)ok++});const acc=ok/g.need;
-  g.earned=gamePay(g,acc,{fast:12,slow:60,w:.3,comment:acc>=1?'Every number, perfectly painted! Are you a robot?':acc>=.7?'Nicely done! Just a few mix-ups.':acc>=.4?'Some numbers got very creative colors.':'Were the numbers just suggestions?'});save();renderAll()}
+  g.earned=gamePay(g,acc,{fast:15,slow:45,w:.3,comment:acc>=1?'Every number, perfectly painted! Are you a robot?':acc>=.7?'Nicely done! Just a few mix-ups.':acc>=.4?'Some numbers got very creative colors.':'Were the numbers just suggestions?'});save();renderAll()}
 /* Frame it */
 const FRAMES=[{id:'gold',name:'Fancy gold',c:'#e3a63b',c2:'#b9802c',mat:'#fffaf0',tone:'warm'},{id:'black',name:'Modern black',c:'#262626',c2:'#000',mat:'#ffffff',tone:'neutral'},{id:'wood',name:'Cozy wood',c:'#8a5a35',c2:'#5e3c22',mat:'#f6efe0',tone:'warm'},{id:'white',name:'Gallery white',c:'#f4f4f0',c2:'#d8d8d0',mat:'#ffffff',tone:'neutral'},{id:'neon',name:'Neon pink',c:'#ff4fa3',c2:'#c2186b',mat:'#fff0f7',tone:'pink'},{id:'ocean',name:'Ocean blue',c:'#2e62c9',c2:'#1d3f8a',mat:'#eef5ff',tone:'blue'},{id:'silver',name:'Shiny silver',c:'#c9ced3',c2:'#8d939b',mat:'#ffffff',tone:'neutral'},{id:'red',name:'Bold red',c:'#d8433a',c2:'#9c2a23',mat:'#fff5f3',tone:'red'},{id:'leaf',name:'Leafy green',c:'#3f9a4d',c2:'#2a6b35',mat:'#f1fbf2',tone:'green'},{id:'grape',name:'Royal purple',c:'#7d4fb3',c2:'#55327e',mat:'#f7f1ff',tone:'purple'},{id:'sun',name:'Sunny yellow',c:'#f2c230',c2:'#c99a14',mat:'#fffbea',tone:'yellow'}];
 function newFrame(){const key=pick(ALL_KEYS),rec=RECIPES[key];fr={key,title:rec.name,parts:rec.parts,opts:shuffle(FRAMES).slice(0,4),picked:null,scores:null,done:false,judging:false,teamIdx:state.active}}
@@ -2733,8 +2757,8 @@ function optButtons(opts,picked,correct,label){return `<div class="opts">${opts.
 function cur0(){return {vocab:quiz,spot,guess,steady,mix,sketch,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame]}
 function renderEarn(){
   const games=[...(isFun()?[]:[['vocab','Vocab review','Pick the right definition']]),
-    ['steady','Steady Hand','Straightest line, best shape'],['mix','Color Mixer','Blend paints to match'],['sketch','Stickman Sketch','Draw it, get judged'],['reveal','Speed Reveal','Name it before it\'s done'],
-    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Frame It','Pick the perfect frame'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Follow the hints to the treasure']];
+    ['steady','Steady Hand','Draw the shape as close as you can'],['mix','Color Mixer','Blend paints to match'],['sketch','Stickman Sketch','Draw it, get judged'],['reveal','Speed Reveal','Name it before it\'s done'],
+    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Frame It','Pick the perfect frame'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Find the hidden treasure']];
   if(!isParty()&&(!earnGame||!games.some(g=>g[0]===earnGame)))earnGame=games[0][0];
   const t=team(),R=state.settings.reward,max=isParty()?100:2*R;let body='',after=null;
   const SO=state.settings.solo;
@@ -2752,10 +2776,9 @@ function renderEarn(){
     if(!steady||(!steady.done&&steady.teamIdx!==state.active&&!steady.strokes.length))newSteady();
     const s=steady;s.single=true;
     body=`<div class="q"><div class="muted" style="text-align:center">${who(s.teamIdx)}: one try, no redos. Up to $${max}.</div>
-      <div class="term" style="font-size:clamp(26px,4vw,40px)">Draw ${STEADY_TASKS[s.task]}</div>
-      ${!s.done&&!s.strokes.length?`<div class="actions" style="justify-content:center">${Object.keys(STEADY_TASKS).map(k=>`<button class="btn small ${s.task===k?'':'ghost'}" data-act="steadyTask" data-k="${k}">${k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div>`:''}
+      <div class="steadyhead"><div class="term" style="font-size:clamp(26px,4vw,40px);margin:0">Draw ${steadyLbl(s.task)}</div>${s.task!=='line'?`<div class="steadyref" title="Draw this shape">${iconSVG(s.task,'white')}</div>`:''}</div>
       <canvas id="steadyPad" class="drawpad" aria-label="Drawing area"></canvas>
-      ${s.done?`<div class="term" style="font-size:40px">${s.score}<span style="font-size:22px">/100</span></div>${result(s.score>=40,`${esc(s.msg)} ${who(s.teamIdx)} earns $${s.earned}.`)}<p class="muted" style="text-align:center;margin:0">The gold dashed shape is the perfect version.</p>`:`<p class="muted" style="text-align:center;margin:0">Press, draw in one smooth stroke, and let go. It scores as soon as you lift.</p>`}
+      ${s.done?`<div class="term" style="font-size:40px">${s.score}<span style="font-size:22px">/100</span></div>${result(s.score>=40,`${esc(s.msg)} ${who(s.teamIdx)} earns $${s.earned}.`)}<p class="muted" style="text-align:center;margin:0">The gold dashed outline is the perfect version, sized to your drawing.</p>`:`<p class="muted" style="text-align:center;margin:0">Press, draw in one smooth stroke, and let go. It scores as soon as you lift.</p>`}
       ${nextBtn(s.done)}</div>`;
     after=()=>bindPad('steadyPad',s,st=>{scoreSteady(st.pts);renderAll()});
   }else if(earnGame==='mix'){
@@ -2854,11 +2877,13 @@ function renderEarn(){
     if(!pn||(!pn.done&&pn.teamIdx!==state.active&&!pn.fills.some(Boolean)))newPaintNum();
     const g=pn,rec=RECIPES[g.key];
     if(g.started&&!g.done&&!g.timer)gClock(g,'pnTime',finishPaintNum);
-    const pal=g.colors.map((c,i)=>`<button class="pnsw ${g.sel===i?'on':''}" data-act="pnSel" data-n="${i}" style="--c:${COLORS[c]}" ${g.done?'disabled':''}><span>${i+1}</span></button>`).join('');
+    const pal=g.pal.map(c=>`<button class="pnsw nonum ${g.sel===c?'on':''}" data-act="pnSel" data-k="${c}" style="--c:${COLORS[c]}" aria-label="${c}" ${g.done?'disabled':''}></button>`).join('');
+    const legend=g.colors.map((c,i)=>`<span><b>${i+1}</b> = ${c}</span>`).join('');
     body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">Paint the ${esc(rec.name.toLowerCase())}!</div>
-      <div class="muted" style="text-align:center">${who(g.teamIdx)}: tap a numbered paint, then tap every part with that number. <b>60 seconds</b>, starts on your first tap. Up to $${max}.</div>
+      <div class="muted" style="text-align:center">${who(g.teamIdx)}: read the color key, pick the matching paint, then tap every part with that number. Wrong color = −3 seconds! <b>45 seconds</b>. Up to $${max}.</div>
+      <div class="pnkey">${legend}</div>
       <div class="pnwrap"><div class="frame"><div class="mat"><svg id="pnBoard" viewBox="0 0 100 100" class="pnboard" role="img" aria-label="Paint by number picture">${pnSVG()}</svg></div></div>
-      <div class="pnside">${g.done?(g.judge?judgeCard(g.judge):''):`<div class="lbl">Paints</div><div class="pnpal">${pal}</div><div class="sbclock"><span>⏱</span><b id="pnTime" class="num">${g.left}s</b></div><div class="muted" style="text-align:center">${g.fills.filter((f,i)=>f!=null&&!g.auto[i]).length} of ${g.need} parts painted</div><div style="text-align:center;margin-top:10px"><button class="btn violet" data-act="pnDone" ${g.fills.some(Boolean)?'':'disabled'}>Done!</button></div>`}</div></div>
+      <div class="pnside">${g.done?(g.judge?judgeCard(g.judge):''):`<div class="lbl">Paints (no numbers. Read the key!)</div><div class="pnpal">${pal}</div><div class="sbclock"><span>⏱</span><b id="pnTime" class="num">${g.left}s</b></div><div class="muted" style="text-align:center">${g.fills.filter((f,i)=>f!=null&&!g.auto[i]).length} of ${g.need} parts painted</div><div style="text-align:center;margin-top:10px"><button class="btn violet" data-act="pnDone" ${g.fills.some(Boolean)?'':'disabled'}>Done!</button></div>`}</div></div>
       ${nextBtn(g.done)}</div>`;
     after=()=>{const b=$('#pnBoard');if(b)b.onclick=e=>{const t=e.target.closest('[data-pp]');if(t)pnTap(+t.dataset.pp)}};
   }else if(earnGame==='frameit'){
@@ -2900,14 +2925,14 @@ function renderEarn(){
   }else if(earnGame==='treasure'){
     if(!td||(!td.done&&td.teamIdx!==state.active&&!td.dug.some(Boolean)))newTreasure();
     const g=td,rec=RECIPES[g.key],n=g.dug.filter(Boolean).length,prize=isParty()?clamp(Math.round(1+99*clamp(1.12-(n+1)/12,.1,1)),1,100):Math.max(1,pay(clamp(1.12-(n+1)/12,.1,1)));
-    body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">${g.found?'💎 You found the treasure!':g.done?'Out of digs!':'Dig for the treasure!'}</div>
-      <div class="muted" style="text-align:center">${who(g.teamIdx)}: tap a tile to dig. Follow the hot and cold hints. ${TD_MAX} digs max.</div>
+    body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">${g.found?'💎 You found the treasure!':g.done?'Out of digs!':'Find the hidden 💎!'}</div>
+      ${g.done?'':`<div class="tdgoal">🎯 <b>Goal:</b> find the ONE square hiding the treasure. Dig, read the hint, and get closer!</div>`}
       <div class="tdwrap"><div class="tdboard frame"><div class="mat" style="position:relative">${artSVG(rec.parts,false,rec.name)}
         <div class="tdgrid" id="tdGrid">${g.dug.map((d,i)=>{const isT=i===g.treasure;if(g.done&&isT)return `<i class="dug gem" data-c="${i}">💎</i>`;if(d){const [ic,,col]=tdHeat(g.heat[i]);return `<i class="dug" data-c="${i}" style="--hc:${col}"><span>${ic}</span></i>`}return g.done?`<i class="gone" data-c="${i}"></i>`:`<i class="dirt" data-c="${i}"></i>`}).join('')}</div></div></div>
       <div class="tdside">${g.done?(g.judge?judgeCard(g.judge):''):`<div class="pxprize"><small>Prize if your next dig finds it</small><b id="pxPrize" class="num">$${prize}</b><span><b>${TD_MAX-n}</b> digs left</span></div>
         <div class="tdhint ${g.hint?'':'empty'}">${g.hint?esc(g.hint):'⛏️ Tap any tile to start digging!'}</div>
         <div class="tdlegend">${[1,3,5,8,9].map(d=>{const [ic,t]=tdHeat(d);return `<span>${ic} ${t.split('!')[0].split('.')[0]}</span>`}).join('')}</div>`}</div></div>
-      ${g.done?`<p class="muted" style="text-align:center">The buried picture was ${/^[aeiou]/i.test(rec.name)?'an':'a'} <b>${esc(rec.name.toLowerCase())}</b>!</p>`:''}
+      ${g.done?`<p class="muted" style="text-align:center">🎁 Bonus: the dirt blew away and uncovered a buried painting of ${/^[aeiou]/i.test(rec.name)?'an':'a'} <b>${esc(rec.name.toLowerCase())}</b>!</p>`:''}
       ${nextBtn(g.done)}</div>`;
     after=()=>{const el=$('#tdGrid');if(el&&!g.done)el.onclick=e=>{const t=e.target.closest('[data-c]');if(t)tdDig(+t.dataset.c)}};
   }else if(earnGame==='shapes'){
@@ -3338,14 +3363,14 @@ const DIRS={
   copycat:[['👀','A little shape picture appears for 6 seconds. Memorize it!'],['🙈','It disappears. Rebuild it on the canvas with the same shapes, colors and spots.'],['🎯','The closer your copy (and the faster), the more you win.']],
   mirror:[['🦋','Half of a picture is already on the canvas.'],['🪞','Build the other half so it is a perfect mirror image.'],['🎯','Match the shapes, colors and spots. Faster = more!']],
   oneline:[['✏️','You get something to draw, like a cat or a bike.'],['☝️','Draw it in ONE line. As soon as you lift your finger, you are done!'],['🧑‍⚖️','The judge scores creativity, accuracy and speed.']],
-  paintnum:[['🔢','Every part of the picture has a number.'],['🎨','Tap a numbered paint, then tap the parts with that number.'],['⚡','Fill every part correctly as fast as you can.']],
+  paintnum:[['🔢','Every part of the picture has a number. The key tells you which color each number is, like "3 = navy".'],['🎨','The paints have NO numbers, and some are tricky look-alikes! Pick the right one, then tap the parts.'],['⏱','45 seconds. A wrong color costs 3 seconds. Fill everything correctly, fast!']],
   frameit:[['🖼️','A painting needs a frame!'],['🤔','Look at the 4 frames and pick the one that suits it best.'],['🧑‍⚖️','The judge rates your taste. Quick picks earn a bit more.']],
   pxart:[['🖼️','You see a picture.'],['🟦','Make your best pixel version of it on the 12×12 grid. Pick a color, then tap or drag. Use 🪣 Fill to color big areas fast.'],['🧑‍⚖️','90 seconds. The judge scores accuracy, creativity and speed.']],
-  treasure:[['🏝️','A picture is buried under 100 dirt tiles, and a treasure is hidden under one of them.'],['⛏️','Tap a tile to dig. After each dig you get a hint: 🔥 hot means close, ❄️ cold means far away.'],['💎','Find the treasure in as few digs as you can! You get 15 digs. Fewer digs = more money.']],
+  treasure:[['💎','Your goal: find the ONE hidden treasure under these 100 dirt tiles.'],['⛏️','Tap a tile to dig. Every dig gives a hint: 🔥 hot = close, ❄️ cold = far. Use the hints to close in!'],['🎁','Fewer digs = more money (15 digs max). Bonus surprise: when you find it, the dirt blows away and shows a painting buried underneath.']],
   pixel:[['❓','A pixel picture is hiding under 64 gray tiles.'],['👆','Tap tiles to uncover pixels one at a time. Every tile you flip makes the prize smaller!'],['🔔','Hit "I know it!" and pick the answer. Fewer tiles = more money. Wrong = $1.']],
   shapes:[['🧩','You get a few random shapes and a picture to build.'],['👆','Same tools as the Studio: drag to move, tap to turn, pinch or drag the corner to resize, plus the toolbar.'],['⏱','You have 90 seconds. Tap "Done! Call the judge" when finished.']],
   sketch:[['✏️','You get a silly thing to draw, like a stickman surfing.'],['⏱','You have 60 seconds. The clock starts when you start drawing.'],['🧑‍⚖️','Tap "Done! Call the judge" when you finish.']],
-  steady:[['〰️','Draw a straight line, a round circle or a square.'],['☝️','One try only! No redos.'],['⚡','Smoother wins more. Faster wins a little more.']],
+  steady:[['🔷','You get a shape to draw: a star, heart, hexagon, crescent, triangle, line and more.'],['☝️','One try only! No redos.'],['⚡','Smoother wins more. Faster wins a little more.']],
   mix:[['🎨','Look at the target color.'],['💧','Tap paint buttons to drop colors into the bowl.'],['🥄','Drag inside the bowl to stir, then lock it in.']],
   reveal:[['👀','A picture appears one shape at a time.'],['🔔','Hit "I know it!" as soon as you can guess it.'],['✅','Pick the right answer. Sooner = more money!']],
   guess:[['🖼️','A wonky picture was painted with only 3 shapes.'],['🤔','Guess what it was supposed to be.'],['⚡','Right answers pay more the faster you pick.']],
@@ -3655,7 +3680,7 @@ document.addEventListener('click',e=>{
     case 'pSave':{const nm=($('#pName').value||'').trim().slice(0,18);if(!nm){toast('Type a name first!');break}const pr=curProfile();pr.name=nm;pr.look=profileForm.look;saveProfiles();renderAll();openSetup();break}
     case 'pDel':{if(!el.dataset.arm){el.dataset.arm='1';el.textContent='Tap again to delete forever';setTimeout(()=>{if(el.isConnected){delete el.dataset.arm;el.textContent='🗑 Delete player'}},3000);break}
       const id=profiles.cur;try{localStorage.removeItem(stateKey(id))}catch(e){}profiles.list=profiles.list.filter(x=>x.id!==id);profiles.cur=null;switchProfile(profiles.list[0].id);toast('Player deleted.');break}
-    case 'pnSel':if(pn){pn.sel=+el.dataset.n;renderAll()}break;
+    case 'pnSel':if(pn){pn.sel=el.dataset.k;document.querySelectorAll('[data-act=pnSel]').forEach(b=>b.classList.toggle('on',b===el))}break;
     case 'pnDone':finishPaintNum();break;
     case 'frPick':pickFrame(+el.dataset.n);break;
     case 'pxKnow':if(px&&!px.done){px.guessing=true;renderAll()}break;
