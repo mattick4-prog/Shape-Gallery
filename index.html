@@ -1073,6 +1073,7 @@ body.party .chip{pointer-events:none}
 .plook svg{width:70%;height:70%}
 .plook.on{border-color:var(--ink);background:#fff8e6}
 .playerbtn{display:inline-flex;align-items:center;gap:6px}
+.pnames{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 /* Modal */
 .modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));z-index:20}
 .sheet{background:var(--paper);border-radius:16px;padding:22px;width:min(720px,100%);max-height:90vh;overflow:auto}
@@ -2515,9 +2516,9 @@ function renderHeader(){{const pb=$('#playerBtn'),pr=curProfile();if(pb&&pr)pb.i
   $('.teambar').hidden=isCreative();
   const cb=document.querySelector('.collbtn .mi');if(cb)cb.innerHTML=iconSVG('heart','red');
   const t=team(),gain=(lastMoney[state.active]!=null&&t.money>lastMoney[state.active])?t.money-lastMoney[state.active]:0;
-  $('.tb-label').innerHTML=isParty()?`<b>Scoreboard</b><span>Most money after 5 games wins</span>`:isSolo()?(hasRivals()?`<b>Artist journey vs the computers</b><span>${roundLbl()} · ${CPU_DIFF[state.settings.solo.diff].label} · ${state.settings.solo.rounds?'most money at the end wins':'no day limit'}</span>`:`<b>Your artist journey</b><span>${roundLbl()} · 3 actions a day · climb from the street to the gallery</span>`):`<b>Teams</b><span>Tap a team to make it their turn</span>`;
-  $('#teams').innerHTML=state.teams.map((x,i)=>`<button class="chip ${i===state.active?'on':''} ${x.cpu?'cpuchip':''}" data-act="team" data-i="${i}" aria-pressed="${i===state.active}" title="Earned $${x.earned} from ${x.sold} sales">${i===state.active?`<span class="ribbon">${isSolo()?'You':'Playing'}</span>`:''}<span class="ti">${teamIcon(i)}</span><b>${esc(x.name)}</b>${x.cpu?'<span class="cpu">CPU</span>':''}<span class="coin num">$${x.money}</span></button>`).join('');
-  $('#status').innerHTML=`<div class="turn"><span class="ti big">${teamIcon(state.active)}</span><div><small>${isCreative()?'Creative studio':isSolo()?roundLbl():(tab==='home'?'Your turn: pick one!':'It\'s your turn')}</small><div class="who">${esc(t.name)}</div></div>${turnClockHTML()}${tab==='home'&&!isCreative()?`<button class="btn endturn ghostend" data-act="endTurn" ${thinking||maker?'disabled':''}>${isSolo()?'End day ▸':'Skip turn ▸'}</button>`:''}</div>
+  $('.tb-label').innerHTML=isParty()?`<b>Scoreboard</b><span>Most money after 5 games wins</span>`:multiHuman()?`<b>Artist journey · ${humans().length} players</b><span>${roundLbl()} · 3 actions each per day${hasRivals()?' · vs the computers':''}${state.settings.solo.rounds?' · most money at the end wins':''}</span>`:isSolo()?(hasRivals()?`<b>Artist journey vs the computers</b><span>${roundLbl()} · ${CPU_DIFF[state.settings.solo.diff].label} · ${state.settings.solo.rounds?'most money at the end wins':'no day limit'}</span>`:`<b>Your artist journey</b><span>${roundLbl()} · 3 actions a day · climb from the street to the gallery</span>`):`<b>Teams</b><span>Tap a team to make it their turn</span>`;
+  $('#teams').innerHTML=state.teams.map((x,i)=>`<button class="chip ${i===state.active?'on':''} ${x.cpu?'cpuchip':''}" data-act="team" data-i="${i}" aria-pressed="${i===state.active}" title="Earned $${x.earned} from ${x.sold} sales">${i===state.active?`<span class="ribbon">${isSolo()&&!multiHuman()?'You':'Playing'}</span>`:''}<span class="ti">${teamIcon(i)}</span><b>${esc(x.name)}</b>${x.cpu?'<span class="cpu">CPU</span>':''}<span class="coin num">$${x.money}</span></button>`).join('');
+  $('#status').innerHTML=`<div class="turn"><span class="ti big">${teamIcon(state.active)}</span><div><small>${isCreative()?'Creative studio':isSolo()?roundLbl():(tab==='home'?'Your turn: pick one!':'It\'s your turn')}</small><div class="who">${esc(t.name)}</div></div>${turnClockHTML()}${tab==='home'&&!isCreative()?`<button class="btn endturn ghostend" data-act="endTurn" ${thinking||maker?'disabled':''}>${isSolo()?endLbl():'Skip turn ▸'}</button>`:''}</div>
     <div class="stats">
       ${isCreative()?`<div class="stat"><small>Made</small><span class="num">${(t.history||[]).length}</span></div><div class="stat"><small>Collection</small><span class="num">${(t.kept||[]).length}</span></div>`:`<div class="stat money"><small>Money</small><span class="num">$${t.money}</span>${gain?`<i class="floatup">+$${gain}</i>`:''}</div>`}
       ${isCreative()?'':`<div class="stat rep"><small>Reputation</small><span class="num"><span class="mi">${STAR_I()}</span>${t.rep||0}</span></div>
@@ -2527,7 +2528,7 @@ function renderHeader(){{const pb=$('#playerBtn'),pr=curProfile();if(pb&&pr)pb.i
   const pf=document.querySelector('.pfbtn .mi');if(pf)pf.innerHTML=iconSVG('heart','pink');
   const nav=$('#tabs');nav.hidden=tab==='home';
   if(tab!=='home'){const L=TAB_LOOK[tab]||['','circle','#555',''],next=isSolo()?null:state.teams[(state.active+1)%state.teams.length];
-    nav.innerHTML=`<button class="secbtn home" data-act="home">◂ Home</button><div class="sectitle" style="--tc:${L[2]}"><span class="mi">${iconSVG(L[1],'white')}</span><b>${L[0]}</b><small>${L[3]}</small></div>${isCreative()?'<span></span>':`<button class="secbtn end" data-act="endTurn" ${thinking||maker?'disabled':''}>${isSolo()?'End day ▸':`End turn ▸ <small>${esc(next.name)} next</small>`}</button>`}`}
+    nav.innerHTML=`<button class="secbtn home" data-act="home">◂ Home</button><div class="sectitle" style="--tc:${L[2]}"><span class="mi">${iconSVG(L[1],'white')}</span><b>${L[0]}</b><small>${L[3]}</small></div>${isCreative()?'<span></span>':`<button class="secbtn end" data-act="endTurn" ${thinking||maker?'disabled':''}>${isSolo()?endLbl():`End turn ▸ <small>${esc(next.name)} next</small>`}</button>`}`}
   state.teams.forEach((x,i)=>lastMoney[i]=x.money);
 }
 function reportHTML(a){
@@ -2912,7 +2913,7 @@ function renderHome(){
   const next=!hintsOn()?'':(fs>=2||(fs&&!canPaint)||unrev)?'gallery':canPaint?'studio':t.money>=(hasCanvas(t)?5:CANVAS_PRICE)?'shop':'earn';
   const tips={studio:'Paint something!',gallery:'Sell your art!',shop:'Get supplies!',earn:'Earn some cash!'};
   const bigBtn=(k,ic,col,title,sub,hint,alert)=>`<button class="hubbtn ${next===k?'suggest':''}" data-act="tab" data-tab="${k}" style="--tc:${col}">${next===k?`<span class="nexttag">👉 ${tips[k]}</span>`:alert?`<span class="hubalert">${alert}</span>`:''}<span class="hubicon">${ic}</span><b>${title}</b><span class="hubsub">${sub}</span>${hint?`<span class="hubhint">${hint}</span>`:''}</button>`;
-  const dayBar=SO?`<div class="daybar ${actLeft()?'':'out'}"><span class="mi">${iconSVG('star','yellow')}</span><b>${roundLbl()}</b>${actionPips()}<span>${actLeft()?`${actLeft()} action${actLeft()===1?'':'s'} left today`:'All done for today!'}</span>${actLeft()?'':`<button class="btn" data-act="endTurn">End day ▸</button>`}${hasRivals()?`<button class="btn ghost small rivalbtn" data-act="rivalG" data-i="-1">🖼 See rival galleries</button>`:''}</div>`:'';
+  const dayBar=SO?`<div class="daybar ${actLeft()?'':'out'}"><span class="mi">${iconSVG('star','yellow')}</span><b>${roundLbl()}</b>${actionPips()}<span>${multiHuman()?`<b>${esc(team().name)}</b>: `:''}${actLeft()?`${actLeft()} action${actLeft()===1?'':'s'} left today`:multiHuman()&&!lastHuman()?'Turn over! Pass to the next player.':'All done for today!'}</span>${actLeft()?'':`<button class="btn" data-act="endTurn">${endLbl()}</button>`}${hasRivals()?`<button class="btn ghost small rivalbtn" data-act="rivalG" data-i="-1">🖼 See rival galleries</button>`:''}</div>`:'';
   const w=ensureWorld(),f=dayFlags(t),catName=(CATS.find(c=>c[0]===w.trend)||['',''])[1],look=CAT_LOOK[w.trend]||['star','yellow'],nx=STAGES[cur+1];
   const evs=[];
   if(w.contest&&!f.contest)evs.push(`<button class="evchip contest" data-act="contest"><span class="mi">${ribbonSVG('gold')}</span>Contest!</button>`);
@@ -3141,12 +3142,16 @@ const CPU_NAMES=['Robo Rembrandt','Pixel Picasso','Vincent van Bot'];
 const CPU_DIFF={easy:{earn:[6,9],sell:[.75,.95],paints:2,cap:[.5,.9],label:'Easy'},normal:{earn:[7,12],sell:[.9,1.1],paints:2,cap:[.7,1.05],label:'Normal'},hard:{earn:[10,15],sell:[1.05,1.3],paints:2,cap:[.85,1.15],label:'Hard'}};
 const isSolo=()=>!!state.settings.solo;
 const hasRivals=()=>state.teams.some(t=>t.cpu);
+const humans=()=>state.teams.map((t,i)=>({t,i})).filter(x=>!x.t.cpu);
+const multiHuman=()=>isSolo()&&humans().length>1;
+const lastHuman=()=>{const h=humans();return !h.length||state.active===h[h.length-1].i};
+const endLbl=()=>multiHuman()&&!lastHuman()?'End turn ▸':'End day ▸';
 const DAY_ACTIONS=3;
 function roundLbl(){const S=state.settings.solo;return S.rounds?`Day ${Math.min(S.round,S.rounds)} of ${S.rounds}`:`Day ${S.round}`}
 function actLeft(){const S=state.settings.solo;if(!S)return 99;if(S.left==null)S.left=DAY_ACTIONS;return S.left}
 function snapVisit(){const t=team();return JSON.stringify([t.money,t.gallery.length,(t.history||[]).length,Object.values(t.shapes).reduce((a,b)=>a+b,0),Object.values(t.paint).reduce((a,b)=>a+b,0),t.unlocked.length,(t.listings||[]).length])}
 function actionPips(){const n=actLeft();return `<span class="apips" aria-label="${n} of ${DAY_ACTIONS} actions left today">${Array.from({length:DAY_ACTIONS},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</span>`}
-let setupForm={ctime:90,cdry:9,who:'teams',teams:6,mode:'classroom',rivals:0,diff:'normal',rounds:0,name:'You'};
+let setupForm={players:1,n2:'Player 2',n3:'Player 3',ctime:90,cdry:9,who:'teams',teams:6,mode:'classroom',rivals:0,diff:'normal',rounds:0,name:'You'};
 const ART={
   book:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M10 22 Q30 14 50 24 V86 Q30 76 10 84 Z" fill="#2e62c9"/><path d="M90 22 Q70 14 50 24 V86 Q70 76 90 84 Z" fill="#4a7ee0"/><path d="M18 36 Q30 32 42 38 M18 48 Q30 44 42 50 M58 38 Q70 32 82 36 M58 50 Q70 44 82 48" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`,
   palette:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 10 C20 10 8 34 12 56 C16 78 36 90 54 88 C64 87 64 76 58 70 C52 63 58 56 66 58 C80 61 92 54 90 40 C88 22 72 10 50 10 Z" fill="#f2d6a2" stroke="#b9925a" stroke-width="3"/><circle cx="32" cy="36" r="7" fill="#d8433a"/><circle cx="50" cy="26" r="7" fill="#f2c230"/><circle cx="70" cy="32" r="7" fill="#2e62c9"/><circle cx="28" cy="58" r="7" fill="#3f9a4d"/><circle cx="42" cy="74" r="7" fill="#7d4fb3"/></svg>`,
@@ -3195,8 +3200,10 @@ function openSetupInner(){
     ${f.who==='teams'||f.who==='arcade'?`<div class="sstep"><span class="snum">2</span><b>Choose how many teams</b></div>
       <div class="teamcount"><button class="bigstep" data-act="setupStep" data-d="-1" ${f.teams<=1?'disabled':''} aria-label="Fewer teams">−</button><div class="tcbox"><span class="num tcnum">${f.teams}</span><div class="tsrow">${teamIcons}</div></div><button class="bigstep" data-act="setupStep" data-d="1" ${f.teams>=8?'disabled':''} aria-label="More teams">+</button></div>`
     :`<div class="sstep"><span class="snum">2</span><b>Set up your journey</b></div>
-      <div class="field"><label for="soloName">Your gallery name</label><input id="soloName" maxlength="20" value="${esc(f.name)}"></div>
-      <div class="optrow"><span class="optlbl">Rivals</span>${setupOpt('rivals',0,'',`<span class="robots"><span>${ART.person}</span></span><small>Just me</small>`)}${[1,2,3].map(n=>setupOpt('rivals',n,'',`<span class="robots">${Array.from({length:n},(_,i)=>`<span>${ART.robot(['#c2412f','#2e62c9','#3f9a4d'][i])}</span>`).join('')}</span><small>${n}</small>`)).join('')}</div>
+      <div class="optrow"><span class="optlbl">Players</span>${[1,2,3].map(n=>setupOpt('players',n,'',`<span class="robots">${Array.from({length:n},(_,k)=>`<span>${iconSVG(TEAM_LOOK[k][0],TEAM_LOOK[k][1])}</span>`).join('')}</span><small>${n===1?'Just me':n+' players'}</small>`)).join('')}</div>
+      <div class="pnames"><div class="field"><label for="soloName">${+f.players>1?'Player 1':'Your gallery name'}</label><input id="soloName" maxlength="20" value="${esc(f.name)}"></div>${+f.players>=2?`<div class="field"><label for="soloName2">Player 2</label><input id="soloName2" maxlength="20" value="${esc(f.n2)}"></div>`:''}${+f.players>=3?`<div class="field"><label for="soloName3">Player 3</label><input id="soloName3" maxlength="20" value="${esc(f.n3)}"></div>`:''}</div>
+      ${+f.players>1?'<p class="muted" style="margin:0 0 8px;font-size:14px">Take turns on this computer. Each player gets 3 actions a day and their own money, art and supplies.</p>':''}
+      <div class="optrow"><span class="optlbl">Rivals</span>${setupOpt('rivals',0,'',`<span class="robots"><span>${ART.person}</span></span><small>${+f.players>1?'No robots':'Just me'}</small>`)}${[1,2,3].map(n=>setupOpt('rivals',n,'',`<span class="robots">${Array.from({length:n},(_,i)=>`<span>${ART.robot(['#c2412f','#2e62c9','#3f9a4d'][i])}</span>`).join('')}</span><small>${n}</small>`)).join('')}</div>
       <div class="optrow" ${+f.rivals?'':'hidden'}><span class="optlbl">Difficulty</span>${[['easy',1,'Easy'],['normal',2,'Normal'],['hard',3,'Hard']].map(([v,n,l])=>setupOpt('diff',v,'',`<span class="dstars">${stars(n)}</span><small>${l}</small>`)).join('')}</div>
       <div class="optrow"><span class="optlbl">Length</span>${[[0,4,'No limit'],[10,1,'10 days'],[15,2,'15 days'],[20,3,'20 days']].map(([v,n,l])=>setupOpt('rounds',v,'',`${bars(n)}<small>${l}</small>`)).join('')}</div>`}`}
     <div style="text-align:center;margin-top:18px"><button class="btn big" data-act="startGame">Start the game! ▸</button></div>
@@ -3208,7 +3215,7 @@ function startGame(){
   const party=f.who==='arcade'?{games:shuffle([...PARTY_POOL]).slice(0,PARTY_N),idx:0,plays:0,over:false,ready:-1}:null;
   const s={settings:{party,turnSecs:f.who==='teams'?90:0,paintSecs:f.who==='solo'?0:f.who==='creative'?+f.ctime:90,drySecs:f.who==='creative'?+f.cdry:9,mode:f.who==='teams'?'classroom':'fun',reward:4,startMoney:15,autoRotate:f.who==='teams'||f.who==='arcade',creative:f.who==='creative',solo:f.who==='solo'?{rounds:+f.rounds,round:1,diff:f.diff}:null},vocabText:state.vocabText||DEFAULT_VOCAB,active:0,seq:1,turnNo:0,seenIntro:true,setupDone:true};
   if(f.who==='creative'){s.teams=[creativeTeam(f.name==='You'?'Artist':f.name)]}
-  else if(f.who==='solo'){s.teams=[newTeam(f.name,30),...CPU_NAMES.slice(0,+f.rivals).map(n=>({...newTeam(n,30),cpu:true}))]}
+  else if(f.who==='solo'){const n2=$('#soloName2'),n3=$('#soloName3');if(n2)f.n2=n2.value.trim().slice(0,20)||'Player 2';if(n3)f.n3=n3.value.trim().slice(0,20)||'Player 3';s.teams=[newTeam(f.name,30),...(+f.players>=2?[newTeam(f.n2,30)]:[]),...(+f.players>=3?[newTeam(f.n3,30)]:[]),...CPU_NAMES.slice(0,+f.rivals).map(n=>({...newTeam(n,30),cpu:true}))]}
   else s.teams=Array.from({length:+f.teams},(_,i)=>newTeam(TEAM_NAMES[i]||('Team '+(i+1)),30));
   if(party)s.teams.forEach(t=>t.money=0);
   state=s;quiz=spot=guess=steady=mix=sketch=rev=price=auction=sb=ol=pn=fr=px=null;customer=null;thinking=null;maker=null;sel=null;earnGame=null;lastMoney={};tab='home';TT.team=-1;
@@ -3274,12 +3281,12 @@ function partyOver(){if(!state.settings.party._counted){state.settings.party._co
 function rivalGallery(i){
   const rivals=state.teams.map((t,k)=>({t,k})).filter(x=>x.t.cpu);if(!rivals.length)return;
   if(i<0||!state.teams[i]||!state.teams[i].cpu)i=rivals[0].k;
-  const t=state.teams[i],me=state.teams.find(x=>!x.cpu),st=STAGES[stageIdx(t)],ret=rivalGallery.ret;
+  const t=state.teams[i],me=team().cpu?humans()[0].t:team(),st=STAGES[stageIdx(t)],ret=rivalGallery.ret;
   const thumb=(a,lbl)=>`<div class="rgpiece"><div class="frame"><div class="mat">${artSVG(a.parts,false,a.title)}</div></div><b>${esc(a.title)}</b><span class="muted num">${lbl}</span></div>`;
   $('#modalRoot').innerHTML=`<div class="modal" data-act="closeBg"><div class="sheet rgsheet" role="dialog" aria-label="Rival gallery">
     <div class="rgtabs">${rivals.map(x=>`<button class="${x.k===i?'on':''}" data-act="rivalG" data-i="${x.k}"><span class="ti">${teamIcon(x.k)}</span>${esc(x.t.name)}</button>`).join('')}</div>
     <div class="rghead"><span class="rgbot">${ART.robot(['#c2412f','#2e62c9','#3f9a4d'][(rivals.findIndex(x=>x.k===i))%3])}</span><div><small>Rival's gallery</small><h2>${esc(t.name)}</h2><span class="muted">${CPU_DIFF[state.settings.solo.diff].label} robot artist</span></div></div>
-    <div class="rgstats"><div><small>Money</small><b class="num">$${t.money}</b><span class="muted">${t.money>me.money?`$${t.money-me.money} ahead of you`:t.money<me.money?`$${me.money-t.money} behind you`:'Tied with you'}</span></div><div><small>Selling at</small><b>${st.name}</b></div><div><small>Pieces sold</small><b class="num">${t.sold||0}</b></div><div><small>Earned from art</small><b class="num">$${t.earned||0}</b></div></div>
+    <div class="rgstats"><div><small>Money</small><b class="num">$${t.money}</b><span class="muted">${t.money>me.money?`$${t.money-me.money} ahead of ${multiHuman()?esc(me.name):'you'}`:t.money<me.money?`$${me.money-t.money} behind ${multiHuman()?esc(me.name):'you'}`:`Tied with ${multiHuman()?esc(me.name):'you'}`}</span></div><div><small>Selling at</small><b>${st.name}</b></div><div><small>Pieces sold</small><b class="num">${t.sold||0}</b></div><div><small>Earned from art</small><b class="num">$${t.earned||0}</b></div></div>
     <h3>On their wall now (${t.gallery.length})</h3>${t.gallery.length?`<div class="rggrid">${t.gallery.map(a=>thumb(a,`Worth about $${a.value}`)).join('')}</div>`:'<p class="muted">Their wall is empty right now.</p>'}
     <h3>Recently sold</h3>${(t.soldArt||[]).length?`<div class="rggrid">${t.soldArt.map(a=>thumb(a,`Sold for $${a.amt} · day ${a.day}`)).join('')}</div>`:'<p class="muted">Nothing sold yet.</p>'}
     <div style="text-align:center;margin-top:16px"><button class="btn big" data-act="${ret?'rivalBack':'closeSet'}">${ret?'◂ Back to the report':'Close'}</button></div></div></div>`;
@@ -3319,14 +3326,15 @@ function endTurn(){
   if(isCreative())return;
   state.turnNo=(state.turnNo||0)+1;venue=null;
   if(!isSolo()){stopTimers();customer=null;sel=null;off={colors:[],shapes:[]};state.active=(state.active+1)%state.teams.length;tickListings(team());tab='home';save();startTurnTimer();renderAll();turnSplash();return}
-  tickListings(state.teams.find(x=>!x.cpu));
+  tickListings(team());
   tab='home';
+  if(multiHuman()&&!lastHuman()){const h=humans(),k=h.findIndex(x=>x.i===state.active),S0=state.settings.solo;stopTimers();customer=null;sel=null;off={colors:[],shapes:[]};state.active=h[k+1].i;S0.left=DAY_ACTIONS;S0.played=0;S0.visit=null;save();renderAll();turnSplash();return}
   const S=state.settings.solo,reports=state.teams.map((t,i)=>t.cpu?{t,i,log:cpuTurn(t,i)}:null).filter(Boolean);
-  customer=null;stopTimers();lifeAdd('days');S.round++;S.played=0;S.left=DAY_ACTIONS;S.visit=null;save();
+  customer=null;stopTimers();lifeAdd('days');if(humans().length)state.active=humans()[0].i;S.round++;S.played=0;S.left=DAY_ACTIONS;S.visit=null;save();
   if(S.rounds&&S.round>S.rounds){gameOver();return}
-  if(!reports.length){save();renderAll();toast(`Day ${S.round}! You have ${DAY_ACTIONS} actions today.`);return}
+  if(!reports.length){save();renderAll();if(multiHuman())turnSplash();toast(multiHuman()?`Day ${S.round}! ${team().name} goes first.`:`Day ${S.round}! You have ${DAY_ACTIONS} actions today.`);return}
   $('#modalRoot').innerHTML=`<div class="modal" data-act="closeBg"><div class="sheet" role="dialog" aria-label="Rival report">
-    <h2>Day ${S.round-1} report</h2><p class="muted">Here's what your rivals did while you were busy.</p>
+    <h2>Day ${S.round-1} report</h2><p class="muted">Here's what your rivals did while you were busy.${multiHuman()?` Next up: <b>${esc(team().name)}</b>.`:''}</p>
     <div class="reports">${reports.map(r=>`<div class="report-card"><div class="rc-head"><span class="ti">${teamIcon(r.i)}</span><b>${esc(r.t.name)}</b></div><div class="loglines">${r.log.map(l=>`<div class="logl"><span class="lico">${logIcon(l)}</span><span>${esc(l[0].toUpperCase()+l.slice(1))}</span></div>`).join('')}</div>${r.t.gallery.length?`<div class="rthumbs">${r.t.gallery.slice(-3).map(a=>`<span class="rth">${artSVG(a.parts,false,a.title)}</span>`).join('')}</div>`:''}</div>`).join('')}</div>
     <div style="text-align:center;margin:10px 0"><button class="btn violet" data-act="rivalG" data-i="-1">🖼 See rival galleries</button></div>
     <h3>Standings</h3>${standingsHTML()}
@@ -3334,9 +3342,9 @@ function endTurn(){
   renderAll();
 }
 function gameOver(){
-  const rows=[...state.teams].sort((a,b)=>b.money-a.money),me=state.teams.find(t=>!t.cpu),won=rows[0]===me;
+  const rows=[...state.teams].sort((a,b)=>b.money-a.money),me=multiHuman()?rows.find(t=>!t.cpu):state.teams.find(t=>!t.cpu),won=rows[0]===me;
   $('#modalRoot').innerHTML=`<div class="modal"><div class="sheet intro" role="dialog" aria-label="Game over">
-    <div class="introhead ${won?'win':''}"><div class="introshapes">${iconSVG('star','yellow')}${iconSVG('star','yellow')}${iconSVG('star','yellow')}</div><h2>${won?'You win!':`${esc(rows[0].name)} wins!`}</h2><p>${won?'Your gallery is the talk of the town.':'The robots out-hustled you this time. Rematch?'}</p></div>
+    <div class="introhead ${won?'win':''}"><div class="introshapes">${iconSVG('star','yellow')}${iconSVG('star','yellow')}${iconSVG('star','yellow')}</div><h2>${won&&!multiHuman()?'You win!':`${esc(rows[0].name)} wins!`}</h2><p>${won?(multiHuman()?'The top artist in town!':'Your gallery is the talk of the town.'):'The robots out-hustled you this time. Rematch?'}</p></div>
     <h3>Final standings</h3>${standingsHTML()}
     <div style="text-align:center;margin-top:16px"><button class="btn big" data-act="newGame">Play again</button></div></div></div>`;
   renderAll();
@@ -3416,7 +3424,7 @@ document.addEventListener('click',e=>{
   if(act==='closeBg'){if(e.target===el){const wasHelp=!!$('.intro');if(wasHelp){state.seenIntro=true;save()}$('#modalRoot').innerHTML='';if(wasHelp&&(!state.setupDone||helpFromSetup)){helpFromSetup=false;openSetup()}}return}
   if(act!=='scrap')scrapArm=null;
   switch(act){
-    case 'team':if(state.teams[+el.dataset.i].cpu){rivalGallery(+el.dataset.i);break}stopTimers();state.active=+el.dataset.i;customer=null;sel=null;off={colors:[],shapes:[]};tab='home';startTurnTimer();renderAll();break;
+    case 'team':if(state.teams[+el.dataset.i].cpu){rivalGallery(+el.dataset.i);break}if(isSolo()){if(+el.dataset.i!==state.active)toast(`It's ${team().name}'s turn. Tap ${endLbl().replace(' ▸','')} when you're done.`);break}stopTimers();state.active=+el.dataset.i;customer=null;sel=null;off={colors:[],shapes:[]};tab='home';startTurnTimer();renderAll();break;
     case 'home':{stopTimers();if(maker&&maker.arcade&&!isParty()){maker=null;if(sb&&sb.timer){clearInterval(sb.timer);sb.timer=null}}const S=state.settings.solo;if(isSolo()&&S&&S.visit&&S.visit.snap===snapVisit()&&!critic&&!maker){S.left=Math.min(DAY_ACTIONS,actLeft()+1);toast('Nothing done there, so you got that action back.')}if(S)S.visit=null;tab='home';customer=null;renderAll();break}
     case 'tab':{const nt=el.dataset.tab;if(maker&&maker.arcade&&!isParty()){maker=null;if(sb&&sb.timer){clearInterval(sb.timer);sb.timer=null}}
       if(isSolo()&&tab==='home'&&['studio','gallery','shop','earn'].includes(nt)){const S=state.settings.solo;if(actLeft()<=0){toast('No actions left today. Tap End day to start tomorrow.');break}S.left--;S.visit={snap:snapVisit(),tab:nt};S.visitGame=0;if(nt==='earn'){const pool=['steady','mix','sketch','reveal','guess','price','spot','auction','shapes','copycat','mirror','oneline','paintnum','frameit','pixel',...(isFun()?[]:['vocab'])].filter(g=>g!==S.lastGame||Math.random()<.15);earnGame=pick(pool);S.lastGame=earnGame;quiz=spot=guess=steady=mix=sketch=rev=price=auction=sb=ol=pn=fr=px=null;S.rolled=Date.now()}save()}
@@ -3506,7 +3514,7 @@ document.addEventListener('click',e=>{
     case 'callCritic':summonCritic(+el.dataset.id);break;
     case 'help':helpFromSetup=!!$('.setup');openHelp();break;
     case 'closeHelp':state.seenIntro=true;save();$('#modalRoot').innerHTML='';if(!state.setupDone||helpFromSetup)openSetup();helpFromSetup=false;break;
-    case 'setup':{const k=el.dataset.k,v=el.dataset.v;const nm=$('#soloName');if(nm)setupForm.name=nm.value;setupForm[k]=/^\d+$/.test(v)?+v:v;openSetup();break}
+    case 'setup':{const k=el.dataset.k,v=el.dataset.v;const nm=$('#soloName');if(nm)setupForm.name=nm.value;const n2=$('#soloName2'),n3=$('#soloName3');if(n2)setupForm.n2=n2.value;if(n3)setupForm.n3=n3.value;setupForm[k]=/^\d+$/.test(v)?+v:v;openSetup();break}
     case 'setupStep':setupForm.teams=clamp(setupForm.teams+ +el.dataset.d,1,8);openSetup();break;
     case 'startGame':startGame();break;
     case 'newGame':openSetup();break;
