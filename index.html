@@ -1066,7 +1066,7 @@ body.party .chip{pointer-events:none}
 .puzzle-board,.puzzle-tray{aspect-ratio:1;grid-template-rows:repeat(4,minmax(0,1fr))}
 .puzzle-tray{background:#f0f3f1}
 .puzzle-piece,.puzzle-slot{position:relative;min-width:0;min-height:0;border:2px solid #fff;border-radius:5px;background-color:#fff;box-shadow:0 1px 3px #172b2d33;padding:0;overflow:hidden}
-.puzzle-piece{width:100%;height:100%;cursor:grab;touch-action:none}
+.puzzle-piece{width:100%;height:100%;cursor:grab;touch-action:pan-y}
 .puzzle-piece svg,.puzzle-slot svg{display:block;width:100%;height:100%}
 .puzzle-piece.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1;transform:scale(.94)}
 .puzzle-slot.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1}
@@ -2666,6 +2666,7 @@ function bindPuzzleDrag(){
   const point=(e)=>{if(ghost){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px'}clearTarget();const hit=document.elementFromPoint(e.clientX,e.clientY),slot=hit&&hit.closest('[data-act="puzzleSlot"]');if(slot&&!slot.disabled){slot.classList.add('puzzle-drop-target');target=slot}};
   root.onpointerdown=e=>{
     const piece=e.target.closest('[data-puzzle-piece]');if(!piece||!root.contains(piece)||fr.done)return;
+    if(e.pointerType==='touch')return;
     e.preventDefault();const id=+piece.dataset.puzzlePiece,from=fr.board.indexOf(id);
     drag={id,from,x:e.clientX,y:e.clientY,moved:false,pointerId:e.pointerId};if(root.setPointerCapture)root.setPointerCapture(e.pointerId);
   };
