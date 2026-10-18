@@ -24,7 +24,7 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
 
 ## Art games (17)
 
-Steady Hand, Color Mixer, Stickman Sketch, Speed Reveal, Guess the Masterpiece, Price Is Right, Shape Spotter, Art Auction, Shape Builder, Copycat, Mirror Me, One-Line Wonder, Paint by Number Race, Picture Puzzle (put together 20 pieces), Pixel Mystery, Pixel Artist and Treasure Dig.
+Steady Hand, Color Mixer, Stickman Sketch, Speed Reveal, Guess the Masterpiece, Price Is Right, Shape Spotter, Art Auction, Shape Builder, Copycat, Mirror Me, One-Line Wonder, Paint by Number Race, Picture Puzzle (put together 20 pieces; background-only pieces can go anywhere), Pixel Mystery, Pixel Artist and Treasure Dig.
 
 ## Player accounts
 

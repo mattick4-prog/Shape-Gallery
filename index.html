@@ -2623,8 +2623,27 @@ const PUZZLE_PIECES=20,PUZZLE_COLS=5,PUZZLE_ROWS=4;
 function newFrame(){
   const key=pick(ALL_KEYS),rec=RECIPES[key];
   fr={key,title:rec.name,parts:rec.parts,
+    required:puzzleRequiredPieces(rec.parts),
     tray:shuffle(Array.from({length:PUZZLE_PIECES},(_,i)=>i)),board:Array(PUZZLE_PIECES).fill(null),selected:null,drag:null,
     done:false,started:false,teamIdx:state.active,left:90,total:90,timer:null};
+}
+function puzzleRequiredPieces(parts){
+  const bounds=parts.filter(p=>!(p.kind==='rectangle'&&+p.x===50&&+p.y===50&&+p.w>=100&&+p.h>=100)).map(p=>{
+    let w=+p.w,h=+p.h;
+    if(p.kind==='circle'||p.kind==='square')w=h=(w+h)/2;
+    const a=(+p.rot||0)*Math.PI/180,c=Math.abs(Math.cos(a)),s=Math.abs(Math.sin(a)),hw=(w*c+h*s)/2,hh=(w*s+h*c)/2,pad=.5;
+    return{left:+p.x-hw-pad,right:+p.x+hw+pad,top:+p.y-hh-pad,bottom:+p.y+hh+pad};
+  });
+  return Array.from({length:PUZZLE_PIECES},(_,i)=>{
+    const left=i%PUZZLE_COLS*(100/PUZZLE_COLS),top=Math.floor(i/PUZZLE_COLS)*(100/PUZZLE_ROWS);
+    return bounds.some(b=>b.left<left+100/PUZZLE_COLS&&b.right>left&&b.top<top+100/PUZZLE_ROWS&&b.bottom>top);
+  });
+}
+function puzzleCorrectCount(g){
+  return g.board.reduce((count,piece,i)=>count+(piece!=null&&(!g.required[piece]||piece===i)?1:0),0);
+}
+function puzzleIsComplete(g){
+  return g.board.every((piece,i)=>piece!=null&&(!g.required[piece]||piece===i));
 }
 function puzzlePieceSVG(g,i){
   const x=i%PUZZLE_COLS*(100/PUZZLE_COLS),y=Math.floor(i/PUZZLE_COLS)*(100/PUZZLE_ROWS),w=100/PUZZLE_COLS,h=100/PUZZLE_ROWS;
@@ -2655,7 +2674,7 @@ function puzzlePlace(slot){
   if(from>=0){const displaced=g.board[slot];g.board[slot]=piece;g.board[from]=displaced}
   else{g.tray=g.tray.filter(i=>i!==piece);if(g.board[slot]!=null)g.tray.push(g.board[slot]);g.board[slot]=piece}
   g.selected=null;clearPuzzleFollow();
-  if(g.board.every((tile,i)=>tile===i)){finishPicturePuzzle();return}
+  if(puzzleIsComplete(g)){finishPicturePuzzle();return}
   renderAll();
 }
 let puzzleSuppressClick=false;
@@ -2708,7 +2727,7 @@ function puzzleMove(piece,from,to){
   if(from>=0){const displaced=g.board[to];g.board[to]=piece;g.board[from]=displaced}
   else{g.tray=g.tray.filter(i=>i!==piece);if(g.board[to]!=null)g.tray.push(g.board[to]);g.board[to]=piece}
   g.selected=null;clearPuzzleFollow();
-  if(g.board.every((tile,i)=>tile===i)){finishPicturePuzzle();return}
+  if(puzzleIsComplete(g)){finishPicturePuzzle();return}
   renderAll();
 }
 function puzzleMoveToTray(piece,from){
@@ -2719,7 +2738,7 @@ function finishPicturePuzzle(){
   const g=fr;if(!g||g.done)return;
   if(g.timer){clearInterval(g.timer);g.timer=null}
   g.tEnd=Date.now();g.done=true;
-  const placed=g.board.filter((tile,i)=>tile===i).length,accuracy=placed/PUZZLE_PIECES;
+  const placed=puzzleCorrectCount(g),accuracy=placed/PUZZLE_PIECES;
   const comment=placed===PUZZLE_PIECES?'A perfect picture! Did you have the original hiding under the table?':
     placed>=15?'So close! Those last few pieces were being dramatic.':
     placed>=8?'A good start. That picture almost came together.':'The picture is still a little scrambled. Keep practicing!';
@@ -3219,7 +3238,7 @@ function renderEarn(){
     after=()=>{const b=$('#pnBoard');if(b)b.onclick=e=>{const t=e.target.closest('[data-pp]');if(t)pnTap(+t.dataset.pp)}};
   }else if(earnGame==='frameit'){
     if(!fr||(!fr.done&&fr.teamIdx!==state.active&&!fr.started))newFrame();
-    const g=fr,correct=g.board.filter((tile,i)=>tile===i).length;
+    const g=fr,correct=puzzleCorrectCount(g);
     if(g.started&&!g.done&&!g.timer)gClock(g,'frameTime',finishPicturePuzzle);
     const slots=g.board.map((piece,i)=>piece==null
       ?`<button class="puzzle-slot" data-act="puzzleSlot" data-n="${i}" aria-label="Puzzle space ${i+1}" ${g.done?'disabled':''}><span class="puzzle-num">${i+1}</span></button>`
@@ -3227,11 +3246,11 @@ function renderEarn(){
     const pieces=g.tray.map(i=>`<button class="puzzle-piece ${g.selected===i?'selected':''}" data-act="puzzlePiece" data-puzzle-piece="${i}" data-n="${i}" aria-label="Puzzle piece ${i+1}${g.selected===i?', selected':''}" aria-pressed="${g.selected===i}" ${g.done?'disabled':''}>${puzzlePieceSVG(g,i)}</button>`).join('');
     body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">Put the picture together!</div>
       <div class="muted" style="text-align:center">${who(g.teamIdx)}: drag pieces onto the grid. You can move or swap pieces anytime. There are <b>20 pieces</b> and 90 seconds. Up to $${max}.</div>
-      <div class="puzzle-count">${correct} of ${PUZZLE_PIECES} pieces in the right space${g.selected!=null&&!g.done?' · Move the selected piece to a new space.':''}</div>
+      <div class="puzzle-count">${correct} of ${PUZZLE_PIECES} pieces placed correctly${g.selected!=null&&!g.done?' · Move the selected piece to a new space.':''}</div>
       ${g.done?judgeCard(g.judge):`<div class="sbclock"><span>⏱</span><b id="frameTime" class="num">${g.left}s</b></div>`}
       <div class="puzzle-layout"><div><div class="lbl">Put the pieces here</div><div class="puzzle-board" aria-label="Picture puzzle board">${slots}</div></div>
         <div class="puzzle-aside"><div><div class="lbl">Mixed-up pieces</div><div class="puzzle-tray" aria-label="Shuffled puzzle pieces">${pieces}</div></div>
-          ${g.done?`<div class="feedback resultbox ${correct===PUZZLE_PIECES?'okr':'badr'}"><span class="ricon">${correct===PUZZLE_PIECES?checkSVG():X_SVG}</span><span>${correct===PUZZLE_PIECES?`Picture complete! ${who(g.teamIdx)} earns $${g.earned}.`:`Time! ${correct} of ${PUZZLE_PIECES} pieces were in the right space. ${who(g.teamIdx)} earns $${g.earned}.`}</span></div>`:''}
+          ${g.done?`<div class="feedback resultbox ${correct===PUZZLE_PIECES?'okr':'badr'}"><span class="ricon">${correct===PUZZLE_PIECES?checkSVG():X_SVG}</span><span>${correct===PUZZLE_PIECES?`Picture complete! ${who(g.teamIdx)} earns $${g.earned}.`:`Time! ${correct} of ${PUZZLE_PIECES} pieces were placed correctly. ${who(g.teamIdx)} earns $${g.earned}.`}</span></div>`:''}
         </div></div>${nextBtn(g.done)}</div>`;
     after=bindPuzzleDrag;
   }else if(earnGame==='pixel'){
