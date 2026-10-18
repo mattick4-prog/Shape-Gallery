@@ -26,7 +26,7 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
 
 ## Art games (19)
 
-Steady Hand, Color Mixer, Stickman Sketch, Paint Splatter, Speed Reveal, Guess the Masterpiece, Price Is Right, Shape Spotter, Art Auction, Shape Builder, Copycat, Mirror Me, Finish the Picture, One-Line Wonder, Paint by Number Race, Picture Puzzle (put together 20 pieces; background-only pieces can go anywhere), Pixel Mystery, Pixel Artist and Treasure Dig. In Finish the Picture, rebuild the missing half of a detailed catalog picture by matching its shapes, colors, sizes, positions and rotations. In Paint Splatter, tap or drag on a white canvas to scatter colored paint, then receive a local score based on coverage and color variety.
+Steady Hand, Color Mixer, Stickman Sketch, Paint Splatter, Speed Reveal, Guess the Masterpiece, Price Is Right, Shape Spotter, Art Auction, Shape Builder, Copycat, Mirror Me, Finish the Picture, One-Line Wonder, Paint by Number Race, Picture Puzzle (put together 20 pieces; background-only pieces can go anywhere), Pixel Mystery, Pixel Artist and Treasure Dig. In Finish the Picture, rebuild the missing half of a detailed catalog picture by matching its shapes, colors, sizes, positions and rotations. In Paint Splatter, choose a random picture from the catalog as a faint guide or splatter on a blank canvas; for the blank option, describe your subject to the critic for a cash award.
 
 ## Player accounts
 

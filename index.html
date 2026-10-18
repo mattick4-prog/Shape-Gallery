@@ -179,6 +179,14 @@ p{margin:0 0 10px}
 .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
 
 .drawpad{display:block;width:min(760px,100%);height:auto;aspect-ratio:1;margin:0 auto;background:#fff;border-radius:10px;border:3px solid var(--paper-2);touch-action:none;cursor:crosshair}
+.splatterstage{position:relative;width:min(760px,100%);aspect-ratio:1;margin:0 auto;background:#fff;border:3px solid var(--paper-2);border-radius:10px;overflow:hidden}
+.splatterstage .splatterbg{position:absolute;inset:0;width:100%;height:100%;opacity:.26;pointer-events:none}
+.splatterstage .drawpad{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;margin:0;border:0;border-radius:0;background:transparent}
+.splatterchoices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px;margin:14px auto;max-width:760px}
+.splatterchoice{display:flex;flex-direction:column;align-items:center;gap:8px;border:3px solid var(--paper-2);background:#fff;border-radius:16px;padding:14px;cursor:pointer;text-align:center}
+.splatterchoice:hover,.splatterchoice:focus-visible{border-color:var(--violet);box-shadow:0 0 0 3px #7b4fae22}
+.splatterchoice svg{display:block;width:min(100%,180px);border:1px solid var(--paper-2);border-radius:8px}
+.splatterchoice b{font-size:19px}
 .mixrow{display:flex;justify-content:center;gap:clamp(20px,6vw,70px);flex-wrap:wrap}
 .blob{display:flex;flex-direction:column;align-items:center;gap:6px}
 .dropc{width:clamp(110px,20vw,170px);aspect-ratio:1;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;border:4px solid #0002;box-shadow:inset -10px -14px 0 #0001}
@@ -1685,9 +1693,10 @@ function spend(t,usedS,usedP){if(isCreative())return;t.canvas=Math.max(0,canvase
 function hangArt(a,t){a.id=state.seq++;if(!t.cpu&&!isCreative())lifeAdd('art');if(t.up&&t.up.frames&&!t.cpu)a.framed=true;a.value=valueFor(a);a.fresh=true;delete a.usedS;delete a.usedP;a.round=state.settings.solo?state.settings.solo.round:null;t.gallery.push(a);t.lastId=a.id;
   if(!t.history)t.history=[];t.history.push({id:a.id,key:a.key||null,title:a.title,tier:a.tier,parts:a.parts,aiParts:a.aiParts||null,value:a.value,status:'wall',source:a.source||null});save()}
 function saveSketch(teamIdx,rec){const t=state.teams[teamIdx];if(!t)return;if(!t.history)t.history=[];t.history.push({id:state.seq++,kind:'sketch',status:'sketch',...rec});save()}
-function strokesSVG(strokes,overlayTask){
+function strokesSVG(strokes,overlayTask,backgroundKey){
   const lines=(strokes||[]).map(st=>{const pts=st.pts.map(q=>r1(q[0]*100)+','+r1(q[1]*100)).join(' ');return st.pts.length>1?`<polyline points="${pts}" fill="none" stroke="${st.color}" stroke-width="${r1(st.w*100)}" stroke-linecap="round" stroke-linejoin="round"/>`:`<circle cx="${r1(st.pts[0][0]*100)}" cy="${r1(st.pts[0][1]*100)}" r="${r1(st.w*50)}" fill="${st.color}"/>`}).join('');
-  return `<svg viewBox="0 0 100 100" role="img" aria-label="Sketch"><rect width="100" height="100" fill="#fff"/>${lines}</svg>`;
+  const background=backgroundKey&&RECIPES[backgroundKey]?`<g opacity=".26">${RECIPES[backgroundKey].parts.map(p=>`<g transform="${xf(p)}">${shapeMarkup(p)}</g>`).join('')}</g>`:'';
+  return `<svg viewBox="0 0 100 100" role="img" aria-label="Sketch"><rect width="100" height="100" fill="#fff"/>${background}${lines}</svg>`;
 }
 const slim=strokes=>strokes.map(st=>({color:st.color,w:st.w,pts:st.pts.filter((q,i)=>i%2===0||i===st.pts.length-1).map(q=>[Math.round(q[0]*1000)/1000,Math.round(q[1]*1000)/1000])}));
 function hist(t,id,patch){const h=(t.history||[]).find(x=>x.id===id);if(h)Object.assign(h,patch)}
@@ -2687,15 +2696,14 @@ function finishSketch(score,comment,by){
   saveSketch(s.teamIdx,{title:s.subject[0].toUpperCase()+s.subject.slice(1),game:'Stickman Sketch',strokes:slim(s.strokes),score:`${score}/10`,earned:s.earned,comment});
   renderAll();
 }
-function newSplatter(){splatter={drops:[],color:'#d8433a',done:false,teamIdx:state.active,t0:Date.now()}}
+function splatterPictureKeys(){return isSolo()?team().unlocked.filter(k=>RECIPES[k]):ALL_KEYS}
+function newSplatter(){const keys=splatterPictureKeys();splatter={drops:[],color:'#d8433a',done:false,teamIdx:state.active,t0:Date.now(),mode:null,key:pick(keys),description:''}}
 function bindSplatter(g){
   const cv=$('#splatterPad');if(!cv)return;
   const dpr=window.devicePixelRatio||1,size=cv.clientWidth||400;cv.width=cv.height=Math.round(size*dpr);
   const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
   const draw=()=>{
     const W=cv.width/dpr,H=cv.height/dpr;ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle='#e3e8e6';ctx.lineWidth=1;ctx.strokeRect(.5,.5,W-1,H-1);
     for(const d of g.drops){
       const x=d.x*W,y=d.y*H,r=d.r*W;
       ctx.globalAlpha=.8;ctx.fillStyle=d.color;ctx.beginPath();ctx.arc(x,y,r*.65,0,Math.PI*2);ctx.fill();
@@ -2718,14 +2726,16 @@ function bindSplatter(g){
 }
 function finishSplatter(){
   const g=splatter;if(!g||g.done||!g.drops.length)return;
+  const description=g.mode==='blank'?(g.description||'').trim():'';
+  if(g.mode==='blank'&&description.length<3){toast('Tell the critic what you were drawing first.');$('#splatterDescription')?.focus();return}
   g.done=true;g.tEnd=Date.now();
   const cells=new Set(g.drops.map(d=>`${Math.floor(d.x*10)},${Math.floor(d.y*10)}`));
   const colors=new Set(g.drops.map(d=>d.color)).size;
-  const accuracy=clamp(.15+cells.size/100*.85,0,1),creativity=clamp(.2+colors*.12+Math.min(g.drops.length,20)*.015,0,1);
+  const accuracy=clamp(.15+cells.size/100*.85,0,1),creativity=clamp(.2+colors*.12+Math.min(g.drops.length,20)*.015+(description?Math.min(description.length,50)*.002:0),0,1);
   g.score=Math.round((accuracy*.55+creativity*.45)*100);
-  g.comment=pick(['The paper has officially been out-splattered. Glorious chaos!','A bold experiment in color, gravity, and not wearing white shirts.','The splats have landed, and my monocle is impressed.','Abstract! Energetic! I found paint on my notes.']);
+  g.comment=description?pick([`“${description}” — a wonderfully colorful interpretation.`,`I can see your idea of “${description}” emerging through the splashes.`,`“${description}” is a bold subject; the colors make it delightfully expressive.`,`A spirited splatter portrait of “${description}.” My monocle approves.`]):pick(['The paper has officially been out-splattered. Glorious chaos!','A bold experiment in color, gravity, and not wearing white shirts.','The splats have landed, and my monocle is impressed.','Abstract! Energetic! I found paint on my notes.']);
   g.earned=gamePay(g,accuracy,{cre:creativity,fast:8,slow:90,comment:g.comment});
-  saveSketch(g.teamIdx,{title:'Paint Splatter',game:'Paint Splatter',strokes:g.drops.map(d=>({color:d.color,w:d.r*2,pts:[[d.x,d.y]]})),score:`${g.score}/100`,earned:g.earned,comment:g.comment});
+  saveSketch(g.teamIdx,{title:description?`Splatter: ${description}`:g.mode==='picture'?`Splatter: ${RECIPES[g.key].name}`:'Paint Splatter',game:'Paint Splatter',strokes:g.drops.map(d=>({color:d.color,w:d.r*2,pts:[[d.x,d.y]]})),score:`${g.score}/100`,earned:g.earned,comment:g.comment,subject:description||null,background:g.mode==='picture'?g.key:null});
   renderAll();
 }
 async function aiJudge(){
@@ -3390,14 +3400,23 @@ function renderEarn(){
     after=startMixAnim;
   }else if(earnGame==='splatter'){
     if(!splatter||splatter.teamIdx!==state.active)newSplatter();
-    const g=splatter,colors=['#d8433a','#2e62c9','#f2c230','#3f9a4d','#7d4fb3','#e879a9','#f28c28'];
-    body=`<div class="q"><div class="muted" style="text-align:center">${who(g.teamIdx)}: choose a paint and tap or drag on the white canvas to create scattered splats. Up to $${max}.</div>
-      ${g.done?judgeCard(g.judge):`<div class="actions" style="justify-content:center">${colors.map((c,i)=>`<button class="pen ${g.color===c?'on':''}" data-act="splatterColor" data-k="${c}" aria-label="${['Red','Blue','Yellow','Green','Purple','Pink','Orange'][i]} paint" style="background:${c}"></button>`).join('')}<span class="muted"><b id="splatterCount">${g.drops.length}</b> splat${g.drops.length===1?'':'s'}</span></div>`}
-      <canvas id="splatterPad" class="drawpad" aria-label="White paper. Tap or drag to splatter paint."></canvas>
-      ${g.done?`${result(g.score>=45,`${esc(g.comment)} ${who(g.teamIdx)} earns $${g.earned}.`)}`
-      :`<p class="muted" style="text-align:center;margin:0">Each mark scatters into a burst of paint. Make a colorful splatter painting, then call the judge!</p><div class="actions" style="justify-content:center"><button class="btn violet big" data-act="splatterDone" ${g.drops.length?'':'disabled'}>Done! Call the judge</button><button class="btn ghost" data-act="splatterClear" ${g.drops.length?'':'disabled'}>Start over</button></div>`}
-      ${nextBtn(g.done)}</div>`;
-    after=()=>bindSplatter(g);
+    const g=splatter,colors=['#d8433a','#2e62c9','#f2c230','#3f9a4d','#7d4fb3','#e879a9','#f28c28'],rec=RECIPES[g.key],category=(CATS.find(c=>c[0]===rec.cat)||['',''])[1];
+    if(!g.mode){
+      body=`<div class="q"><div class="term" style="font-size:clamp(24px,3.6vw,38px)">Choose your splatter challenge</div><p class="muted" style="text-align:center">Pick a random picture as your guide, or make a blank-canvas idea and explain it to the critic for cash.</p>
+        <div class="splatterchoices"><button class="splatterchoice" data-act="splatterMode" data-k="picture"><span class="lbl">${esc(category)} · ${esc(rec.name)}</span>${artSVG(rec.parts,false,rec.name)}<b>Splatter over this picture</b><span class="muted">A random artwork from your picture categories</span></button>
+          <button class="splatterchoice" data-act="splatterMode" data-k="blank"><span class="lbl">Original idea</span><svg viewBox="0 0 100 100" role="img" aria-label="Blank white canvas"><rect width="100" height="100" fill="#fff"/><path d="M50 18 V82 M18 50 H82" stroke="#d8dfdc" stroke-width="2" stroke-dasharray="5 5"/></svg><b>Blank canvas</b><span class="muted">Tell the critic what you were drawing to earn cash</span></button></div>
+        <div class="actions" style="justify-content:center"><button class="btn ghost" data-act="splatterShuffle">🎲 Pick another random picture</button></div></div>`;
+    }else{
+      const background=g.mode==='picture'?artSVG(rec.parts,false,rec.name,'splatterbg'):'';
+      body=`<div class="q"><div class="muted" style="text-align:center">${who(g.teamIdx)}: ${g.mode==='picture'?`splatter paint over the random ${esc(rec.name)} picture from ${esc(category)}.`:'create your own idea on a blank canvas.'} Up to $${max}.</div>
+        ${g.mode==='blank'&&!g.done?`<div class="field" style="max-width:540px;margin:10px auto"><label for="splatterDescription">What were you drawing? Tell the critic (required)</label><input id="splatterDescription" maxlength="80" value="${esc(g.description||'')}" placeholder="For example: a dragon at sunset" autocomplete="off"></div>`:''}
+        ${g.done?judgeCard(g.judge):`<div class="actions" style="justify-content:center">${colors.map((c,i)=>`<button class="pen ${g.color===c?'on':''}" data-act="splatterColor" data-k="${c}" aria-label="${['Red','Blue','Yellow','Green','Purple','Pink','Orange'][i]} paint" style="background:${c}"></button>`).join('')}<span class="muted"><b id="splatterCount">${g.drops.length}</b> splat${g.drops.length===1?'':'s'}</span></div>`}
+        <div class="splatterstage">${background}<canvas id="splatterPad" class="drawpad" aria-label="${g.mode==='picture'?`Paint splatter canvas over ${esc(rec.name)}`:'Blank paper. Tap or drag to splatter paint.'}"></canvas></div>
+        ${g.done?`${result(g.score>=45,`${esc(g.comment)} ${who(g.teamIdx)} earns $${g.earned}.`)}`
+        :`<p class="muted" style="text-align:center;margin:8px 0">Each tap scatters a burst of paint. Use different colors and cover the canvas, then call the critic!</p><div class="actions" style="justify-content:center"><button class="btn violet big" data-act="splatterDone" ${g.drops.length?'':'disabled'}>${g.mode==='blank'?'Explain it & call the critic':'Done! Call the judge'}</button><button class="btn ghost" data-act="splatterClear" ${g.drops.length?'':'disabled'}>Start over</button>${!g.drops.length?'<button class="btn ghost" data-act="splatterChange">Change challenge</button>':''}</div>`}
+        ${nextBtn(g.done)}</div>`;
+      after=()=>bindSplatter(g);
+    }
   }else if(earnGame==='sketch'){
     if(!sketch||(!sketch.done&&sketch.teamIdx!==state.active&&!sketch.strokes.length))newSketch();
     const s=sketch,pens=[['#1b2a2e','Black'],['#d8433a','Red'],['#2e62c9','Blue'],['#3f9a4d','Green']];
@@ -3619,7 +3638,7 @@ function openPiece(id){
   openPieceId=id;const full=t.gallery.length>=wallCap(t),rec=h.key&&RECIPES[h.key];
   const status=h.kind==='sketch'?`<span class="chipst sold">${checkSVG().replace('<svg','<svg class="mi"')} ${h.score} · earned $${h.earned}</span>`:h.status==='kept'?`<span class="chipst kept">♥ In your collection</span>`:h.status==='wall'?`<span class="chipst wall">For sale${h.pending?' · waiting for the critic':''}</span>`:h.status==='sold'?`<span class="chipst sold">Sold for $${h.soldFor}</span>`:h.status==='commission'?`<span class="chipst sold">Commission · $${h.soldFor}</span>`:'<span class="chipst scrap">Scrapped</span>';
   $('#modalRoot').innerHTML=`<div class="modal" data-act="closeBg"><div class="sheet piecesheet" role="dialog" aria-label="${esc(h.title)}">
-    <div class="psgrid"><div><div class="frame ${h.kind==='sketch'?'sketchframe':h.tier==='bonus'?'bonusframe':''} ${h.status==='scrapped'?'faded':''}"><div class="mat">${h.kind==='sketch'?strokesSVG(h.strokes):artSVG(h.parts,false,h.title)}</div></div>
+    <div class="psgrid"><div><div class="frame ${h.kind==='sketch'?'sketchframe':h.tier==='bonus'?'bonusframe':''} ${h.status==='scrapped'?'faded':''}"><div class="mat">${h.kind==='sketch'?strokesSVG(h.strokes,null,h.background):artSVG(h.parts,false,h.title)}</div></div>
       ${h.aiParts?(pfAI[h.id]?`<div class="aicomp"><div class="aihead"><span class="mi">${iconSVG('star','purple')}</span><b>Picture library reference</b><button class="scrap" data-act="pfAI" data-id="${h.id}">Hide</button></div><div class="aiframe">${artSVG(h.aiParts,true,'Picture library reference')}</div><div class="aino">From the game's picture recipe library. Not AI-generated.</div></div>`:`<button class="aibtn" data-act="pfAI" data-id="${h.id}"><span class="mi">${iconSVG('star','purple')}</span>Compare with picture library</button>`):''}</div>
     <div class="psinfo"><h2 style="margin:0">${esc(h.title)}</h2>${h.kind==='sketch'?`<span class="tag abstract">${esc(h.game)}</span>`:modeTag(h)}
       ${status}
@@ -3646,7 +3665,7 @@ function renderMyArt(){
       <div><h2 style="margin:0">${poss(t.name)} portfolio</h2><p class="muted" style="margin:4px 0 0">All your work in one place: paintings, handmade pieces and sketches from the art games.</p></div>
       <div class="stats"><div class="stat"><small>Paintings</small><span class="num">${H.length}</span></div><div class="stat"><small>Sketches</small><span class="num">${SK.length}</span></div><div class="stat"><small>Sold</small><span class="num">${sold.length}</span></div><div class="stat money"><small>Best sale</small><span class="num">${best?'$'+best.soldFor:'-'}</span></div><div class="stat"><small>Critic avg</small><span class="num">${avg?avg+'<em>/10</em>':'-'}</span></div></div></div>
     ${badgesHTML(t)}<div class="seg" style="margin:14px 0">${[['all','Everything',iconSVG('star','yellow')],['wall','On the wall',frameSVG()],['sold','Sold',gameIcon('price')],['hand','Handmade',iconSVG('heart','red')],['sketch','Sketches',gameIcon('sketch')]].map(([k,l,ic])=>`<button class="${artFilter===k?'on':''}" data-act="artFilter" data-k="${k}"><span class="mi">${ic}</span> ${l}</button>`).join('')}</div>
-    ${list.length?`<div class="thumbs">${list.map(h=>`<button class="thumb" data-act="openPiece" data-id="${h.id}" aria-label="${esc(h.title)}"><span class="tframe ${h.kind==='sketch'?'sk':h.tier==='bonus'?'bonus':''} ${h.status==='scrapped'?'faded':''}">${h.kind==='sketch'?strokesSVG(h.strokes):artSVG(h.parts,false,h.title)}</span><span class="tbadge ${h.status}">${statusIcon(h)}</span><span class="tname">${esc(h.title)}</span></button>`).join('')}</div><p class="muted" style="font-size:13px;margin-top:10px">Tap any piece to see its story.</p>`:`<div class="empty-easel" style="aspect-ratio:auto;padding:40px"><div class="floaty">${iconSVG('heart','pink')}${iconSVG('star','yellow')}${iconSVG('circle','red')}</div><h2>${ALL.length?'Nothing here yet':'Your portfolio is empty'}</h2><p>${ALL.length?'Try a different filter.':'Paint something in the Studio and it will show up here.'}</p></div>`}
+    ${list.length?`<div class="thumbs">${list.map(h=>`<button class="thumb" data-act="openPiece" data-id="${h.id}" aria-label="${esc(h.title)}"><span class="tframe ${h.kind==='sketch'?'sk':h.tier==='bonus'?'bonus':''} ${h.status==='scrapped'?'faded':''}">${h.kind==='sketch'?strokesSVG(h.strokes,null,h.background):artSVG(h.parts,false,h.title)}</span><span class="tbadge ${h.status}">${statusIcon(h)}</span><span class="tname">${esc(h.title)}</span></button>`).join('')}</div><p class="muted" style="font-size:13px;margin-top:10px">Tap any piece to see its story.</p>`:`<div class="empty-easel" style="aspect-ratio:auto;padding:40px"><div class="floaty">${iconSVG('heart','pink')}${iconSVG('star','yellow')}${iconSVG('circle','red')}</div><h2>${ALL.length?'Nothing here yet':'Your portfolio is empty'}</h2><p>${ALL.length?'Try a different filter.':'Paint something in the Studio and it will show up here.'}</p></div>`}
     ${full?'<p class="muted" style="margin-top:12px">Your gallery wall is full, so sell or scrap a piece before painting again.</p>':''}
   </section>`;
 }
@@ -4001,7 +4020,7 @@ const DIRS={
   pixel:[['❓','A pixel picture is hiding under 64 gray tiles.'],['👆','Tap tiles to uncover pixels one at a time. Every tile you flip makes the prize smaller!'],['🔔','Hit "I know it!" and pick the answer. Fewer tiles = more money. Wrong = $1.']],
   shapes:[['🧩','You get a few random shapes and a picture to build.'],['👆','Same tools as the Studio: drag to move, tap to turn, pinch or drag the corner to resize, plus the toolbar.'],['⏱','You have 90 seconds. Tap "Done! Call the judge" when finished.']],
   sketch:[['✏️','You get a silly thing to draw, like a stickman surfing.'],['⏱','You have 60 seconds. The clock starts when you start drawing.'],['🧑‍⚖️','Tap "Done! Call the judge" when you finish.']],
-  splatter:[['📄','A clean white sheet is ready for your painting.'],['🎨','Choose a paint color, then tap or drag on the paper. Each impact scatters droplets around the page.'],['🧑‍⚖️','Build up colorful splats and call the judge. Creativity, coverage and color variety determine your score.']],
+  splatter:[['🖼️','Choose a random picture from your art categories as a faint guide, or choose a blank canvas for your own idea.'],['🎨','Pick a paint color, then tap or drag. Each impact scatters droplets around the page. On a blank canvas, tell the critic what you were drawing before submitting.'],['🧑‍⚖️','The critic scores your color, coverage and explanation, then awards cash.']],
   steady:[['🔷','You get a shape to draw: a star, heart, hexagon, crescent, triangle, line and more.'],['☝️','One try only! No redos.'],['⚡','Smoother wins more. Faster wins a little more.']],
   mix:[['🎨','Look at the target color.'],['💧','Tap paint buttons to drop colors into the bowl.'],['🥄','Drag inside the bowl to stir, then lock it in.']],
   reveal:[['👀','A picture appears one shape at a time.'],['🔔','Hit "I know it!" as soon as you can guess it.'],['✅','Pick the right answer. Sooner = more money!']],
@@ -4181,6 +4200,7 @@ function toast(msg){$('#toastRoot').innerHTML=`<div class="toast" role="status">
 /* ================= Events ================= */
 document.addEventListener('input',e=>{
   if(e.target.id==='sizeSlider'&&maker){const p=maker.parts[maker.selIdx];if(p&&isWet(p)){const cur=(selBoxDims(p)[0]+selBoxDims(p)[1])/2,f=(+e.target.value)/Math.max(1,cur);p.w=clamp(r1(p.w*f),3,120);p.h=clamp(r1(p.h*f),3,120);wetten(p);drawMaker(true)}}
+  if(e.target.id==='splatterDescription'&&splatter)splatter.description=e.target.value;
   if(e.target.id==='bonusInput')bonusTopic=e.target.value;
   if(e.target.id==='askInput'&&customer)customer.ask=Math.max(1,Math.round(+e.target.value||1));
 });
@@ -4293,6 +4313,9 @@ document.addEventListener('click',e=>{
     case 'mixDone':if(mix&&!mix.done){scoreMix();renderAll()}break;
     case 'splatterColor':if(splatter&&!splatter.done){splatter.color=el.dataset.k;renderAll()}break;
     case 'splatterClear':if(splatter&&!splatter.done){splatter.drops=[];renderAll()}break;
+    case 'splatterMode':if(splatter&&!splatter.done&&['picture','blank'].includes(el.dataset.k)){splatter.mode=el.dataset.k;splatter.t0=Date.now();renderAll();if(splatter.mode==='blank')setTimeout(()=>$('#splatterDescription')?.focus(),0)}break;
+    case 'splatterShuffle':if(splatter&&!splatter.mode){const keys=splatterPictureKeys().filter(k=>k!==splatter.key);if(keys.length)splatter.key=pick(keys);renderAll()}break;
+    case 'splatterChange':if(splatter&&!splatter.done&&!splatter.drops.length){splatter.mode=null;splatter.description='';renderAll()}break;
     case 'splatterDone':finishSplatter();break;
     case 'pen':if(sketch){sketch.color=el.dataset.k;renderAll()}break;
     case 'sketchUndo':if(sketch&&!sketch.locked){sketch.strokes.pop();renderAll()}break;
