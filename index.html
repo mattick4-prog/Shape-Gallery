@@ -388,11 +388,14 @@ header{gap:10px 16px}
 .mixcurrent i,.mixpreview i{width:30px;height:30px;border:2px solid #0002;border-radius:50%;flex:none}
 .paintmix{margin-top:14px;padding:12px;background:var(--paper);border:2px solid var(--paper-2);border-radius:12px}
 .paintmix h3{margin:0 0 8px}
-.mixselects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.mixselects label,.mixratio{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700}
-.mixselects select{min-width:0;width:100%;padding:8px;border:2px solid var(--paper-2);border-radius:8px;background:#fff;color:var(--ink);font:inherit;text-transform:capitalize}
-.mixratio{margin-top:10px}
-.mixratio input{width:100%;accent-color:var(--violet)}
+.palette-paints{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+.palette-paint{display:flex;align-items:center;gap:6px;min-height:42px;background:#fff;border:2px solid var(--paper-2);border-radius:999px;padding:4px 10px 4px 5px;font-size:13px;font-weight:700;text-transform:capitalize}
+.palette-paint:disabled{opacity:.45}
+.palette-paint i{width:25px;height:25px;border-radius:50%;border:2px solid #0002}
+.palette-paint b{font-family:var(--mono);font-size:11px}
+.palette-well{width:100%;max-width:420px;display:block;margin:0 auto;touch-action:none;cursor:crosshair}
+.palette-well svg{display:block;width:100%;height:auto;overflow:visible}
+.palette-status{min-height:24px;text-align:center;font-size:13px;font-weight:700;color:var(--muted)}
 .mixpreview{display:flex;align-items:center;gap:8px;margin:10px 0}
 .mixpreview span{flex:1;font-size:13px;font-weight:700}
 .paintmix>small{display:block}
@@ -1179,7 +1182,6 @@ body.party .chip{pointer-events:none}
   .pxside,.paside{grid-column:auto}
   .pxgrid.mys{max-width:600px}
   .tdboard{width:100%}
-  .mixselects{grid-template-columns:minmax(0,1fr)}
 }
 /* Modal */
 .modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));z-index:20}
@@ -1656,11 +1658,25 @@ function startMaker(){
 }
 function toCanvas(force,id){const f=$(id||'#makerFrame');if(!f)return;const r=f.getBoundingClientRect(),vh=innerHeight;if(!(force||r.top<-20||r.bottom>vh+20))return;const target=r.height>vh*.9?r.top-8:r.top-(vh-r.height)/2;try{window.scrollBy({top:target,behavior:'smooth'})}catch(e){window.scrollBy(0,target)}setTimeout(()=>{const r2=f.getBoundingClientRect();if(r2.top<-20||r2.top>vh*.5)try{f.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}},450)}
 function makerTeam(){return state.teams[maker.teamIdx]}
-function mixPaintHex(a,b,ratio){
-  const x=hexRgb(colorValue(a)),y=hexRgb(colorValue(b)),n=clamp(+ratio/100,0,1);
-  return '#'+x.map((v,i)=>Math.round(v*(1-n)+y[i]*n).toString(16).padStart(2,'0')).join('');
+function mixPaintHex(drops){
+  const entries=Object.entries(drops||{}).filter(([,n])=>n>0);
+  const total=entries.reduce((sum,[,n])=>sum+n,0);
+  if(!total)return '#999999';
+  const rgb=[0,0,0];
+  for(const [color,count] of entries){const c=hexRgb(colorValue(color));for(let i=0;i<3;i++)rgb[i]+=c[i]*count/total}
+  return '#'+rgb.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
 }
 function makerUsage(){const s={},c={};maker.parts.forEach(p=>{s[p.kind]=(s[p.kind]||0)+1;(p.paintMix||[p.color]).forEach(color=>c[color]=(c[color]||0)+1)});return{s,c}}
+function makerPaletteSVG(){
+  const drops=maker.mixDrops||{},colors=Object.keys(drops).filter(c=>drops[c]>0),stirred=maker.mixStirred&&colors.length>0;
+  const spots=[[178,69],[220,61],[258,75],[184,105],[225,111],[263,101],[207,84],[245,88]];
+  const dabs=colors.flatMap((color,ci)=>Array.from({length:Math.min(drops[color],8)},(_,n)=>{
+    const [x,y]=spots[(ci*3+n)%spots.length],dx=(ci%2)*2,dy=(n%2)*2;
+    return `<circle cx="${x+dx}" cy="${y+dy}" r="${stirred?0:10}" fill="${colorValue(color)}" stroke="#302a25" stroke-opacity=".2" stroke-width="2"><title>${esc(color)} paint</title></circle>`;
+  })).join('');
+  const list=colors.map(c=>`${c} ×${drops[c]}`).join(' · ');
+  return `<svg id="mkPaletteSvg" viewBox="0 0 320 160" role="img" aria-label="Paint palette mixing area. Drag to stir."><path d="M21 56 C30 25 70 13 113 20 C165 28 206 9 255 27 C299 44 310 89 283 119 C260 146 206 149 161 137 C116 125 73 145 40 125 C12 109 8 81 21 56Z" fill="#c69b70" stroke="#886342" stroke-width="5"/><path id="mixPuddle" d="M51 54 C78 33 116 35 145 43 C173 50 211 29 249 46 C277 58 284 83 265 105 C246 126 209 124 178 114 C147 105 114 124 82 112 C54 102 38 77 51 54Z" fill="${stirred?mixPaintHex(drops):'#f3e6d2'}" stroke="#a9815c" stroke-width="2"/>${dabs}<circle cx="51" cy="113" r="15" fill="#8a5a35" stroke="#70472b" stroke-width="3"/><text x="213" y="145" text-anchor="middle" font-size="10" fill="#5c4938" font-family="system-ui,sans-serif">${esc(list||'Drop paints here, then stir')}</text><path d="M179 87 q12 -15 24 0 t24 0 t24 0" fill="none" stroke="${stirred?'#fff':'#8a5a35'}" stroke-width="3" stroke-linecap="round" opacity="${stirred?'.7':'.45'}" pointer-events="none"/></svg>`;
+}
 function makerAdd(kind,copyOf){
   if(maker.arcade){if(maker.phase!=='build')return;if(sbLeft(kind)<=0){toast(`No more ${kind}s!`);return}const off=(maker.parts.length%6)*4,[w,h]=DEFAULT_SIZE[kind]||[24,24];
     maker.parts.push(copyOf?{...copyOf,x:clamp(copyOf.x+6,0,100),y:clamp(copyOf.y+6,0,100)}:{kind,x:40+off,y:40+off,w,h,rot:0,color:maker.color});maker.selIdx=maker.parts.length-1;maker.lastWet=maker.selIdx;sbStartTimer();drawMaker();return}
@@ -1681,12 +1697,38 @@ function makerColor(c){
   if(p&&(p.color!==c||(p.paintMix||[]).length)){if(!isWet(p)){toast('That paint is dry! Pick a color before adding your next shape.');maker.selIdx=null;drawMaker();return}const current=(p.paintMix||[p.color]).filter(color=>color===c).length;if((u.c[c]||0)-current>=(t.paint[c]||0)){toast(`You're out of ${c} paint.`);drawMaker();return}wetten(p);p.color=c;delete p.paintMix}
   drawMaker();
 }
+function addMakerMixDrop(color){
+  const t=makerTeam(),used=makerUsage(),left=(t.paint[color]||0)-(used.c[color]||0);
+  if(left<=0){toast(`You're out of ${color} paint.`);return}
+  maker.mixDrops=maker.mixDrops||{};
+  maker.mixDrops[color]=(maker.mixDrops[color]||0)+1;
+  maker.mixStirred=false;drawMaker();
+}
+function stirMakerPalette(svg){
+  if(!maker||!maker.mixDrops||!Object.keys(maker.mixDrops).length)return;
+  let start=null,moved=false;
+  svg.onpointerdown=e=>{e.preventDefault();start=[e.clientX,e.clientY];moved=false;try{svg.setPointerCapture(e.pointerId)}catch(_){}};
+  svg.onpointermove=e=>{
+    if(!start)return;
+    if(Math.hypot(e.clientX-start[0],e.clientY-start[1])>7)moved=true;
+    if(!moved)return;
+    maker.mixStirred=true;
+    const swatch=$('#mkMixSwatch'),status=$('#mkMixStatus'),puddle=$('#mixPuddle');
+    if(swatch)swatch.style.background=mixPaintHex(maker.mixDrops);
+    if(puddle)puddle.setAttribute('fill',mixPaintHex(maker.mixDrops));
+    if(status)status.textContent='Mixed paint ready — use it or add another dab.';
+    const useButton=$('[data-act="mkMixApply"]');if(useButton)useButton.disabled=false;
+  };
+  const end=()=>{if(moved)maker.mixStirred=true;start=null};
+  svg.onpointerup=end;svg.onpointercancel=end;
+}
 function applyMakerMix(){
-  const a=$('#mkMixA')?.value,b=$('#mkMixB')?.value,ratio=+($('#mkMixRatio')?.value||50);
-  if(!a||!b)return;
-  const paints=ratio<=0?[a]:ratio>=100?[b]:[...new Set([a,b])],u=makerUsage(),t=makerTeam(),empty=paints.find(c=>(u.c[c]||0)>=(t.paint[c]||0));
+  const drops=maker.mixDrops||{},paints=Object.keys(drops).filter(c=>drops[c]>0);
+  if(!paints.length){toast('Add a paint dab to the palette first.');return}
+  if(!maker.mixStirred){toast('Drag your brush around the palette to mix the paint first.');return}
+  const u=makerUsage(),t=makerTeam(),empty=paints.find(c=>(u.c[c]||0)>=(t.paint[c]||0));
   if(empty){toast(`Not enough ${empty} paint left to use in this mix.`);return}
-  maker.mixA=a;maker.mixB=b;maker.mixRatio=ratio;maker.color=ratio<=0?a:ratio>=100?b:mixPaintHex(a,b,ratio);maker.paintMix=paints;drawMaker();
+  maker.color=mixPaintHex(drops);maker.paintMix=paints;maker.mixDrops={};maker.mixStirred=false;drawMaker();
 }
 const dryS=()=>(state.settings.drySecs||9);
 const dryLbl=()=>dryS()>=999?'never dries':`dries ${dryS()} seconds`;
@@ -1774,13 +1816,14 @@ function makerSideHTML(){
       <div class="lbl" style="margin-bottom:6px">Class vote</div><div class="actions">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="mkVote" data-n="${n}">${'★'.repeat(n)}</button>`).join('')}</div>
       <div class="actions" style="margin-top:16px"><button class="btn ghost small" data-act="mkBack">Keep building</button></div>`;
   }
-  const owned=COLOR_ORDER.filter(c=>t.paint[c]>0),mixA=owned.includes(maker.mixA)?maker.mixA:(owned[0]||''),mixB=owned.includes(maker.mixB)?maker.mixB:(owned.find(c=>c!==mixA)||mixA),mixRatio=maker.mixRatio??50,mixPreview=mixA&&mixB?mixPaintHex(mixA,mixB,mixRatio):'#999';
-  const paintOptions=selected=>owned.map(c=>`<option value="${c}" ${selected===c?'selected':''}>${c} · ${t.paint[c]-(u.c[c]||0)} left</option>`).join('');
+  const owned=COLOR_ORDER.filter(c=>t.paint[c]>0),drops=maker.mixDrops||{},mixPreview=Object.keys(drops).length?mixPaintHex(drops):colorValue(maker.color),dropCount=Object.values(drops).reduce((n,v)=>n+v,0);
+  const mixStatus=dropCount?(maker.mixStirred?'Mixed paint ready — use it or add another dab.':'Drag your brush around the palette to stir.'):'Tap a paint below to add a dab.';
   return `<h3 style="margin-top:0">1. Pick a paint</h3><div class="need">${colors}<span class="mixcurrent"><i style="background:${colorValue(maker.color)}"></i><span>Current paint</span></span></div>
-    <section class="paintmix"><h3>Mix your own paint</h3>${owned.length?`<div class="mixselects"><label>First color<select id="mkMixA">${paintOptions(mixA)}</select></label><label>Second color<select id="mkMixB">${paintOptions(mixB)}</select></label></div>
-      <label class="mixratio">Blend amount <input id="mkMixRatio" type="range" min="0" max="100" value="${mixRatio}" aria-label="Amount of second color"><span><b id="mkMixPercent">${mixRatio}%</b> second color</span></label>
-      <div class="mixpreview"><i id="mkMixSwatch" style="background:${mixPreview}"></i><span>Mixed paint preview</span><button class="btn small violet" data-act="mkMixApply">Use this mix</button></div>
-      <small class="muted">Mixed shapes use one unit of each color; at either slider end, only that color is used.</small>`:'<p class="muted">Buy paint in the Shop to mix colors.</p>'}</section>
+    <section class="paintmix"><h3>Mix paint on your palette</h3>${owned.length?`<p class="muted" style="font-size:13px">Tap a paint jar to add a dab, then drag your finger or brush around the palette to stir.</p>
+      <div class="palette-paints">${owned.map(c=>{const left=t.paint[c]-(u.c[c]||0);return `<button class="palette-paint" data-act="mkDrop" data-k="${c}" ${left>0?'':'disabled'} aria-label="Add a dab of ${c} paint, ${left} left"><i style="background:${colorValue(c)}"></i>${c}<b>${fmtN(left)}</b></button>`}).join('')}</div>
+      <div class="palette-well">${makerPaletteSVG()}</div><div class="palette-status" id="mkMixStatus">${esc(mixStatus)}</div>
+      <div class="mixpreview"><i id="mkMixSwatch" style="background:${mixPreview}"></i><span>Paint preview · ${dropCount} dab${dropCount===1?'':'s'}</span><button class="btn small violet" data-act="mkMixApply" ${maker.mixStirred&&dropCount?'':'disabled'}>Use this paint</button><button class="btn small ghost" data-act="mkPaletteClear" ${dropCount?'':'disabled'}>Clear palette</button></div>
+      <small class="muted">Each painted shape uses one unit of every color in the finished mix. Dabs do not use paint until you paint with the mix.</small>`:'<p class="muted">Buy paint in the Shop to mix colors.</p>'}</section>
     <h3>2. Add a shape</h3><div class="need">${shapes}</div>
     <div class="actions" style="margin-top:18px"><button class="btn" data-act="mkDone" ${maker.parts.length?'':'disabled'}>Hang it in the gallery!</button><button class="btn ghost" data-act="mkCancel">Cancel</button></div>
     <p class="muted" style="font-size:13px;margin-top:8px">Nothing is used up until you finish. Numbers show what you have left.</p>`;
@@ -1788,7 +1831,7 @@ function makerSideHTML(){
 function drawMaker(svgOnly){
   const svg=$('#makerSvg');if(svg)svg.innerHTML=makerSVGInner();
   const tl=$('#makerTools');if(tl&&!svgOnly)tl.innerHTML=mkToolsHTML();
-  if(!svgOnly){const side=$('#makerSide');if(side)side.innerHTML=makerSideHTML();const q=$('#makerQuick');if(q)q.innerHTML=mkQuickHTML()}
+  if(!svgOnly){const side=$('#makerSide');if(side){side.innerHTML=makerSideHTML();const palette=$('#mkPaletteSvg');if(palette)stirMakerPalette(palette)}const q=$('#makerQuick');if(q)q.innerHTML=mkQuickHTML()}
 }
 function mkQuickHTML(){const t=makerTeam(),u=makerUsage();
   return `<span class="lbl">Tap to add</span>${KINDS.filter(k=>t.shapes[k]>0).map(k=>{const left=t.shapes[k]-(u.s[k]||0);return `<button class="mkshape sm" data-act="mkAdd" data-k="${k}" ${left>0&&maker.phase==='build'?'':'disabled'} aria-label="Add ${k}, ${left} left"><span class="sbig">${miniSVG(k,maker.color)}<i class="cnt num">${fmtN(left)}</i></span></button>`}).join('')}<span class="mqc" style="background:${colorValue(maker.color)}" title="Current paint"></span>`}
@@ -3689,7 +3732,6 @@ function toast(msg){$('#toastRoot').innerHTML=`<div class="toast" role="status">
 /* ================= Events ================= */
 document.addEventListener('input',e=>{
   if(e.target.id==='sizeSlider'&&maker){const p=maker.parts[maker.selIdx];if(p&&isWet(p)){const cur=(selBoxDims(p)[0]+selBoxDims(p)[1])/2,f=(+e.target.value)/Math.max(1,cur);p.w=clamp(r1(p.w*f),3,120);p.h=clamp(r1(p.h*f),3,120);wetten(p);drawMaker(true)}}
-  if(['mkMixA','mkMixB','mkMixRatio'].includes(e.target.id)){const a=$('#mkMixA')?.value,b=$('#mkMixB')?.value,ratio=+($('#mkMixRatio')?.value||50),swatch=$('#mkMixSwatch'),percent=$('#mkMixPercent');if(a&&b&&swatch)swatch.style.background=mixPaintHex(a,b,ratio);if(percent)percent.textContent=ratio+'%'}
   if(e.target.id==='bonusInput')bonusTopic=e.target.value;
   if(e.target.id==='askInput'&&customer)customer.ask=Math.max(1,Math.round(+e.target.value||1));
 });
@@ -3809,7 +3851,9 @@ document.addEventListener('click',e=>{
     case 'artFilter':artFilter=el.dataset.k;renderAll();break;
     case 'mkAdd':if(maker){makerAdd(el.dataset.k);toCanvas()}break;
     case 'mkColor':if(maker)makerColor(el.dataset.k);break;
+    case 'mkDrop':if(maker&&!maker.arcade)addMakerMixDrop(el.dataset.k);break;
     case 'mkMixApply':if(maker)applyMakerMix();break;
+    case 'mkPaletteClear':if(maker){maker.mixDrops={};maker.mixStirred=false;drawMaker()}break;
     case 'mkOp':if(maker)makerOp(el.dataset.k);break;
     case 'mkDone':if(maker&&maker.parts.length)hangMaker();break;
     case 'criticAI':criticAI();break;

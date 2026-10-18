@@ -16,7 +16,7 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
 
 - Pick a picture (14 categories, more to unlock with cash) and choose who paints it:
   - **AI artist**: paints with whatever shapes and paint you have left, swapping in what's missing.
-  - **Make it myself**: add shapes, drag to move, use the Turn buttons to rotate, and drag the on-canvas handles to resize along the rotated shape's axes. Tap a shape to select it; tapping no longer rotates it. Use Undo or Erase shape to fix mistakes, even after paint dries. Choose a ready-made paint or blend two paints; a mixed shape uses one unit of each color (or just the selected color at either end of the blend slider). Paint dries 9 seconds after you stop touching it by default, and the Never setting hides drying countdowns.
+  - **Make it myself**: add shapes, drag to move, use the Turn buttons to rotate, and drag the on-canvas handles to resize along the rotated shape's axes. Tap a shape to select it; tapping no longer rotates it. Use Undo or Erase shape to fix mistakes, even after paint dries. Choose a ready-made paint or add paint dabs to the palette and drag to stir them together; each finished mix uses one unit of each color per shape. Paint dries 9 seconds after you stop touching it by default, and the Never setting hides drying countdowns.
 - Every painting needs a canvas, and supplies run out, so you'll need to stop and earn money.
 - The critic reviews each piece with a star rating, a funny line and a tip, then you sell it or keep it in your collection.
 - Buyers have 18 different personalities (Animal fan, Bargain hunter, Monster fan and more). Use "Talk it up" sales pitches they like to raise the price, even on the street corner.
