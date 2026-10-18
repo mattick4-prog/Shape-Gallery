@@ -2618,7 +2618,8 @@ function finishPaintNum(){const g=pn;if(!g||g.done)return;if(g.timer){clearInter
 const PUZZLE_PIECES=20,PUZZLE_COLS=5,PUZZLE_ROWS=4;
 function newFrame(){
   const key=pick(ALL_KEYS),rec=RECIPES[key];
-  fr={key,title:rec.name,parts:rec.parts,image:`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(artSVG(rec.parts,false,rec.name))}")`,
+  const image=artSVG(rec.parts,false,rec.name).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ');
+  fr={key,title:rec.name,parts:rec.parts,image:`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(image)}")`,
     tray:shuffle(Array.from({length:PUZZLE_PIECES},(_,i)=>i)),placed:Array(PUZZLE_PIECES).fill(false),selected:null,
     done:false,started:false,teamIdx:state.active,left:90,total:90,timer:null};
 }
@@ -3149,8 +3150,7 @@ function renderEarn(){
       <div class="puzzle-count">${placed} of ${PUZZLE_PIECES} pieces placed${g.selected!=null&&!g.done?' · Now choose its matching space.':''}</div>
       ${g.done?judgeCard(g.judge):`<div class="sbclock"><span>⏱</span><b id="frameTime" class="num">${g.left}s</b></div>`}
       <div class="puzzle-layout"><div><div class="lbl">Put the pieces here</div><div class="puzzle-board" aria-label="Picture puzzle board">${slots}</div></div>
-        <div class="puzzle-aside"><div class="puzzle-reference"><div class="lbl">Picture to make</div><div class="frame"><div class="mat">${artSVG(g.parts,false,g.title)}</div></div></div>
-          <div><div class="lbl">Mixed-up pieces</div><div class="puzzle-tray" aria-label="Shuffled puzzle pieces">${pieces}</div></div>
+        <div class="puzzle-aside"><div><div class="lbl">Mixed-up pieces</div><div class="puzzle-tray" aria-label="Shuffled puzzle pieces">${pieces}</div></div>
           ${g.done?`<div class="feedback resultbox ${placed===PUZZLE_PIECES?'okr':'badr'}"><span class="ricon">${placed===PUZZLE_PIECES?checkSVG():X_SVG}</span><span>${placed===PUZZLE_PIECES?`Picture complete! ${who(g.teamIdx)} earns $${g.earned}.`:`Time! You placed ${placed} of ${PUZZLE_PIECES} pieces. ${who(g.teamIdx)} earns $${g.earned}.`}</span></div>`:''}
         </div></div>${nextBtn(g.done)}</div>`;
   }else if(earnGame==='pixel'){
