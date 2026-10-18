@@ -2143,19 +2143,38 @@ function avatarSVG(seed,critic){
   if(critic)face.push(P('circle',56,52,9,9,0,'white'));
   return `<svg class="av" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="${critic?'#3a3350':'#e2e8e4'}"/>${face.map(p=>{let m=shapeMarkup(p.color==='skin'?{...p,color:'red'}:p);if(p.color==='skin')m=m.replace(/fill="[^"]+"/,`fill="${skin}"`);if(critic&&p.kind==='circle'&&p.w===9)m=m.replace(/fill="[^"]+"/,'fill="none"').replace(/stroke="[^"]+"/,'stroke="#e3a63b"').replace('stroke-width="0.5"','stroke-width="1.5"');return `<g transform="rotate(${p.rot} ${p.x} ${p.y})">${m}</g>`}).join('')}</svg>`;
 }
-function pitchesFor(a){
-  const L=[];const pal=palette(a),n=a.parts.length,stars=a.parts.filter(p=>p.kind==='star'||p.kind==='heart').length,subs=(a.subs?.length||0)+(a.colorSubs?.length||0);
-  L.push({id:'likeness',text:`It looks exactly like a ${a.topic.toLowerCase()}`});
-  L.push({id:'rare',text:'One of a kind. No two are ever alike'});
-  if(pal>=3)L.push({id:'color',text:`Look at all ${pal} colors!`});
-  if(roundShare(a)>=.3)L.push({id:'round',text:'So many lovely round shapes'});
-  if(subs>=2)L.push({id:'weird',text:'The artist got really creative with the shapes'});
-  if(n<=10)L.push({id:'simple',text:`Clean and simple, just ${n} shapes`});
-  if(stars)L.push({id:'stars',text:`Check out the ${stars>1?stars+' stars and hearts':'star power'}`});
-  if(a.tags.length)L.push({id:'theme',text:`${a.tags[0][0].toUpperCase()+a.tags[0].slice(1)} art is hot right now`});
-  if(a.tier==='bonus')L.push({id:'bonus',text:'Painted by the master artist in a bonus round'});
-  if(a.tier==='handmade')L.push({id:'hand',text:'Handmade by our own artists'});
-  return L;
+const usedPitchPhrases=new Set();
+const PITCH_REFRESHERS=['Here is another reason: ','And one more thing: ','You should also know: ','There is more to love: ','Take a closer look: ','The best part is: ','Between us: ','I have to point out: '];
+const PITCH_CLOSERS=['It deserves a second look.','Someone should hang this in a gallery.','It would brighten any room.','This one has real personality.','I would be proud to display it.','It belongs in a good collection.','It is easy to see the care in it.','Any art lover would be lucky to own it.'];
+function freshPitchPhrase(choices){
+  let available=choices.filter(text=>!usedPitchPhrases.has(text));
+  if(!available.length){
+    available=choices.flatMap(text=>{
+      const sentence=text.replace(/[.!?]+$/,'');
+      return[
+        ...PITCH_REFRESHERS.map(prefix=>prefix+sentence),
+        ...PITCH_CLOSERS.map(closer=>sentence+'. '+closer),
+        ...PITCH_REFRESHERS.flatMap(prefix=>PITCH_CLOSERS.map(closer=>prefix+sentence+'. '+closer))
+      ];
+    }).filter(text=>!usedPitchPhrases.has(text));
+  }
+  const text=pick(available);usedPitchPhrases.add(text);return text;
+}
+function pitchesFor(a,owner){
+  if(owner.pitchPrompts&&owner.pitchArtId===a.id)return owner.pitchPrompts;
+  const L=[];const pal=palette(a),n=a.parts.length,stars=a.parts.filter(p=>p.kind==='star'||p.kind==='heart').length,subs=(a.subs?.length||0)+(a.colorSubs?.length||0),topic=a.topic.toLowerCase();
+  const add=(id,choices)=>L.push({id,text:freshPitchPhrase(choices)});
+  add('likeness',[`It looks exactly like a ${topic}`,`I recognized that ${topic} right away`,`You captured the ${topic} perfectly`,`That ${topic} is unmistakable`,`I knew it was a ${topic} at first glance`,`You really brought the ${topic} to life`]);
+  add('rare',['One of a kind. No two are ever alike','A true original. There is nothing else like it','This is the only one of its kind','No copies here. This piece is all yours','A rare find that nobody else can match','You will not see another one like this']);
+  if(pal>=3)add('color',[`Look at all ${pal} colors!`,`Those ${pal} colors make this piece pop`,`What a wonderful mix of ${pal} colors`,`The ${pal}-color palette is a real standout`,`So much life in those ${pal} colors`,`Every one of those ${pal} colors has a place`]);
+  if(roundShare(a)>=.3)add('round',['So many lovely round shapes','Those curves give it such a friendly feel','Look at all those satisfyingly round shapes','The round shapes make it feel so cheerful','A lovely collection of circles and curves','Those round details are hard to resist']);
+  if(subs>=2)add('weird',['The artist got really creative with the shapes','Those unexpected shapes make it truly original','A clever artist knows how to improvise','The shape choices are wonderfully inventive','This artist turned a tricky mix into something special','That creative use of shapes is the real magic']);
+  if(n<=10)add('simple',[`Clean and simple, just ${n} shapes`,`Just ${n} shapes, arranged beautifully`,`A few shapes can say a lot—only ${n} here`,`Simple, thoughtful, and made with ${n} shapes`,`Every one of these ${n} shapes counts`,`Proof that ${n} shapes are plenty`]);
+  if(stars)add('stars',[`Check out the ${stars>1?stars+' stars and hearts':'star power'}`,`${stars>1?stars+' stars and hearts':'A little star power'} make it shine`,`Those ${stars>1?stars+' starry details':'starry details'} are delightful`,`The ${stars>1?stars+' stars and hearts':'star detail'} gives it extra sparkle`,`It has just the right amount of ${stars>1?'starry charm':'star power'}`]);
+  if(a.tags.length){const theme=a.tags[0];add('theme',[`${theme[0].toUpperCase()+theme.slice(1)} art is hot right now`,`Everyone is talking about ${theme} art`,`This is just the kind of ${theme} art people love`,`You cannot go wrong with a great ${theme} piece`,`The ${theme} theme is having a moment`,`A fresh take on everyone's favorite ${theme} art`])}
+  if(a.tier==='bonus')add('bonus',['Painted by the master artist in a bonus round','A bonus-round original from the master artist','The master artist made this special bonus piece','A rare bonus creation by the master artist']);
+  if(a.tier==='handmade')add('hand',['Handmade by our own artists','Made by hand, right here in our studio','Our very own artists created this by hand','A one-of-a-kind handmade piece from our team']);
+  owner.pitchArtId=a.id;owner.pitchPrompts=L;return L;
 }
 function openDoors(){
   const t=team();if(!forSale(t).length)return;
@@ -3053,7 +3072,7 @@ function custHTML(t){
     const pips=c.maxPatience?`<span class="patience" aria-label="Patience ${Math.max(0,c.patience)} of ${c.maxPatience}">${Array.from({length:c.maxPatience},(_,i)=>`<i class="${i<c.patience?'':'gone'}"></i>`).join('')}</span>`:'';
     let controls='';
     if(c.phase==='talk'&&a){
-      const pitches=pitchesFor(a).filter(p=>!c.used.includes(p.id));
+      const pitches=pitchesFor(a,c).filter(p=>!c.used.includes(p.id));
       const trail=(c.trail||[c.offer]).map((v,i,arr)=>`<span class="tr ${i===arr.length-1?'now':''}">$${v}</span>`).join('<span class="arrow">▸</span>');
       controls=`<div class="dealbox">
         <div class="dealtop">
@@ -3513,7 +3532,7 @@ function venueHTML(t){
     const p=m.passer,a=p&&!p.look&&t.gallery.find(x=>x.id===p.artId);
     body=`<div class="street"><div class="streetscene"><span class="vbig">${STAGE_ICON.street}</span></div>
       ${p?`<div class="passer">${avatarMini(p.seed)}<div><b>${esc(p.name)}</b>${p.trait&&a?`<span class="trait"><span class="tico">${(TRAIT_ICON[p.trait.id]||(()=>''))()}</span>${p.trait.label}</span>`:''}<div class="bubble">${esc(p.line)}</div></div>${a?`<span class="wantthumb">${artSVG(a.parts,false,a.title)}</span>`:''}</div>
-        ${a&&p.trait&&!p.pitched?`<div class="streettalk"><div class="lbl">💬 Talk it up! One try. Pick what a <b>${p.trait.label.toLowerCase()}</b> would like:</div><div class="bubbles">${pitchesFor(a).map(q=>`<button class="sbub" data-act="streetPitch" data-k="${q.id}"><span class="bico">${pitchIcon(q.id,a)}</span><span>"${esc(q.text)}"</span></button>`).join('')}</div></div>`:''}
+        ${a&&p.trait&&!p.pitched?`<div class="streettalk"><div class="lbl">💬 Talk it up! One try. Pick what a <b>${p.trait.label.toLowerCase()}</b> would like:</div><div class="bubbles">${pitchesFor(a,p).map(q=>`<button class="sbub" data-act="streetPitch" data-k="${q.id}"><span class="bico">${pitchIcon(q.id,a)}</span><span>"${esc(q.text)}"</span></button>`).join('')}</div></div>`:''}
         <div class="cmchoices">${a?`<button class="cmc sell" data-act="streetSell"><span class="ticon">${checkSVG()}</span><b>Sell it</b><span class="num cmprice">$${p.offer}</span></button>${p.asked?'':`<button class="cmc ask" data-act="streetAsk"><span class="ticon">${coinSVG()}</span><b>Ask for more</b><span class="num cmprice" style="color:#9a6510!important">$${askFor(p)}</span><span>One try! They might say no.</span></button>`}<button class="cmc" data-act="streetNext"><span class="ticon">${X_SVG}</span><b>No thanks</b><span>Wait for someone else</span></button>`:`<button class="cmc" data-act="streetNext"><span class="ticon">${doorSVG()}</span><b>Next person</b><span>&nbsp;</span></button>`}</div>`
       :`<div class="vempty"><b>${m.streetLeft>0?'The street is quiet.':'That\'s everyone for this turn!'}</b><span>${m.streetLeft>0?'':'Come back next turn for more people walking by.'}</span></div>`}
       <div class="walkers">${Array.from({length:m.streetMax||4},(_,i)=>`<span class="walker ${i<m.streetLeft?'':'gone'}">${ART.person}</span>`).join('')}<span class="muted">${m.streetLeft} more walking by this turn</span></div></div>`;
