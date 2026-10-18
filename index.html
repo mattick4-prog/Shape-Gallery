@@ -171,14 +171,14 @@ p{margin:0 0 10px}
 .opts button.wrong::after{content:'✕';background:var(--bad)}
 .opts button.wrong{border-color:var(--bad);background:#f6dcd6}
 .feedback{font-size:20px;text-align:center;min-height:30px;font-weight:700}
-.gameart{width:min(420px,100%);margin:0 auto}
-.timer{height:10px;background:var(--paper-2);border-radius:99px;overflow:hidden;width:min(420px,100%);margin:0 auto}
+.gameart{width:min(720px,100%);margin:0 auto}
+.timer{height:10px;background:var(--paper-2);border-radius:99px;overflow:hidden;width:min(720px,100%);margin:0 auto}
 .timer i{display:block;height:100%;background:var(--gold);animation:drain linear forwards}
 @keyframes drain{from{width:100%}to{width:0}}
 .hidden-art{aspect-ratio:1;display:grid;place-items:center;background:var(--paper);border-radius:8px;font-family:var(--display);font-size:64px;color:#c3cec9}
 .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
 
-.drawpad{display:block;width:min(520px,100%);height:auto;aspect-ratio:1;margin:0 auto;background:#fff;border-radius:10px;border:3px solid var(--paper-2);touch-action:none;cursor:crosshair}
+.drawpad{display:block;width:min(760px,100%);height:auto;aspect-ratio:1;margin:0 auto;background:#fff;border-radius:10px;border:3px solid var(--paper-2);touch-action:none;cursor:crosshair}
 .mixrow{display:flex;justify-content:center;gap:clamp(20px,6vw,70px);flex-wrap:wrap}
 .blob{display:flex;flex-direction:column;align-items:center;gap:6px}
 .dropc{width:clamp(110px,20vw,170px);aspect-ratio:1;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;border:4px solid #0002;box-shadow:inset -10px -14px 0 #0001}
@@ -338,7 +338,7 @@ header{gap:10px 16px}
 .introhead.win{background:linear-gradient(135deg,#b97f1e,#e3a63b)}
 .mixstage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:center}
 @media (max-width:640px){.mixstage{grid-template-columns:repeat(2,minmax(0,1fr))}.bowlwrap{grid-column:1/-1;order:3}}
-.bowl{display:block;width:min(400px,100%);height:auto;aspect-ratio:1;margin:0 auto;touch-action:none;cursor:grab}
+.bowl{display:block;width:min(560px,100%);height:auto;aspect-ratio:1;margin:0 auto;touch-action:none;cursor:grab}
 .bowl:active{cursor:grabbing}
 .mixstage .dropc{width:clamp(90px,14vw,140px)}
 .shelf{background:linear-gradient(#f6efe2,#efe3cc);border:2px solid #e0cfae;border-radius:14px;padding:10px 14px;margin:6px 0 14px}
@@ -384,6 +384,18 @@ header{gap:10px 16px}
 .mkjar{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--paper);border:2px solid var(--paper-2);border-radius:12px;padding:6px 8px;font-size:12px;font-weight:700}
 .mkjar .jar{width:30px}
 .mkjar.pickc{border-color:var(--ink);box-shadow:0 0 0 3px var(--gold);background:#fff}
+.mixcurrent{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--paper);border-radius:10px;font-size:13px;font-weight:700}
+.mixcurrent i,.mixpreview i{width:30px;height:30px;border:2px solid #0002;border-radius:50%;flex:none}
+.paintmix{margin-top:14px;padding:12px;background:var(--paper);border:2px solid var(--paper-2);border-radius:12px}
+.paintmix h3{margin:0 0 8px}
+.mixselects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mixselects label,.mixratio{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700}
+.mixselects select{min-width:0;width:100%;padding:8px;border:2px solid var(--paper-2);border-radius:8px;background:#fff;color:var(--ink);font:inherit;text-transform:capitalize}
+.mixratio{margin-top:10px}
+.mixratio input{width:100%;accent-color:var(--violet)}
+.mixpreview{display:flex;align-items:center;gap:8px;margin:10px 0}
+.mixpreview span{flex:1;font-size:13px;font-weight:700}
+.paintmix>small{display:block}
 .artstats{display:flex;flex-wrap:wrap;gap:12px 20px;justify-content:space-between;align-items:center}
 .portfolio{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:22px}
 .pf{display:flex;flex-direction:column;gap:6px}
@@ -684,6 +696,14 @@ button.tile:hover{transform:translateY(-2px);border-color:var(--gold)}
 .vcard b{font-size:14px}
 .vneed{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:700}.vneed .mi{width:16px;height:16px}
 .venuebox{border:3px solid var(--sc);border-radius:18px;padding:14px;background:color-mix(in srgb,var(--sc) 6%,#fff)}
+.venue-street{background:linear-gradient(180deg,#c8e7ed 0%,#eaf4e8 54%,#d8c6a3 54%,#c2a77b 100%)}
+.venue-street .streetscene{min-height:126px;align-items:center;border-radius:14px;background:linear-gradient(180deg,#a8d7e2 0 65%,#8fa59c 65% 69%,#776d64 69%);box-shadow:inset 0 -8px 0 #615b55}
+.venue-fair{background:repeating-linear-gradient(135deg,#fff8e9 0 24px,#fff1d0 24px 48px)}
+.venue-fair .shopper{border:3px solid #e6c78e;box-shadow:0 5px 0 #c9a676}
+.venue-online{background:linear-gradient(145deg,#e2f1f8,#c7e3ef)}
+.venue-online .fairhead,.venue-online .listing,.venue-online .listnew{border:2px solid #b8d7e5;box-shadow:0 4px 12px #2e7fc91a}
+.venue-gallery{background:radial-gradient(ellipse at 50% 0,#fff9e8 0 24%,transparent 25%),linear-gradient(135deg,#eee4ce,#ddcfb4)}
+.venue-gallery .fairhead{background:#fffdf5;border:2px solid #d2bd96;border-radius:14px;padding:12px}
 .vempty{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:16px}
 .vbig{width:90px;height:90px;display:block}.vbig svg{width:100%;height:100%}
 .street{display:flex;flex-direction:column;gap:12px}
@@ -747,6 +767,18 @@ button.tile:hover{transform:translateY(-2px);border-color:var(--gold)}
 .hbtn.collbtn .mi{width:20px;height:20px}
 @media (max-width:560px){.rung b{font-size:11px}.here{display:none}}
 [hidden]{display:none!important}
+@media (max-width:640px){
+  body{padding-block:8px 24px}
+  .panel{padding:12px}
+  .q{padding:12px}
+  .gameart{width:100%}
+  .drawpad{width:100%}
+  .btn,.tool,.mkshape,.mkjar,.vcard{min-height:44px}
+  .tool{flex-basis:64px}
+  .toolbar{position:relative}
+  .venuebox{padding:10px}
+  .streettalk .sbub,.cmc{min-height:48px}
+}
 .toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;background:#fff;border-radius:14px;padding:8px;box-shadow:0 3px 0 #0001;align-items:stretch}
 .tool{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--paper);color:var(--ink);border-radius:10px;padding:6px 6px 4px;min-width:56px;flex:1 0 56px}
 .tool svg{width:26px;height:26px}
@@ -1142,6 +1174,13 @@ body.party .chip{pointer-events:none}
 .tdkey span{display:flex;align-items:center;gap:4px}.tdkey i{width:14px;height:14px;border-radius:3px}
 .streettalk{margin:8px 0 10px;background:#fff8e6;border:2px dashed #f2c230;border-radius:14px;padding:8px 10px}
 .streettalk .lbl{margin-bottom:6px;text-transform:none;letter-spacing:0;font-size:14px}
+@media (max-width:640px){
+  .pxwrap,.pawrap{grid-template-columns:minmax(0,1fr)}
+  .pxside,.paside{grid-column:auto}
+  .pxgrid.mys{max-width:600px}
+  .tdboard{width:100%}
+  .mixselects{grid-template-columns:minmax(0,1fr)}
+}
 /* Modal */
 .modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));z-index:20}
 .sheet{background:var(--paper);border-radius:16px;padding:22px;width:min(720px,100%);max-height:90vh;overflow:auto}
@@ -1438,9 +1477,10 @@ let sampleFn=null,sampleChecked=false;
 
 /* ================= Drawing ================= */
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function colorValue(c){return COLORS[c]||(/^#[0-9a-f]{6}$/i.test(c||'')?c:'#999999')}
 function shapeMarkup(p){
   const k=p.kind,x=+p.x,y=+p.y,w=+p.w,h=+p.h;
-  const st=p.color==='unpainted'?`fill="#ffffff" stroke="#8a9a96" stroke-width="0.6" stroke-dasharray="1.6 1.2"`:`fill="${COLORS[p.color]||'#999'}" stroke="rgba(20,30,35,.28)" stroke-width="0.5" stroke-linejoin="round"`;
+  const st=p.color==='unpainted'?`fill="#ffffff" stroke="#8a9a96" stroke-width="0.6" stroke-dasharray="1.6 1.2"`:`fill="${colorValue(p.color)}" stroke="rgba(20,30,35,.28)" stroke-width="0.5" stroke-linejoin="round"`;
   const poly=pts=>`<polygon points="${pts.map(q=>r1(q[0])+','+r1(q[1])).join(' ')}" ${st}/>`;
   const u=(px,py)=>r1(x-w/2+px*w)+','+r1(y-h/2+py*h);
   switch(k){
@@ -1612,44 +1652,59 @@ function startMaker(){
   const prob=supplyProblem({...t,shapes:t.shapes,paint:t.paint});
   if(!KINDS.some(k=>t.shapes[k]>0)){toast('You have no shapes. Buy some in the Shop.');return}
   const c=COLOR_ORDER.find(x=>t.paint[x]>0);if(!c){toast('You have no paint. Buy some in the Shop.');return}
-  maker={key:sel,parts:[],selIdx:null,color:c,teamIdx:state.active,phase:'build',deadline:paintSecs()?Date.now()+paintSecs()*1000:0};renderAll();
+  maker={key:sel,parts:[],selIdx:null,color:c,paintMix:[c],teamIdx:state.active,phase:'build',deadline:paintSecs()?Date.now()+paintSecs()*1000:0};renderAll();
 }
 function toCanvas(force,id){const f=$(id||'#makerFrame');if(!f)return;const r=f.getBoundingClientRect(),vh=innerHeight;if(!(force||r.top<-20||r.bottom>vh+20))return;const target=r.height>vh*.9?r.top-8:r.top-(vh-r.height)/2;try{window.scrollBy({top:target,behavior:'smooth'})}catch(e){window.scrollBy(0,target)}setTimeout(()=>{const r2=f.getBoundingClientRect();if(r2.top<-20||r2.top>vh*.5)try{f.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}},450)}
-function makerUsage(){const s={},c={};maker.parts.forEach(p=>{s[p.kind]=(s[p.kind]||0)+1;c[p.color]=(c[p.color]||0)+1});return{s,c}}
 function makerTeam(){return state.teams[maker.teamIdx]}
+function mixPaintHex(a,b,ratio){
+  const x=hexRgb(colorValue(a)),y=hexRgb(colorValue(b)),n=clamp(+ratio/100,0,1);
+  return '#'+x.map((v,i)=>Math.round(v*(1-n)+y[i]*n).toString(16).padStart(2,'0')).join('');
+}
+function makerUsage(){const s={},c={};maker.parts.forEach(p=>{s[p.kind]=(s[p.kind]||0)+1;(p.paintMix||[p.color]).forEach(color=>c[color]=(c[color]||0)+1)});return{s,c}}
 function makerAdd(kind,copyOf){
   if(maker.arcade){if(maker.phase!=='build')return;if(sbLeft(kind)<=0){toast(`No more ${kind}s!`);return}const off=(maker.parts.length%6)*4,[w,h]=DEFAULT_SIZE[kind]||[24,24];
     maker.parts.push(copyOf?{...copyOf,x:clamp(copyOf.x+6,0,100),y:clamp(copyOf.y+6,0,100)}:{kind,x:40+off,y:40+off,w,h,rot:0,color:maker.color});maker.selIdx=maker.parts.length-1;maker.lastWet=maker.selIdx;sbStartTimer();drawMaker();return}
   const t=makerTeam(),u=makerUsage();
   if((u.s[kind]||0)>=(t.shapes[kind]||0)){toast(`You're out of ${kind}s.`);return}
-  const color=copyOf?copyOf.color:maker.color;
-  if((u.c[color]||0)>=(t.paint[color]||0)){toast(`You're out of ${color} paint. Pick another color.`);return}
+  const paints=[...new Set(copyOf?(copyOf.paintMix||[copyOf.color]):(maker.paintMix||[maker.color]))];
+  const empty=paints.find(color=>(u.c[color]||0)>=(t.paint[color]||0));
+  if(empty){toast(`You're out of ${COLOR_ORDER.includes(empty)?empty+' paint':'one of the paints in that mix'}. Pick another color.`);return}
   mkSnap();const off=(maker.parts.length%6)*4,[w,h]=DEFAULT_SIZE[kind];
-  maker.parts.push(copyOf?{...copyOf,x:clamp(copyOf.x+6,0,100),y:clamp(copyOf.y+6,0,100),wetUntil:Date.now()+dryMs()}:{kind,x:40+off,y:40+off,w,h,rot:0,color,wetUntil:Date.now()+dryMs()});
+  maker.parts.push(copyOf?{...copyOf,x:clamp(copyOf.x+6,0,100),y:clamp(copyOf.y+6,0,100),wetUntil:Date.now()+dryMs()}:{kind,x:40+off,y:40+off,w,h,rot:0,color:maker.color,paintMix:paints.length>1?paints:undefined,wetUntil:Date.now()+dryMs()});
   maker.selIdx=maker.parts.length-1;maker.lastWet=maker.selIdx;drawMaker();
 }
 function makerColor(c){
   if(maker.arcade){maker.color=c;const p=maker.parts[maker.selIdx];if(p)p.color=c;drawMaker();return}
   const t=makerTeam(),u=makerUsage();maker.color=c;
+  maker.paintMix=[c];
   const p=maker.parts[maker.selIdx];
-  if(p&&p.color!==c){if(!isWet(p)){toast('That paint is dry! Pick a color before adding your next shape.');maker.selIdx=null;drawMaker();return}if((u.c[c]||0)>=(t.paint[c]||0)){toast(`You're out of ${c} paint.`);drawMaker();return}wetten(p);p.color=c}
+  if(p&&(p.color!==c||(p.paintMix||[]).length)){if(!isWet(p)){toast('That paint is dry! Pick a color before adding your next shape.');maker.selIdx=null;drawMaker();return}const current=(p.paintMix||[p.color]).filter(color=>color===c).length;if((u.c[c]||0)-current>=(t.paint[c]||0)){toast(`You're out of ${c} paint.`);drawMaker();return}wetten(p);p.color=c;delete p.paintMix}
   drawMaker();
+}
+function applyMakerMix(){
+  const a=$('#mkMixA')?.value,b=$('#mkMixB')?.value,ratio=+($('#mkMixRatio')?.value||50);
+  if(!a||!b)return;
+  const paints=ratio<=0?[a]:ratio>=100?[b]:[...new Set([a,b])],u=makerUsage(),t=makerTeam(),empty=paints.find(c=>(u.c[c]||0)>=(t.paint[c]||0));
+  if(empty){toast(`Not enough ${empty} paint left to use in this mix.`);return}
+  maker.mixA=a;maker.mixB=b;maker.mixRatio=ratio;maker.color=ratio<=0?a:ratio>=100?b:mixPaintHex(a,b,ratio);maker.paintMix=paints;drawMaker();
 }
 const dryS=()=>(state.settings.drySecs||9);
 const dryLbl=()=>dryS()>=999?'never dries':`dries ${dryS()} seconds`;
 const dryMs=()=>(dryS()*1000+((team()&&team().up&&team().up.rack)?2000:0));
 const isWet=p=>!!p&&((maker&&maker.arcade)||(p.wetUntil||0)>Date.now());
-function wetten(p){if(p)p.wetUntil=Date.now()+dryMs()}
+function wetten(p){if(p)p.wetUntil=dryS()>=999?Number.MAX_SAFE_INTEGER:Date.now()+dryMs()}
 let dryTimer=null;
-function startDryTimer(){clearInterval(dryTimer);dryTimer=setInterval(()=>{if(!maker||maker.phase!=='build'||!$('#makerSvg')){clearInterval(dryTimer);dryTimer=null;return}if(maker.arcade)return;
+function startDryTimer(){clearInterval(dryTimer);dryTimer=null;if(maker&&!maker.deadline&&dryS()>=999)return;dryTimer=setInterval(()=>{if(!maker||maker.phase!=='build'||!$('#makerSvg')){clearInterval(dryTimer);dryTimer=null;return}if(maker.arcade)return;
   if(maker.deadline){const pc=$('#paintClock');if(pc)pc.outerHTML=paintClockHTML();if(Date.now()>=maker.deadline){clearInterval(dryTimer);dryTimer=null;if(maker.parts.length){toast('Time\'s up! Brushes down.');hangMaker()}else{maker=null;toast('Time\'s up! Nothing was painted.');renderAll()}return}}
-  const sp=maker.parts[maker.selIdx];if(sp&&!isWet(sp)&&!maker.holding){maker.selIdx=null;drawMaker();return}
+  const wetState=maker.parts.map(p=>isWet(p)?'1':'0').join('');
+  if(wetState!==maker.wetState){maker.wetState=wetState;drawMaker();return}
   if(maker.parts.some(isWet)||maker.holding)drawMaker(true)},150)}
 function mkSnap(){if(!maker)return;if(!maker.undo)maker.undo=[];maker.undo.push(JSON.stringify(maker.parts));if(maker.undo.length>40)maker.undo.shift()}
 function makerOp(op){
   if(op==='undo'){if(maker.undo&&maker.undo.length){maker.parts=JSON.parse(maker.undo.pop());if(maker.selIdx!=null&&maker.selIdx>=maker.parts.length)maker.selIdx=null;drawMaker()}return}
   if(op==='clear'){if(!maker.parts.length)return;if(!maker.clearArm){maker.clearArm=true;drawMaker();setTimeout(()=>{if(maker){maker.clearArm=false;drawMaker()}},2500);return}mkSnap();maker.parts=[];maker.selIdx=null;maker.clearArm=false;drawMaker();return}
   const i=maker.selIdx,p=maker.parts[i];if(!p)return;
+  if(op==='del'){mkSnap();maker.parts.splice(i,1);maker.selIdx=null;drawMaker();return}
   if(!isWet(p)){toast('That paint is dry! It can\'t be changed now.');maker.selIdx=null;drawMaker();return}
   if(op==='dup'){wetten(p);makerAdd(p.kind,p);return}
   wetten(p);
@@ -1663,7 +1718,6 @@ function makerOp(op){
     case 'flip':p.flip=!p.flip;break;
     case 'front':maker.parts.splice(i,1);maker.parts.push(p);maker.selIdx=maker.parts.length-1;break;
     case 'back':maker.parts.splice(i,1);maker.parts.unshift(p);maker.selIdx=0;break;
-    case 'del':maker.parts.splice(i,1);maker.selIdx=null;break;
   }
   drawMaker();
 }
@@ -1671,11 +1725,14 @@ function selBoxDims(sp){const sq=sp.kind==='circle'||sp.kind==='square';return s
 function makerSVGInner(){
   const sp=maker.parts[maker.selIdx];
   let selBox='';
-  if(sp&&maker.phase==='build'&&isWet(sp)){const [w,h]=selBoxDims(sp),hx=r1(sp.x+w/2+1.5),hy=r1(sp.y+h/2+1.5);
-    selBox=`<g transform="rotate(${sp.rot||0} ${sp.x} ${sp.y})"><rect x="${r1(sp.x-w/2-1.5)}" y="${r1(sp.y-h/2-1.5)}" width="${r1(w+3)}" height="${r1(h+3)}" fill="none" stroke="#b97f1e" stroke-width=".7" stroke-dasharray="2 1.2" pointer-events="none"/><circle data-h="1" cx="${hx}" cy="${hy}" r="5" fill="#fff" stroke="#b97f1e" stroke-width="1.2" style="cursor:nwse-resize"/><path d="M${r1(hx-1.4)} ${r1(hy+1.4)} L${r1(hx+1.4)} ${r1(hy-1.4)}" stroke="#b97f1e" stroke-width=".8" pointer-events="none"/></g>`}
+  if(sp&&maker.phase==='build'){
+    const [w,h]=selBoxDims(sp),x0=sp.x-w/2-1.5,y0=sp.y-h/2-1.5,x1=sp.x+w/2+1.5,y1=sp.y+h/2+1.5;
+    const handles=isWet(sp)?[['nw',x0,y0],['n',sp.x,y0],['ne',x1,y0],['e',x1,sp.y],['se',x1,y1],['s',sp.x,y1],['sw',x0,y1],['w',x0,sp.y]].map(([name,x,y])=>`<circle data-h="${name}" cx="${r1(x)}" cy="${r1(y)}" r="5.5" fill="#fff" stroke="#b97f1e" stroke-width="1.2" style="cursor:nwse-resize"/>`).join(''):'';
+    selBox=`<g transform="rotate(${sp.rot||0} ${sp.x} ${sp.y})"><rect x="${r1(x0)}" y="${r1(y0)}" width="${r1(w+3)}" height="${r1(h+3)}" fill="none" stroke="${isWet(sp)?'#b97f1e':'#778783'}" stroke-width=".7" stroke-dasharray="2 1.2" pointer-events="none"/>${handles}</g>`;
+  }
   const now=Date.now();
-  const timers=maker.arcade?[]:maker.parts.map(p=>{if(!isWet(p))return '';const left=Math.max(0,(p.wetUntil-now)/dryMs()),r=3.2,c=2*Math.PI*r;return `<g pointer-events="none" transform="translate(${r1(clamp(p.x,5,95))} ${r1(clamp(p.y-selBoxDims(p)[1]/2-5,5,95))})"><circle r="${r+1}" fill="#fff" opacity=".9"/><circle r="${r}" fill="none" stroke="#9ccfee" stroke-width="1.6"/><circle r="${r}" fill="none" stroke="#2e62c9" stroke-width="1.6" stroke-dasharray="${r1(c*left)} ${r1(c)}" transform="rotate(-90)"/><path d="M0 -1.8 C0.9 -0.4 1.3 0.3 1.3 0.8 A1.3 1.3 0 0 1 -1.3 0.8 C-1.3 0.3 -0.9 -0.4 0 -1.8 Z" fill="#2e62c9"/></g>`}).join('');
-  return `<rect width="100" height="100" fill="${maker.arcade?COLORS[maker.bg||'white']:'#fdfdfb'}"/>${(maker.guide||[]).map(p=>`<g pointer-events="none"><g transform="${xf(p)}">${shapeMarkup(p)}</g></g>`).join('')}${maker.mirrorLine?'<path d="M50 0 V100" stroke="#7b4fae" stroke-width=".6" stroke-dasharray="2 1.5" pointer-events="none"/>':''}${maker.parts.map((p,i)=>`<g data-pi="${i}" class="${isWet(p)?'wet':'dry'}" style="${isWet(p)?'cursor:grab':'pointer-events:none'}"><g transform="${xf(p)}">${shapeMarkup(p)}</g></g>`).join('')}${selBox}${timers}${!maker.parts.length?`<text x="50" y="50" text-anchor="middle" font-size="4.4" fill="#9aaba7" font-family="system-ui,sans-serif">Tap a shape on the right to add it</text>`:''}`;
+  const timers=maker.arcade||dryS()>=999?[]:maker.parts.map(p=>{if(!isWet(p))return '';const left=clamp((p.wetUntil-now)/dryMs(),0,1),r=3.2,c=2*Math.PI*r;return `<g pointer-events="none" transform="translate(${r1(clamp(p.x,5,95))} ${r1(clamp(p.y-selBoxDims(p)[1]/2-5,5,95))})"><circle r="${r+1}" fill="#fff" opacity=".9"/><circle r="${r}" fill="none" stroke="#9ccfee" stroke-width="1.6"/><circle r="${r}" fill="none" stroke="#2e62c9" stroke-width="1.6" stroke-dasharray="${r1(c*left)} ${r1(c)}" transform="rotate(-90)"/><path d="M0 -1.8 C0.9 -0.4 1.3 0.3 1.3 0.8 A1.3 1.3 0 0 1 -1.3 0.8 C-1.3 0.3 -0.9 -0.4 0 -1.8 Z" fill="#2e62c9"/></g>`}).join('');
+  return `<rect width="100" height="100" fill="${maker.arcade?COLORS[maker.bg||'white']:'#fdfdfb'}"/>${(maker.guide||[]).map(p=>`<g pointer-events="none"><g transform="${xf(p)}">${shapeMarkup(p)}</g></g>`).join('')}${maker.mirrorLine?'<path d="M50 0 V100" stroke="#7b4fae" stroke-width=".6" stroke-dasharray="2 1.5" pointer-events="none"/>':''}${maker.parts.map((p,i)=>`<g data-pi="${i}" class="${isWet(p)?'wet':'dry'}" style="cursor:${isWet(p)?'grab':'pointer'}"><g transform="${xf(p)}">${shapeMarkup(p)}</g></g>`).join('')}${selBox}${timers}${!maker.parts.length?`<text x="50" y="50" text-anchor="middle" font-size="4.4" fill="#9aaba7" font-family="system-ui,sans-serif">Tap a shape on the right to add it</text>`:''}`;
 }
 function mkToolsHTML(){
   const p=maker.parts[maker.selIdx],dis=p?'':'disabled';
@@ -1700,8 +1757,8 @@ function mkToolsHTML(){
   const b=(op,l,cls,off)=>`<button class="tool ${cls||''}" data-act="mkOp" data-k="${op}" ${off||''} aria-label="${l}"><svg viewBox="0 0 100 100" aria-hidden="true">${I[op]}</svg><span>${l}</span></button>`;
   const wet=isWet(p),dis2=wet?'':'disabled';
   const sz=p?Math.round((selBoxDims(p)[0]+selBoxDims(p)[1])/2):30;
-  return `<label class="sizer ${wet?'':'off'}"><span class="mi">${miniSVG('square','blue')}</span><b>Size</b><input id="sizeSlider" type="range" min="4" max="100" value="${sz}" ${wet?'':'disabled'} aria-label="Shape size"><span class="mi big">${miniSVG('square','blue')}</span></label><div class="toolbar">${p&&wet?'':`<span class="dryhint">${p?'Dry! ':''}Tap a wet shape to change it</span>`}${b('rotR','Turn 5°','',dis2)}${b('rotBig','Turn 45°','',dis2)}${b('flip','Flip','',dis2)}${b('bigger','Bigger','',dis2)}${b('smaller','Smaller','',dis2)}${b('wider','Wider','',dis2)}${b('narrower','Thinner','',dis2)}${b('taller','Taller','',dis2)}${b('shorter','Shorter','',dis2)}<span class="tsep"></span>${b('dup','Copy','',dis2)}${b('front','To front','',dis2)}${b('back','To back','',dis2)}${maker.arcade?b('del','Remove','',dis2):''}</div>
-    <div class="gesturehint" ${hintsOn()?"":"hidden"}><span>✋ <b>Drag</b> to move</span><span>👆 <b>Tap</b> to turn 5°</span><span>🤏 <b>Pinch</b> or drag the corner to resize</span>${maker.arcade?'<span>🗑 <b>Remove</b> puts a shape back</span>':`<span>💧 Paint <b>${dryLbl()}</b> after you stop touching it. No erasing!</span>`}</div>`;
+  return `<label class="sizer ${wet?'':'off'}"><span class="mi">${miniSVG('square','blue')}</span><b>Size</b><input id="sizeSlider" type="range" min="4" max="100" value="${sz}" ${wet?'':'disabled'} aria-label="Shape size"><span class="mi big">${miniSVG('square','blue')}</span></label><div class="toolbar">${p&&wet?'':`<span class="dryhint">${p?'Dry paint: you can still erase it.':'Select a shape to edit or erase it.'}</span>`}${b('undo','Undo','',maker.undo&&maker.undo.length?'':'disabled')}${b('rotR','Turn 5°','',dis2)}${b('rotBig','Turn 45°','',dis2)}${b('flip','Flip','',dis2)}${b('bigger','Bigger','',dis2)}${b('smaller','Smaller','',dis2)}${b('wider','Wider','',dis2)}${b('narrower','Thinner','',dis2)}${b('taller','Taller','',dis2)}${b('shorter','Shorter','',dis2)}<span class="tsep"></span>${b('dup','Copy','',dis2)}${b('front','To front','',dis2)}${b('back','To back','',dis2)}${b('del',maker.arcade?'Remove':'Erase shape','danger',p?'':'disabled')}</div>
+    <div class="gesturehint" ${hintsOn()?"":"hidden"}><span>✋ <b>Drag</b> a shape to move it</span><span>↻ Use Turn buttons to rotate</span><span>↔ Drag a highlighted handle to resize</span>${maker.arcade?'<span>🗑 <b>Remove</b> puts a shape back</span>':`<span>💧 Paint <b>${dryLbl()}</b> after you stop touching it. Dry shapes can still be erased.</span>`}</div>`;
 }
 function makerSideHTML(){
   if(maker.arcade)return sbSideHTML();
@@ -1717,7 +1774,13 @@ function makerSideHTML(){
       <div class="lbl" style="margin-bottom:6px">Class vote</div><div class="actions">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="mkVote" data-n="${n}">${'★'.repeat(n)}</button>`).join('')}</div>
       <div class="actions" style="margin-top:16px"><button class="btn ghost small" data-act="mkBack">Keep building</button></div>`;
   }
-  return `<h3 style="margin-top:0">1. Pick a paint</h3><div class="need">${colors}</div>
+  const owned=COLOR_ORDER.filter(c=>t.paint[c]>0),mixA=owned.includes(maker.mixA)?maker.mixA:(owned[0]||''),mixB=owned.includes(maker.mixB)?maker.mixB:(owned.find(c=>c!==mixA)||mixA),mixRatio=maker.mixRatio??50,mixPreview=mixA&&mixB?mixPaintHex(mixA,mixB,mixRatio):'#999';
+  const paintOptions=selected=>owned.map(c=>`<option value="${c}" ${selected===c?'selected':''}>${c} · ${t.paint[c]-(u.c[c]||0)} left</option>`).join('');
+  return `<h3 style="margin-top:0">1. Pick a paint</h3><div class="need">${colors}<span class="mixcurrent"><i style="background:${colorValue(maker.color)}"></i><span>Current paint</span></span></div>
+    <section class="paintmix"><h3>Mix your own paint</h3>${owned.length?`<div class="mixselects"><label>First color<select id="mkMixA">${paintOptions(mixA)}</select></label><label>Second color<select id="mkMixB">${paintOptions(mixB)}</select></label></div>
+      <label class="mixratio">Blend amount <input id="mkMixRatio" type="range" min="0" max="100" value="${mixRatio}" aria-label="Amount of second color"><span><b id="mkMixPercent">${mixRatio}%</b> second color</span></label>
+      <div class="mixpreview"><i id="mkMixSwatch" style="background:${mixPreview}"></i><span>Mixed paint preview</span><button class="btn small violet" data-act="mkMixApply">Use this mix</button></div>
+      <small class="muted">Mixed shapes use one unit of each color; at either slider end, only that color is used.</small>`:'<p class="muted">Buy paint in the Shop to mix colors.</p>'}</section>
     <h3>2. Add a shape</h3><div class="need">${shapes}</div>
     <div class="actions" style="margin-top:18px"><button class="btn" data-act="mkDone" ${maker.parts.length?'':'disabled'}>Hang it in the gallery!</button><button class="btn ghost" data-act="mkCancel">Cancel</button></div>
     <p class="muted" style="font-size:13px;margin-top:8px">Nothing is used up until you finish. Numbers show what you have left.</p>`;
@@ -1728,7 +1791,7 @@ function drawMaker(svgOnly){
   if(!svgOnly){const side=$('#makerSide');if(side)side.innerHTML=makerSideHTML();const q=$('#makerQuick');if(q)q.innerHTML=mkQuickHTML()}
 }
 function mkQuickHTML(){const t=makerTeam(),u=makerUsage();
-  return `<span class="lbl">Tap to add</span>${KINDS.filter(k=>t.shapes[k]>0).map(k=>{const left=t.shapes[k]-(u.s[k]||0);return `<button class="mkshape sm" data-act="mkAdd" data-k="${k}" ${left>0&&maker.phase==='build'?'':'disabled'} aria-label="Add ${k}, ${left} left"><span class="sbig">${miniSVG(k,maker.color)}<i class="cnt num">${fmtN(left)}</i></span></button>`}).join('')}<span class="mqc" style="background:${COLORS[maker.color]}" title="Current paint"></span>`}
+  return `<span class="lbl">Tap to add</span>${KINDS.filter(k=>t.shapes[k]>0).map(k=>{const left=t.shapes[k]-(u.s[k]||0);return `<button class="mkshape sm" data-act="mkAdd" data-k="${k}" ${left>0&&maker.phase==='build'?'':'disabled'} aria-label="Add ${k}, ${left} left"><span class="sbig">${miniSVG(k,maker.color)}<i class="cnt num">${fmtN(left)}</i></span></button>`}).join('')}<span class="mqc" style="background:${colorValue(maker.color)}" title="Current paint"></span>`}
 function renderMaker(){
   const rec=RECIPES[maker.key];
   $('#main').innerHTML=`<section class="panel">${maker.deadline?`<div class="pcwrap">${paintClockHTML()}</div>`:''}<div class="mission"><div><div class="lbl">${esc(makerTeam().name)}, your mission</div><div class="mtitle">Build a ${esc(rec.name.toLowerCase())}!</div><div>Use only the shapes and paint you own. When you're done, it gets hung in your gallery and an art critic comes to review it and make an offer.</div></div>
@@ -1740,6 +1803,7 @@ function bindMakerSurface(){
   drawMaker();
   const svg=$('#makerSvg');if(!svg)return;
   const toPt=e=>{const r=svg.getBoundingClientRect();return[(e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100]};
+  const toLocal=(pt,sp)=>{const a=-(sp.rot||0)*Math.PI/180,x=pt[0]-sp.x,y=pt[1]-sp.y;return[x*Math.cos(a)-y*Math.sin(a),x*Math.sin(a)+y*Math.cos(a)]};
   const P=new Map();let G=null;
   const d2=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
   const surf=$('#makerFrame')||svg;
@@ -1750,18 +1814,27 @@ function bindMakerSurface(){
     const pt=toPt(e);P.set(e.pointerId,pt);
     if(P.size===2&&pinchTarget()!=null){maker.selIdx=pinchTarget();maker.holding=true;wetten(maker.parts[maker.selIdx]);const sp=maker.parts[maker.selIdx],[a,b]=[...P.values()];if(!G||!G.snapped)mkSnap();G={mode:'pinch',d0:Math.max(1,d2(a,b)),w0:sp.w,h0:sp.h,snapped:true,noTap:true};return}
     if(P.size>1)return;
-    if(e.target.closest('[data-h]')&&isWet(maker.parts[maker.selIdx])){const sp=maker.parts[maker.selIdx];maker.holding=true;wetten(sp);mkSnap();G={mode:'resize',d0:Math.max(1,d2(pt,[sp.x,sp.y])),w0:sp.w,h0:sp.h,snapped:true,noTap:true};return}
+    const handle=e.target.closest('[data-h]');
+    if(handle&&isWet(maker.parts[maker.selIdx])){const sp=maker.parts[maker.selIdx];maker.holding=true;wetten(sp);mkSnap();G={mode:'resize',handle:handle.dataset.h,start:toLocal(pt,sp),w0:sp.w,h0:sp.h,snapped:true,noTap:true};return}
     const g=e.target.closest('[data-pi]');
     if(!g){G={mode:'empty',t:Date.now()};return}
-    const i=+g.dataset.pi,p=maker.parts[i];if(!isWet(p)){maker.selIdx=null;drawMaker();return}const wasSel=maker.selIdx===i;maker.selIdx=i;maker.lastWet=i;maker.holding=true;wetten(p);
-    G={mode:'drag',i,dx:pt[0]-p.x,dy:pt[1]-p.y,start:pt,t:Date.now(),moved:false,snapped:false,wasSel};
+    const i=+g.dataset.pi,p=maker.parts[i];maker.selIdx=i;maker.lastWet=i;
+    if(!isWet(p)){drawMaker();return}
+    maker.holding=true;wetten(p);
+    G={mode:'drag',i,dx:pt[0]-p.x,dy:pt[1]-p.y,start:pt,t:Date.now(),moved:false,snapped:false};
     drawMaker();
   };
   surf.onpointermove=e=>{
     if(!P.has(e.pointerId)||!G)return;const pt=toPt(e);P.set(e.pointerId,pt);
     const sp=maker.parts[maker.selIdx];if(!sp)return;wetten(sp);
     if(G.mode==='pinch'&&P.size>=2){const [a,b]=[...P.values()],f=d2(a,b)/G.d0;sp.w=clamp(r1(G.w0*f),3,120);sp.h=clamp(r1(G.h0*f),3,120);drawMaker(true);return}
-    if(G.mode==='resize'){const f=d2(pt,[sp.x,sp.y])/G.d0;sp.w=clamp(r1(G.w0*f),3,120);sp.h=clamp(r1(G.h0*f),3,120);drawMaker(true);return}
+    if(G.mode==='resize'){
+      const local=toLocal(pt,sp),hx=/[ew]/.test(G.handle),hy=/[ns]/.test(G.handle),sx=G.handle.includes('e')?1:-1,sy=G.handle.includes('s')?1:-1;
+      const nw=hx?G.w0+2*(local[0]-G.start[0])*sx:G.w0,nh=hy?G.h0+2*(local[1]-G.start[1])*sy:G.h0;
+      if(sp.kind==='circle'||sp.kind==='square'){const f=hx&&hy?Math.max(nw/G.w0,nh/G.h0):hx?nw/G.w0:nh/G.h0;sp.w=clamp(r1(G.w0*f),3,120);sp.h=clamp(r1(G.h0*f),3,120)}
+      else{sp.w=clamp(r1(nw),3,120);sp.h=clamp(r1(nh),3,120)}
+      drawMaker(true);return
+    }
     if(G.mode==='drag'&&P.size===1){
       if(!G.moved&&d2(pt,G.start)>1.2){G.moved=true;if(!G.snapped){mkSnap();G.snapped=true}}
       if(G.moved){sp.x=r1(clamp(pt[0]-G.dx,-5,105));sp.y=r1(clamp(pt[1]-G.dy,-5,105));drawMaker(true)}
@@ -1769,7 +1842,6 @@ function bindMakerSurface(){
   };
   const up=e=>{
     P.delete(e.pointerId);
-    if(G&&G.mode==='drag'&&!G.moved&&!G.noTap&&P.size===0&&Date.now()-G.t<450){const sp=maker.parts[G.i];if(sp){mkSnap();sp.rot=((sp.rot||0)+5)%360}}
     if(P.size===0){maker.holding=false;const sp=maker.parts[maker.selIdx];if(sp)wetten(sp)}
     if(P.size===0){if(G&&G.mode==='empty'&&Date.now()-G.t<450)maker.selIdx=null;G=null;drawMaker()}else if(G&&G.mode==='pinch'&&P.size<2){G.noTap=true}
   };
@@ -1818,12 +1890,12 @@ function tipFor(a){
   return T[0];
 }
 function summonCritic(id){return openCritic(id);const name=pick(CRITICS);customer={name,trait:TRAITS.find(x=>x.critic),seed:name+Math.random(),used:[],artId:id,phase:'review',line:pick((team().gallery.find(x=>x.id===id)||{}).tier==='handmade'?REVIEW_INTROS:AI_INTROS)};renderAll()}
-function startTalk(a,fair){const c=customer,tr=c.trait,max=fair*rand(tr.critic?1.25:1.15,tr.critic?1.6:1.45),o=tr.open||[.6,.8];Object.assign(c,{artId:a.id,fair,max,offer:Math.max(1,Math.round(fair*rand(o[0],o[1]))),patience:tr.patience,maxPatience:tr.patience,phase:'talk',final:false,react:null});c.trail=[c.offer];c.ask=Math.round(c.offer*1.25)+1}
+function startTalk(a,fair){const c=customer,tr=c.trait,max=fair*(tr.critic?1.425:1.3),o=tr.open||[.6,.8];Object.assign(c,{artId:a.id,fair,max,offer:Math.max(1,Math.round(fair*(o[0]+o[1])/2)),patience:tr.patience,maxPatience:tr.patience,phase:'talk',final:false,react:null});c.trail=[c.offer];c.ask=Math.round(c.offer*1.25)+1}
 function bumpTrail(c){if(c.trail&&c.trail[c.trail.length-1]!==c.offer)c.trail.push(c.offer)}
 function applyReview(score,text){
   const t=team(),a=t.gallery.find(x=>x.id===customer.artId);if(!a)return;
   a.likeness=score/10;a.pending=false;a.value=valueFor(a);a.review={score,text,by:customer.name};syncHist(t,a);
-  startTalk(a,a.value*(score>=8?2.2:score>=5?1.2:.8)*rand(.9,1.1));
+  startTalk(a,a.value*(score>=8?2.2:score>=5?1.2:.8));
   customer.line=`${text} I give it ${score} out of 10. ${say('open',{o:customer.offer})}`;
   save();renderAll();
 }
@@ -1985,7 +2057,7 @@ function openDoors(){
   const trait=weightedTrait(),critic=!!trait.critic;
   const name=critic?pick(CRITICS):pick(FIRST)+' '+pick(LAST);
   let best=null;
-  for(const a of t.gallery){if(a.pending)continue;const f=trait.f(a);if(f<=0)continue;const fair=a.value*f*tm(a)*rand(.9,1.1);if(!best||fair>best.fair)best={a,fair}}
+  for(const a of t.gallery){if(a.pending)continue;const f=trait.f(a);if(f<=0)continue;const fair=a.value*f*tm(a);if(!best||fair>best.fair)best={a,fair}}
   customer={name,trait,seed:name+Math.random(),used:[]};
   if(!best){customer.phase='pass';customer.line=critic?'Hmph. Nothing here meets my standards.':pick(['Hmm. Nothing here for me today.','Not quite my taste, sorry.','I\'ll come back when you have something new.']);renderAll();return}
   startTalk(best.a,best.fair);
@@ -2002,18 +2074,16 @@ function loseCustomer(kind,v){customer.phase='left';customer.line=say(kind,v);re
 function askPrice(X){
   const c=customer;X=Math.max(1,Math.round(X));
   if(X<=c.offer)return closeSale(X,'cheap');
-  if(X<=c.max){
-    const p=.3+.7*(c.max-X)/Math.max(1,c.max-c.offer);
-    if(Math.random()<p)return closeSale(X,'accept');
-    if(c.final)return loseCustomer('walk');
-    c.offer=Math.min(X-1,Math.max(c.offer+1,Math.round(c.offer+(X-c.offer)*rand(.4,.75))));c.patience--;
-  }else if(X>c.max*1.6){
-    c.patience-=2;if(c.patience<=0||c.final)return loseCustomer('insult',{x:X});
+  if(c.final)return loseCustomer('walk');
+  if(X<=c.max)return closeSale(X,'accept');
+  if(X>c.max*1.6){
+    c.patience-=2;if(c.patience<=0)return loseCustomer('insult',{x:X});
     c.react={kind:'bad',text:`$${X} insulted them! −2 patience`};
     c.line=say('insult',{x:X})+' '+say('counter',{o:c.offer});renderAll();return;
   }else{
-    if(c.final)return loseCustomer('walk');
-    c.offer=Math.max(c.offer+1,Math.min(Math.floor(c.max),Math.round(c.offer+(c.max-c.offer)*rand(.25,.55))));c.patience--;
+    const ceiling=Math.max(c.offer+1,Math.floor(c.max));
+    const progress=Math.min(.7,.35+.1*(c.maxPatience-c.patience));
+    c.offer=Math.min(ceiling,Math.max(c.offer+1,Math.round(c.offer+(ceiling-c.offer)*progress)));c.patience--;
   }
   if(c.patience<=0)return loseCustomer('walk');
   const prev=c.trail?c.trail[c.trail.length-1]:c.offer;bumpTrail(c);
@@ -2034,8 +2104,9 @@ function usePitch(id){
 }
 function walkAway(){
   const c=customer;
-  if(!c.final&&c.offer<c.max*.9&&Math.random()<(c.trait.chase??.5)){
-    c.offer=Math.round(c.offer+(c.max-c.offer)*rand(.4,.8));c.patience=1;c.final=true;bumpTrail(c);c.line=say('chase',{o:c.offer});c.react={kind:'good',text:'They chased you with a better offer! Last chance'};c.ask=c.offer;renderAll();
+  const chaseThreshold=.65+.3*(c.trait.chase??.5);
+  if(!c.final&&c.offer<c.max*chaseThreshold){
+    c.offer=Math.min(Math.floor(c.max),Math.max(c.offer+1,Math.round(c.offer+(c.max-c.offer)*.65)));c.patience=1;c.final=true;bumpTrail(c);c.line=say('chase',{o:c.offer});c.react={kind:'good',text:'They chased you with a better offer! Last chance'};c.ask=c.offer;renderAll();
   }else loseCustomer('gone');
 }
 
@@ -3189,14 +3260,14 @@ function newPasser(t){
   const m=getMarket(),stock=forSale(t);if(!stock.length||m.streetLeft<=0){m.passer=null;return}
   m.streetLeft--;const name=pick(FIRST)+' '+pick(LAST);
   if(Math.random()<.2){m.passer={name,seed:name+Math.random(),look:true,line:pick(['Nice stuff! Just looking.','Cool art! No cash on me today.','Ooh, pretty. Maybe next time!'])};return}
-  const a=pick(stock),offer=Math.max(1,Math.round(a.value*tm(a)*rand(.5,.55)));
+  const a=pick(stock),offer=Math.max(1,Math.round(a.value*tm(a)*.525));
   m.passer={name,seed:name+Math.random(),artId:a.id,offer,trait:weightedTrait(),line:pick([`Hey, I like that ${a.title.toLowerCase()}. $${offer}?`,`I'd give you $${offer} for that one.`,`$${offer} for the ${a.title.toLowerCase()}? That's all I've got.`])};
 }
 function newFair(t){
   const m=getMarket(),stock=forSale(t),buyers=TRAITS.filter(x=>!x.critic);
   m.fair=Array.from({length:3},()=>{const tr=pick(buyers),name=pick(FIRST)+' '+pick(LAST);let best=null;
     for(const a of stock){const f=tr.f(a);if(f>0){const v=a.value*f*tm(a);if(!best||v>best.v)best={a,v}}}
-    return best?{name,trait:tr,seed:name+Math.random(),artId:best.a.id,fair:best.v,offer:Math.max(2,Math.round(best.v*rand(.7,.95)))}:{name,trait:tr,seed:name+Math.random(),look:true}});
+    return best?{name,trait:tr,seed:name+Math.random(),artId:best.a.id,fair:best.v,offer:Math.max(2,Math.round(best.v*.825))}:{name,trait:tr,seed:name+Math.random(),look:true}});
 }
 function tickListings(t){
   if(!t||!t.listings)return;
@@ -3237,7 +3308,7 @@ function venueHTML(t){
   }else{
     body=`<div class="fairhead"><span class="mi">${STAGE_ICON.gallery}</span><b>Your gallery</b><span class="muted">Collectors with big wallets and picky tastes. Haggle for the best price.</span><button class="btn" data-act="doors">Open the doors</button></div>${commHTML(t)}`;
   }
-  return picker+`<div class="venuebox" style="--sc:${s.col}">${body}</div>`;
+  return picker+`<div class="venuebox venue-${s.id}" style="--sc:${s.col}">${body}</div>`;
 }
 function stockHTML(t){
   return `<div class="stock"><div class="lbl">Your art for sale (${t.gallery.length}/${wallCap(t)})</div>${t.gallery.length?`<div class="stockrow">${t.gallery.map(a=>`<div class="sp ${customer&&customer.artId===a.id?'pick':''}"><span class="wantthumb">${artSVG(a.parts,false,a.title)}${a.ribbon?`<span class="rib">${ribbonSVG(a.ribbon)}</span>`:''}${isTrend(a)?'<span class="hot onart">HOT</span>':''}</span>${a.pending?`<button class="btn violet small" data-act="callCritic" data-id="${a.id}">Get reviewed</button>`:`<span class="spv">${starsRow(Math.max(1,Math.round((a.review?a.review.score:a.likeness*10)/2)),'mini')}<b class="num">$${a.value}</b></span>`}<span class="sp-act"><button class="scrap" data-act="keepPiece" data-id="${a.id}" title="Keep in my collection">♥ Keep</button><button class="scrap ${scrapArm===a.id?'sure':''}" data-act="scrap" data-id="${a.id}">${scrapArm===a.id?'Sure?':'Scrap'}</button></span></div>`).join('')}</div>`:'<span class="muted">Nothing for sale.</span>'}</div>`;
@@ -3618,6 +3689,7 @@ function toast(msg){$('#toastRoot').innerHTML=`<div class="toast" role="status">
 /* ================= Events ================= */
 document.addEventListener('input',e=>{
   if(e.target.id==='sizeSlider'&&maker){const p=maker.parts[maker.selIdx];if(p&&isWet(p)){const cur=(selBoxDims(p)[0]+selBoxDims(p)[1])/2,f=(+e.target.value)/Math.max(1,cur);p.w=clamp(r1(p.w*f),3,120);p.h=clamp(r1(p.h*f),3,120);wetten(p);drawMaker(true)}}
+  if(['mkMixA','mkMixB','mkMixRatio'].includes(e.target.id)){const a=$('#mkMixA')?.value,b=$('#mkMixB')?.value,ratio=+($('#mkMixRatio')?.value||50),swatch=$('#mkMixSwatch'),percent=$('#mkMixPercent');if(a&&b&&swatch)swatch.style.background=mixPaintHex(a,b,ratio);if(percent)percent.textContent=ratio+'%'}
   if(e.target.id==='bonusInput')bonusTopic=e.target.value;
   if(e.target.id==='askInput'&&customer)customer.ask=Math.max(1,Math.round(+e.target.value||1));
 });
@@ -3686,13 +3758,13 @@ document.addEventListener('click',e=>{
       let mood='meh';if(id==='theme'&&tr.theme)mood=a.tags.includes(tr.theme)?'like':'dislike';else if((tr.likes||[]).includes(id))mood='like';else if((tr.dislikes||[]).includes(id))mood='dislike';
       const TL=TRAIT_LINES[tr.id]||{},ln=k=>pick((TL[k]&&TL[k].length?TL[k]:LINES[k]));
       if(mood==='like'){const o=p.offer;p.offer=Math.max(o+1,Math.round(o*1.25));p.line=`${ln('like')} Okay, $${p.offer}!`;toast(`They loved it! Offer up $${p.offer-o}`)}
-      else if(mood==='dislike'){if(Math.random()<.45){p.line=`${ln('dislike')} I'm out!`;p.artId=null;p.look=true;toast('Oops! They walked off.')}else{p.offer=Math.max(1,Math.round(p.offer*.9));p.line=`${ln('dislike')} $${p.offer}, tops.`;toast('They did not like that. Offer went down.')}}
+      else if(mood==='dislike'){p.offer=Math.max(1,Math.round(p.offer*.9));p.line=`${ln('dislike')} $${p.offer}, tops.`;toast('They did not like that. Offer went down.')}
       else{p.line=ln('meh');toast('They shrugged. No change.')}
       renderAll();break}
     case 'streetSell':{const m=getMarket(),p=m.passer;if(p&&p.artId){const a=sellPiece(t,p.artId,p.offer,p.name);toast(`Sold "${a?a.title:''}" for $${p.offer}!`);newPasser(t);renderAll()}break}
     case 'streetNext':newPasser(t);renderAll();break;
-    case 'streetAsk':{const m=getMarket(),p=m.passer;if(p&&p.artId&&!p.asked){p.asked=true;const a=t.gallery.find(x=>x.id===p.artId),stars=a&&a.review?Math.round(a.review.score/2):3,ask=askFor(p);
-      if(Math.random()<.35+.07*stars){const sold=sellPiece(t,p.artId,ask,p.name);m.passer={...p,look:true,artId:null,line:`$${ask}? Okay, you've got a deal!`,soldMsg:`Sold "${sold?sold.title:''}" for $${ask}!`};toast(`They said yes! Sold for $${ask}.`)}
+    case 'streetAsk':{const m=getMarket(),p=m.passer;if(p&&p.artId&&!p.asked){p.asked=true;const a=t.gallery.find(x=>x.id===p.artId),stars=a&&a.review?Math.round(a.review.score/2):3,ask=askFor(p),ceiling=Math.round(p.offer*(1.1+stars*.05));
+      if(ask<=ceiling){const sold=sellPiece(t,p.artId,ask,p.name);m.passer={...p,look:true,artId:null,line:`$${ask}? Okay, you've got a deal!`,soldMsg:`Sold "${sold?sold.title:''}" for $${ask}!`};toast(`They said yes! Sold for $${ask}.`)}
       else{m.passer={...p,look:true,artId:null,line:`$${ask}? Nah, too much for me. See ya!`}}renderAll()}break}
     case 'fairSell':{const m=getMarket(),sh=m.fair&&m.fair[+el.dataset.i];if(sh&&sh.artId&&!sh.done){sellPiece(t,sh.artId,sh.offer,sh.name);sh.done=`Sold for $${sh.offer}!`;m.fair.forEach(o=>{if(!o.done&&o.artId===sh.artId)o.done='Someone else bought it.'});renderAll()}break}
     case 'fairSkip':{const m=getMarket(),sh=m.fair&&m.fair[+el.dataset.i];if(sh){sh.done='Moved on.';renderAll()}break}
@@ -3737,6 +3809,7 @@ document.addEventListener('click',e=>{
     case 'artFilter':artFilter=el.dataset.k;renderAll();break;
     case 'mkAdd':if(maker){makerAdd(el.dataset.k);toCanvas()}break;
     case 'mkColor':if(maker)makerColor(el.dataset.k);break;
+    case 'mkMixApply':if(maker)applyMakerMix();break;
     case 'mkOp':if(maker)makerOp(el.dataset.k);break;
     case 'mkDone':if(maker&&maker.parts.length)hangMaker();break;
     case 'criticAI':criticAI();break;
