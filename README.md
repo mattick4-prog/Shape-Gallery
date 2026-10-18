@@ -10,7 +10,7 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
 - **Classroom teams**: 1 to 8 teams take turns on the big screen. Paint, sell and grow an art career, with vocab review as a way to earn cash.
 - **Arcade game show**: 5 random art games, judged by Judge Pixelworth, who pays $1 to $100. The team with the most money wins.
 - **Artist journey**: 1 to 3 players take turns on one computer (no vocab), with optional robot rivals. Climb from Street corner to Craft fair, Online shop, Gallery and Museum.
-- **Creative studio**: unlimited supplies and optional timer and paint-dry settings. Make a catalog picture, use the prompt-free **Blank Canvas** to create original art for a critic score and cash reward, or play any arcade game—including pottery—just for fun.
+- **Creative studio**: unlimited supplies and optional timer and paint-dry settings. Make a catalog picture, use the prompt-free **Blank Canvas** to create original art for a critic score and cash reward, or use the pottery wheel for free sculpting.
 
 ## How the art works
 
@@ -30,7 +30,7 @@ Pottery Studio is an arcade activity. Shape a randomly assigned vase, bowl, cup,
 
 ## Art games (20)
 
-Steady Hand, Color Mixer, Stickman Sketch, Paint Splatter, Pottery Studio, Speed Reveal, Guess the Masterpiece, Price Is Right, Shape Spotter, Art Auction, Shape Builder, Copycat, Mirror Me, Finish the Picture, One-Line Wonder, Paint by Number Race, Picture Puzzle (put together 20 pieces; background-only pieces can go anywhere), Pixel Mystery, Pixel Artist and Treasure Dig. In Finish the Picture, rebuild the missing half of a detailed catalog picture by matching its shapes, colors, sizes, positions and rotations. In Paint Splatter, choose a random picture from the catalog as a faint guide or splatter on a blank canvas; for the blank option, describe your subject to the critic for a cash award. Pottery Studio challenges you to shape and fire a random vessel; Creative Studio also offers free sculpting.
+Steady Hand, Color Mixer, Stickman Sketch, Paint Splatter, Pottery Studio, Speed Reveal, Guess the Masterpiece, Price Is Right, Shape Spotter, Art Auction, Shape Builder, Copycat, Mirror Me, Finish the Picture, One-Line Wonder, Paint by Number Race, Picture Puzzle (put together 20 pieces; background-only pieces can go anywhere), Pixel Mystery, Pixel Artist and Treasure Dig. In Finish the Picture, rebuild the missing half of a detailed catalog picture by matching its shapes, colors, sizes, positions and rotations. In Paint Splatter, choose a random picture from the catalog as a faint guide or splatter on a blank canvas; for the blank option, describe your subject to the critic for a cash award.
 
 ## Player accounts
 
