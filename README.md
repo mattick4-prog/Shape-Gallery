@@ -16,6 +16,7 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
 
 - Pick a picture (14 categories, more to unlock with cash) and choose who paints it:
   - **AI artist**: paints with whatever shapes and paint you have left, swapping in what's missing.
+  - Handmade paintings can be compared with a built-in reference assembled from the game's picture recipes, using the supplies available when the piece was made. This comparison works in No AI mode and does not call AI.
   - **Make it myself**: add shapes, drag to move, use the Turn buttons to rotate, and drag the on-canvas handles to resize along the rotated shape's axes. Tap a shape to select it; tapping no longer rotates it. Use Undo or Erase shape to fix mistakes, even after paint dries. Choose a ready-made paint or add paint dabs to the palette and drag to stir them together; each finished mix uses one unit of each color per shape. Paint dries 9 seconds after you stop touching it by default, and the Never setting hides drying countdowns.
 - Every painting needs a canvas, and supplies run out, so you'll need to stop and earn money.
 - The critic reviews each piece with a star rating, a funny line and a tip, then you sell it or keep it in your collection.
@@ -34,4 +35,4 @@ Accounts and saves are stored in the browser on each computer, so they stay on t
 
 ## Note on AI features
 
-The AI art critic, AI artist and AI judge only work when the game is opened as a Claude artifact. Everywhere else (like GitHub Pages), the game automatically uses built-in scoring instead, so everything still plays. To disable AI in a Claude artifact too, turn on **No AI** in Settings; AI artwork and judging then use the built-in alternatives.
+The AI art critic, AI artist and AI judge only work when the game is opened as a Claude artifact. Everywhere else (like GitHub Pages), the game automatically uses built-in scoring instead, so everything still plays. To disable AI in a Claude artifact too, turn on **No AI** in Settings; AI artwork and judging then use the built-in alternatives. The picture-library comparison for handmade work is built from the game's existing picture recipes and works without AI.
