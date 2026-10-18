@@ -1273,8 +1273,10 @@ Runoff | Water that flows over the ground instead of soaking in
 Sand dune | A mound of sand piled up by the wind
 Delta | A landform built where a river drops sediment as it enters a lake or ocean`;
 
-const CATS=[['animals','Animals'],['food','Food'],['space','Space'],['buildings','Buildings'],['nature','Nature'],['vehicles','Vehicles'],['science','Earth Science'],['fun','Fun & Holidays'],['ocean','Ocean'],['bugs','Bugs'],['sports','Sports'],['weather','Weather'],['toys','Music & Toys'],['monsters','Monsters & Magic']];
-const CAT_TAGS={animals:['animal'],food:['food'],space:['space'],buildings:['building'],nature:['nature'],vehicles:['vehicle'],science:['science','nature'],fun:['object'],ocean:['ocean','animal'],bugs:['bug','animal'],sports:['sports'],weather:['weather','science'],toys:['toy','object'],monsters:['magic']};
+const CATS=[['animals','Animals'],['food','Food'],['space','Space'],['buildings','Buildings'],['nature','Nature'],['vehicles','Vehicles'],['science','Earth Science'],['fun','Fun & Holidays'],['ocean','Ocean'],['bugs','Bugs'],['sports','Sports'],['weather','Weather'],['toys','Music & Toys'],['monsters','Monsters & Magic'],
+  ['transportation','Transportation'],['architecture','Buildings & Places'],['plants','Plants & Gardens'],['cuisine','Food & Snacks'],['climate','Weather Events'],['sea-life','Sea Life'],['astronomy','Space & Astronomy'],['fantasy','Fantasy Creatures'],['athletics','Sports & Games'],['instruments','Music & Instruments']];
+const CAT_TAGS={animals:['animal'],food:['food'],space:['space'],buildings:['building'],nature:['nature'],vehicles:['vehicle'],science:['science','nature'],fun:['object'],ocean:['ocean','animal'],bugs:['bug','animal'],sports:['sports'],weather:['weather','science'],toys:['toy','object'],monsters:['magic'],
+  transportation:['vehicle'],architecture:['building'],plants:['nature','plant'],cuisine:['food'],climate:['weather'], 'sea-life':['ocean','animal'],astronomy:['space','science'],fantasy:['magic'],athletics:['sports'],instruments:['music','object']};
 const r1=n=>Math.round(n*10)/10;
 function P(k,x,y,w,h,rot,c){return{kind:k,x,y,w,h,rot:rot||0,color:c}}
 const SKY=P('rectangle',50,50,100,100,0,'sky'),NIGHT=P('rectangle',50,50,100,100,0,'navy');
@@ -1368,6 +1370,91 @@ const RECIPES={
   unicorn:{name:'Unicorn',cat:'monsters',parts:[P('rectangle',50,50,100,100,0,'pink'),P('semicircle',50,100,90,40,0,'sky'),P('oval',50,56,40,52,0,'white'),P('oval',50,78,26,16,0,'pink'),P('circle',44,78,3,3,0,'black'),P('circle',56,78,3,3,0,'black'),P('triangle',50,20,10,26,0,'yellow'),P('triangle',36,32,8,12,-20,'white'),P('triangle',64,32,8,12,20,'white'),P('circle',41,50,5,5,0,'black'),P('circle',59,50,5,5,0,'black'),P('circle',28,40,10,10,0,'purple'),P('circle',26,52,10,10,0,'blue'),P('circle',28,64,10,10,0,'purple'),P('star',82,16,8,8,0,'yellow')]},
   monster:{name:'Silly monster',cat:'monsters',aliases:['monster'],parts:[P('rectangle',50,50,100,100,0,'yellow'),P('rectangle',36,86,10,16,0,'green'),P('rectangle',64,86,10,16,0,'green'),P('oval',50,56,56,60,0,'green'),P('triangle',32,24,10,16,-20,'purple'),P('triangle',68,24,10,16,20,'purple'),P('circle',50,40,22,22,0,'white'),P('circle',50,42,10,10,0,'blue'),P('circle',50,42,5,5,0,'black'),P('semicircle',50,64,28,12,180,'black'),P('square',44,62,5,5,0,'white'),P('square',56,62,5,5,0,'white'),P('oval',22,58,10,22,30,'green'),P('oval',78,58,10,22,-30,'green')]},
 };
+const EXTRA_CATALOG={
+  transportation:`Car|automobile, sedan;Pickup truck|pickup;School bus|bus;Bicycle|bike;Motorcycle|motorbike;Train|railway train;Airplane|plane;Helicopter|chopper;Sailboat|sailing boat;Submarine|sub;Rocket|space rocket;Hot-air balloon|balloon;Fire engine|fire truck;Ambulance|emergency vehicle;Tractor|farm tractor;Skateboard|skate board;Scooter|kick scooter;Taxi|cab;Police car|cop car;Delivery van|van`,
+  architecture:`Lighthouse|light house;Castle|fortress;Skyscraper|tower;Barn|farm building;School|schoolhouse;Library|book library;Hospital|clinic;Bridge|overpass;Windmill|mill;Cabin|log cabin;Apartment building|apartments;Fire station|firehouse;Museum|art museum;Shop|store;Stadium|sports arena;Water tower|water tank;Church|chapel;Factory|workshop;Train station|rail station;Tent|camp tent`,
+  plants:`Oak tree|oak;Pine tree|evergreen;Palm tree|palm;Sunflower|sun flower;Rose|flower;Tulip|flower;Cactus|cacti;Fern|fern leaf;Mushroom|toadstool;Apple tree|fruit tree;Pumpkin vine|pumpkin plant;Bamboo|bamboo stalk;Daisy|flower;Lily|water flower;Bonsai|bonsai tree;Tomato plant|tomato vine;Corn stalk|corn;Ivy|ivy vine;Lavender|lavender flower;Water lily|lily pad`,
+  cuisine:`Sandwich|sub;Taco|tacos;Hot dog|frankfurter;Pretzel|twisted bread;Pancake|flapjack;Waffle|breakfast waffle;Sushi|maki;Bowl of noodles|noodle bowl;Cheese|cheese wedge;Carrot|vegetable;Pear|fruit;Grapes|grape bunch;Cookie|biscuit;Pie|fruit pie;Popcorn|pop corn;Toast|slice of toast;Egg|fried egg;Soup|bowl of soup;Fries|french fries;Strawberry|berry`,
+  climate:`Rainbow|rain bow;Snowman|snow person;Lightning bolt|lightning;Rain cloud|storm cloud;Tornado|twister;Hurricane|cyclone;Fog|mist;Sunshine|sunny;Hailstorm|hail;Blizzard|snow storm;Wind gust|gust;Dew drops|dew;Heat wave|hot weather;Icicle|ice;Puddle|rain puddle;Sunrise|dawn;Sunset|dusk;Moonlit clouds|night clouds;Thermometer|temperature;Weather vane|wind vane`,
+  'sea-life':`Dolphin|porpoise;Whale|blue whale;Shark|great white;Octopus|octopi;Crab|sea crab;Seahorse|sea horse;Jellyfish|jelly fish;Sea turtle|ocean turtle;Starfish|sea star;Lobster|crayfish;Stingray|ray;Seal|sea lion;Walrus|tusked seal;Clownfish|clown fish;Angelfish|angel fish;Swordfish|billfish;Pufferfish|blowfish;Shrimp|prawn;Coral reef|coral;Seashell|shell`,
+  astronomy:`Earth|planet;Moon|lunar;Saturn|ringed planet;Comet|icy comet;Asteroid|space rock;Galaxy|milky way;Constellation|star pattern;Space shuttle|shuttle;Astronaut|space explorer;Space station|orbital station;Satellite|orbiter;Black hole|blackhole;Meteor|shooting star;Mars rover|rover;Lunar lander|moon lander;Alien|extraterrestrial;Nebula|space cloud;Solar system|planets;Telescope|spyglass;Planetarium|star dome`,
+  fantasy:`Dragon|fire dragon;Unicorn|horned horse;Phoenix|firebird;Mermaid|merperson;Wizard|sorcerer;Witch|spell caster;Fairy|faerie;Troll|bridge troll;Goblin|goblin;Griffin|griffon;Sea monster|kraken;Ghost|spirit;Vampire|count dracula;Werewolf|wolfman;Enchanted castle|magic castle;Magic wand|wizard wand;Potion bottle|magic potion;Magic carpet|flying carpet;Pegasus|winged horse;Treasure chest|pirate chest`,
+  athletics:`Soccer ball|football;Basketball|basket ball;Baseball|base ball;Tennis racket|racquet;Football helmet|american football;Hockey stick|ice hockey;Volleyball|volley ball;Golf club|golf;Bowling pins|bowling;Skateboarder|skater;Swimmer|swimming;Runner|athlete;Gymnast|gymnastics;Baseball bat|bat;Tennis ball|tennis;Trophy|sports trophy;Whistle|referee whistle;Finish line|race finish;Boxing gloves|boxing;Surfboard|surf board`,
+  instruments:`Guitar|acoustic guitar;Piano|grand piano;Drum set|drums;Trumpet|brass trumpet;Violin|fiddle;Flute|woodwind;Saxophone|sax;Microphone|mic;Music notes|musical note;Xylophone|glockenspiel;Tambourine|hand drum;Harp|concert harp;Accordion|squeeze box;Cello|string instrument;Banjo|bluegrass banjo;Maracas|shakers;Keyboard|electric keyboard;Headphones|earphones;Speaker|loudspeaker;Record player|turntable`
+};
+const EXTRA_COLORS=['red','blue','green','orange','purple','yellow','brown','pink','sky','navy'];
+function buildExtraRecipe(cat,name,index){
+  const color=EXTRA_COLORS[index%EXTRA_COLORS.length],light=EXTRA_COLORS[(index+3)%EXTRA_COLORS.length],dark=index%2?'brown':'black';
+  const bg=P('rectangle',50,50,100,100,0,index%4===0?'sky':index%4===1?'white':index%4===2?'yellow':'navy');
+  let parts=[bg];
+  const circle=(x,y,size,c)=>P('circle',x,y,size,size,0,c),oval=(x,y,w,h,c,rot=0)=>P('oval',x,y,w,h,rot,c),rect=(x,y,w,h,c,rot=0)=>P('rectangle',x,y,w,h,rot,c),tri=(x,y,w,h,c,rot=0)=>P('triangle',x,y,w,h,rot,c),star=(x,y,size,c)=>P('star',x,y,size,size,0,c);
+  if(cat==='transportation'){
+    if(/bike|bicycle|motorcycle|scooter|skateboard/.test(name.toLowerCase())){
+      parts.push(circle(30,68,22,dark),circle(70,68,22,dark),circle(30,68,8,'white'),circle(70,68,8,'white'),rect(47,58,30,3,color,-30),rect(37,56,24,3,color,35),rect(55,50,17,3,dark,0));
+      if(/motor|scooter/.test(name.toLowerCase()))parts.push(oval(50,51,27,18,color),rect(53,39,15,3,dark,-20));
+      else if(/skateboard/.test(name.toLowerCase()))parts.push(rect(50,60,56,7,color));
+    }else if(/boat|submarine/.test(name.toLowerCase()))parts.push(P('semicircle',50,62,72,36,180,color),rect(50,49,36,5,'white'),rect(50,39,5,16,light),circle(50,29,8,'yellow'));
+    else if(/airplane|helicopter|rocket|balloon/.test(name.toLowerCase()))parts.push(rect(50,51,57,15,'white'),tri(76,51,20,23,color,90),tri(45,43,42,20,color),tri(46,59,32,15,light,180),circle(28,52,8,'sky'),...(/heli/.test(name.toLowerCase())?[rect(50,29,65,3,dark),rect(50,21,4,20,dark)]:[]));
+    else parts.push(rect(50,58,72,25,color),tri(58,40,43,26,light),rect(50,38,44,7,light),circle(31,75,19,dark),circle(69,75,19,dark),circle(31,75,7,'white'),circle(69,75,7,'white'),...(/bus|van|ambulance|engine|taxi|police/.test(name.toLowerCase())?[rect(40,46,8,9,'sky'),rect(56,46,8,9,'sky')]:[]));
+  }else if(cat==='architecture'){
+    if(/bridge/.test(name.toLowerCase()))parts.push(rect(50,52,88,9,color),rect(20,68,8,42,dark),rect(80,68,8,42,dark),P('semicircle',50,55,50,44,180,light),rect(50,46,84,4,dark));
+    else if(/lighthouse|tower|skyscraper|water tower/.test(name.toLowerCase()))parts.push(rect(50,58,42,68,color),tri(50,17,48,24,dark),rect(50,34,29,11,'white'),...(name.toLowerCase().includes('lighthouse')?[rect(50,29,39,5,'yellow')]:[]),...[34,50,66].map(x=>rect(x,52,7,10,'sky')),rect(50,91,60,7,dark));
+    else if(/windmill/.test(name.toLowerCase()))parts.push(rect(50,61,27,54,'white'),tri(50,31,25,23,color),rect(50,31,4,58,'brown'),rect(50,31,58,4,'brown'),circle(50,31,10,'yellow'));
+    else if(/castle/.test(name.toLowerCase()))parts.push(rect(50,65,64,40,color),rect(23,52,18,62,light),rect(77,52,18,62,light),rect(50,48,18,55,color),...[[23,29],[50,23],[77,29]].map(([x,y])=>tri(x,y,20,19,dark)),rect(50,77,17,27,dark),...[31,68].map(x=>rect(x,60,9,12,'sky')));
+    else parts.push(rect(50,62,70,50,color),tri(50,34,78,37,light),rect(35,62,10,14,'sky'),rect(64,62,10,14,'sky'),rect(50,78,17,29,dark));
+  }else if(cat==='plants'){
+    if(/flower|rose|tulip|daisy|sunflower|lily|lavender/.test(name.toLowerCase())){
+      parts.push(rect(50,69,5,46,'green'),oval(36,70,23,10,'green',-35),oval(64,61,23,10,'green',35),...[0,72,144,216,288].map(a=>{const rad=a*Math.PI/180;return circle(50+Math.cos(rad)*13,37+Math.sin(rad)*13,15,light)}),circle(50,37,13,color));
+    }else if(/mushroom/.test(name.toLowerCase()))parts.push(rect(50,65,25,36,'white'),P('semicircle',50,48,65,40,0,color),...[[34,44],[50,37],[66,45]].map(([x,y])=>circle(x,y,6,'white')));
+    else if(/cactus/.test(name.toLowerCase()))parts.push(rect(50,57,20,53,'green'),rect(37,60,12,27,'green'),rect(32,49,9,5,'green'),rect(63,57,12,25,'green'),rect(68,46,9,5,'green'),circle(50,25,10,color));
+    else if(/fern|ivy|bamboo/.test(name.toLowerCase()))parts.push(rect(50,59,5,67,'green'),...[0,1,2,3].flatMap(i=>[oval(34,34+i*14,25,9,'green',-30),oval(66,40+i*14,25,9,light,30)]));
+    else parts.push(rect(50,72,15,35,'brown'),P('semicircle',50,43,66,59,0,'green'),circle(36,47,21,light),circle(64,47,21,'green'),...(name.toLowerCase().includes('apple')?[circle(42,44,9,'red'),circle(61,55,8,'red')]:[]));
+  }else if(cat==='cuisine'){
+    if(/taco|sandwich|hot dog|pretzel|toast|waffle|pancake/.test(name.toLowerCase()))parts.push(P(/taco|pretzel/.test(name.toLowerCase())?'semicircle':'rectangle',50,56,70,40,0,color),rect(50,65,60,8,'green'),rect(50,54,56,8,'yellow'),...(name.toLowerCase().includes('taco')?[circle(36,49,6,'red'),circle(55,47,6,'red')]:[]));
+    else if(/pie|pizza|cookie|cheese|egg|strawberry|pear|carrot/.test(name.toLowerCase()))parts.push(circle(50,57,61,color),circle(50,57,42,light),...(name.toLowerCase().includes('carrot')?[tri(50,60,24,52,'orange',180),oval(50,31,23,9,'green')]:[[38,47],[58,43],[43,65],[61,65]].map(([x,y])=>circle(x,y,7,dark))));
+    else if(/grape|popcorn|fries/.test(name.toLowerCase()))parts.push(rect(50,71,49,35,color),...[30,42,54,66].map((x,i)=>circle(x,46-(i%2)*8,20,light)));
+    else parts.push(P('semicircle',50,58,70,42,0,color),circle(50,45,31,light),...[34,50,66].map((x,i)=>circle(x,44+(i%2)*8,7,i%2?'red':'green')));
+  }else if(cat==='climate'){
+    if(/sun|sunrise|sunset|heat/.test(name.toLowerCase()))parts.push(...Array.from({length:8},(_,i)=>{const a=i*Math.PI/4;return tri(50+Math.cos(a)*34,43+Math.sin(a)*34,10,16,'yellow',i*45)}),circle(50,45,48,'yellow'),...(name.toLowerCase().includes('sunset')?[rect(50,76,100,48,'orange')]:[]));
+    else if(/rainbow/.test(name.toLowerCase()))parts.push(P('semicircle',50,69,84,55,180,'red'),P('semicircle',50,70,66,43,180,'orange'),P('semicircle',50,70,49,31,180,'yellow'),P('semicircle',50,70,31,20,180,'green'),P('semicircle',50,70,14,10,180,'sky'));
+    else if(/lightning|storm|hurricane|tornado|wind/.test(name.toLowerCase()))parts.push(circle(36,37,35,'white'),circle(55,31,43,'white'),circle(72,40,30,'white'),...(/tornado|hurricane/.test(name.toLowerCase())?[oval(50,57,59,13,'gray'),oval(50,69,39,10,'white'),oval(50,80,21,8,'gray')]:[tri(51,57,24,31,'yellow',14),tri(45,78,20,28,'yellow',194)]));
+    else parts.push(circle(36,42,35,'white'),circle(55,36,43,'white'),circle(72,45,30,'white'),...[34,50,66].map((x,i)=>oval(x,67+i%2*12,6,14,'sky')),...(name.toLowerCase().includes('snow')?[circle(50,80,18,'white')]:[]));
+  }else if(cat==='sea-life'){
+    if(/octopus|jellyfish|crab|lobster|shrimp/.test(name.toLowerCase()))parts.push(P('semicircle',50,48,48,37,0,color),circle(39,43,7,'white'),circle(61,43,7,'white'),...[20,35,50,65,80].map((x,i)=>P('crescent',x,73,12,30,(i-2)*9,light)));
+    else if(/shell|coral/.test(name.toLowerCase()))parts.push(P('semicircle',50,59,60,42,0,color),...[25,38,50,62,75].map(x=>rect(x,45,3,27,light,(x-50)*.5)));
+    else parts.push(oval(49,54,63,37,color),tri(79,54,25,30,light,90),tri(45,34,19,19,light),circle(35,48,8,'white'),circle(35,48,4,dark),...(name.toLowerCase().includes('turtle')?[P('semicircle',54,56,39,24,0,'green')]:[]));
+  }else if(cat==='astronomy'){
+    if(/rocket|shuttle|lander|rover/.test(name.toLowerCase()))parts.push(rect(50,53,25,56,'white'),tri(50,20,28,25,color),tri(37,70,17,22,color,180),tri(63,70,17,22,color,180),circle(50,45,9,'sky'),tri(50,87,13,19,'orange',180),...[15,82].map(x=>star(x,20,8,'yellow')));
+    else if(/telescope/.test(name.toLowerCase()))parts.push(rect(50,46,20,69,color,-25),rect(48,68,4,42,'brown',0),rect(68,47,4,30,'brown',55),circle(60,30,17,'yellow'));
+    else if(/astronaut|alien/.test(name.toLowerCase()))parts.push(oval(50,60,42,53,'white'),circle(50,36,39,'white'),oval(50,41,28,18,'sky'),rect(50,81,37,9,color),...(name.toLowerCase().includes('alien')?[oval(38,35,7,14,'black'),oval(62,35,7,14,'black')]:[]));
+    else parts.push(circle(50,50,49,color),P('oval',50,50,76,14,22,'yellow'),...[14,83,29,72].map((x,i)=>star(x,18+i*17,8,i%2?'white':'yellow')));
+  }else if(cat==='fantasy'){
+    if(/wand|staff/.test(name.toLowerCase()))parts.push(rect(50,56,8,62,'brown',-25),star(65,29,29,'yellow'),...[24,42,68].map((x,i)=>star(x,20+i*16,8,light)));
+    else if(/potion/.test(name.toLowerCase()))parts.push(rect(50,63,37,40,color),rect(50,38,21,14,light),rect(50,28,27,6,'brown'),P('semicircle',50,74,38,18,180,'purple'));
+    else if(/castle|treasure/.test(name.toLowerCase()))parts.push(rect(50,62,65,42,color),tri(50,32,74,38,light),rect(50,76,16,25,dark),star(50,48,17,'yellow'));
+    else parts.push(oval(50,62,48,39,color),circle(35,35,19,color),circle(65,35,19,color),circle(42,57,9,'white'),circle(60,57,9,'white'),circle(42,57,4,dark),circle(60,57,4,dark),tri(50,23,10,23,'yellow'),P('semicircle',50,76,24,10,180,dark),...(name.toLowerCase().includes('dragon')?[tri(72,54,26,26,light,35),tri(17,58,22,17,'orange',270)]:[]));
+  }else if(cat==='athletics'){
+    if(/ball|gloves/.test(name.toLowerCase()))parts.push(circle(50,54,59,color),rect(50,54,58,3,dark,35),rect(50,54,3,58,dark),...(name.toLowerCase().includes('basket')?[P('crescent',32,54,15,52,0,dark),P('crescent',68,54,15,52,180,dark)]:[]));
+    else if(/racket|club|stick|bat|surfboard|skateboard/.test(name.toLowerCase()))parts.push(oval(50,39,32,42,color),rect(50,72,9,40,'brown',0),rect(50,39,4,49,'white',-25),...[27,39,51].map(x=>rect(x,38,2,39,'white',-25)));
+    else if(/swimmer|runner|gymnast|skateboarder/.test(name.toLowerCase()))parts.push(circle(50,24,17,'orange'),rect(50,54,13,36,color),rect(35,48,34,4,dark,-35),rect(40,80,33,4,dark,35),star(80,18,12,'yellow'));
+    else parts.push(rect(50,55,67,40,color),...[30,45,60,75].map(x=>rect(x,55,7,21,'white')),rect(50,78,77,9,dark),star(50,27,20,'yellow'));
+  }else if(cat==='instruments'){
+    if(/guitar|banjo|violin|cello/.test(name.toLowerCase()))parts.push(oval(50,65,43,42,color),circle(50,51,27,color),rect(50,28,9,40,'brown',-15),rect(50,13,17,9,dark),circle(50,63,10,dark),...[46,50,54].map(x=>rect(x,39,1,56,'white',-15)));
+    else if(/drum|tambourine|maraca|xylophone/.test(name.toLowerCase()))parts.push(rect(50,64,61,34,color),P('semicircle',50,47,61,25,0,'white'),...[29,43,57,71].map((x,i)=>rect(x,43,9,25,EXTRA_COLORS[(index+i)%EXTRA_COLORS.length])),...(name.toLowerCase().includes('drum')?[rect(31,21,4,39,'brown',-25),rect(69,21,4,39,'brown',25)]:[]));
+    else if(/piano|keyboard|accordion/.test(name.toLowerCase()))parts.push(rect(50,52,72,44,dark),rect(50,72,70,18,'white'),...[32,43,54,65].map(x=>rect(x,67,6,17,'black')));
+    else parts.push(rect(50,50,35,56,color),tri(50,17,33,24,light),circle(50,51,14,'white'),rect(50,84,63,7,'brown'),...[20,35,50,65,80].map(x=>star(x,22,6,'yellow')));
+  }
+  const aliases=name.toLowerCase().split(' ');
+  return {name,cat,aliases,parts};
+}
+for(const [cat,items] of Object.entries(EXTRA_CATALOG)){
+  items.split(';').forEach((entry,index)=>{
+    const [name,aliases='']=entry.split('|'),key=`extra_${cat}_${String(index+1).padStart(2,'0')}`;
+    RECIPES[key]=buildExtraRecipe(cat,name,index);
+    RECIPES[key].aliases=[...new Set([...(RECIPES[key].aliases||[]),...aliases.split(',').map(x=>x.trim()).filter(Boolean)])];
+  });
+  CATS.push([cat,({transportation:'Transportation',architecture:'Buildings & Places',plants:'Plants & Gardens',cuisine:'Food & Snacks',climate:'Weather Events','sea-life':'Sea Life',astronomy:'Space & Astronomy',fantasy:'Fantasy Creatures',athletics:'Sports & Games',instruments:'Music & Instruments'})[cat]]);
+}
 for(const [k,r] of Object.entries(RECIPES)){r.price=START_PICTURES.includes(k)?0:Math.round((4+r.parts.length)/2)*2;r.tags=CAT_TAGS[r.cat]}
 const ALL_KEYS=Object.keys(RECIPES);
 
@@ -1446,7 +1533,7 @@ function palette(a){return new Set(a.parts.map(p=>p.color).filter(c=>c!=='unpain
 /* ================= State ================= */
 const KEY='oddShapesGallery_v2';
 function newTeam(name,money){return{name,money:12,shapes:{...START_SHAPES},paint:{...START_PAINT},unlocked:[...START_PICTURES],canvas:1,painted:{},gallery:[],kept:[],listings:[],rep:0,stage:0,lastId:null,earned:0,sold:0,bonus:0}}
-function creativeTeam(name){const t=newTeam(name,0);KINDS.forEach(k=>t.shapes[k]=999);COLOR_ORDER.forEach(c=>t.paint[c]=999);t.unlocked=[...ALL_KEYS];t.bonus=3;return t}
+function creativeTeam(name){const t=newTeam(name,0);t.money=0;KINDS.forEach(k=>t.shapes[k]=999);COLOR_ORDER.forEach(c=>t.paint[c]=999);t.unlocked=[...ALL_KEYS];t.bonus=3;return t}
 function freshState(mode){const s={settings:{mode:mode||'classroom',reward:4,startMoney:30,autoRotate:true,noAI:false},vocabText:DEFAULT_VOCAB,active:0,seq:1};s.teams=TEAM_NAMES.slice(0,6).map(n=>newTeam(n,30));if(s.settings.mode==='fun')s.teams.length=2;return s}
 let state;
 /* ===== Player accounts (saved on this computer) ===== */
@@ -1479,12 +1566,13 @@ function save(){snapProfile();lsSet(stateKey(profiles.cur),state);saveProfiles()
 function lifeAdd(k,n){const pr=curProfile();if(!pr)return;if(!pr.life)pr.life=newLife();pr.life[k]=(pr.life[k]||0)+(n==null?1:n)}
 function switchProfile(id){if(id===profiles.cur)return;if(curProfile())save();profiles.cur=id;saveProfiles();
   state=lsGet(stateKey(id));if(!state||!state.teams)state=freshState();
-  quiz=spot=guess=steady=mix=sketch=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;customer=null;thinking=null;maker=null;critic=null;sel=null;earnGame=null;lastMoney={};tab='home';TT.team=-1;venue=null;
+  quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;customer=null;thinking=null;maker=null;critic=null;sel=null;earnGame=null;lastMoney={};tab='home';TT.team=-1;venue=null;
   try{stopTimers()}catch(e){}renderAll();openSetup()}
 const team=()=>state.teams[state.active]||state.teams[0];
 const isFun=()=>state.settings.mode==='fun';
+const isClassroom=()=>state.settings.mode==='classroom'&&!isCreative()&&!isSolo()&&!isParty();
 const isParty=()=>!!(state.settings&&state.settings.party);
-const PARTY_POOL=['steady','mix','sketch','reveal','guess','price','spot','shapes','copycat','mirror','oneline','paintnum','frameit','pixel','pxart','treasure'],PARTY_N=5;
+const PARTY_POOL=['steady','mix','sketch','splatter','reveal','guess','price','spot','shapes','copycat','mirror','oneline','paintnum','frameit','pixel','pxart','treasure'],PARTY_N=5;
 
 let tab='home',cat='animals',sel=null,off={colors:[],shapes:[]},bonusTopic='',thinking=null,customer=null,scrapArm=null,freeBlocked=false;
 let earnGame=null,quiz=null,spot=null,guess=null;
@@ -1568,6 +1656,29 @@ function appraise(a){
   return Math.max(2,Math.round(base*mult*1.15*(.7+.6*a.likeness)));
 }
 function seeded(str){let h=2166136261;for(const c of String(str))h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h=Math.imul(h^h>>>15,2246822507);h=Math.imul(h^h>>>13,3266489909);return((h^=h>>>16)>>>0)/4294967296}}
+function matchTopicRecipe(text){
+  const clean=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const word=s=>s.length>4&&s.endsWith('ies')?s.slice(0,-3)+'y':s.length>3&&s.endsWith('s')?s.slice(0,-1):s;
+  const stop=new Set(['a','an','the','of','for','with','me','please','picture','painting','draw','paint','make','create','show','want','like','some','my','in','on','and']);
+  const query=clean(text),tokens=query.split(' ').filter(x=>x&&!stop.has(x)).map(word);
+  const candidates=isSolo()?team().unlocked:ALL_KEYS;
+  let best=null,bestScore=-1;
+  for(const key of candidates){
+    const rec=RECIPES[key];if(!rec)continue;
+    const fields=[rec.name,...(rec.aliases||[])].map(clean);
+    const nameWords=new Set(fields.flatMap(field=>field.split(' ').filter(Boolean).map(word)));
+    const tagWords=new Set((CAT_TAGS[rec.cat]||[]).map(clean).flatMap(field=>field.split(' ')).filter(Boolean).map(word));
+    const hits=tokens.filter(x=>nameWords.has(x)).length,tagHits=tokens.filter(x=>tagWords.has(x)).length;
+    let score=hits*30+hits/Math.max(tokens.length,1)*25+tagHits*8;
+    for(const field of fields){
+      if(!field)continue;
+      if(query===field)score=Math.max(score,120+field.length);
+      else if(field.length>2&&query.includes(field))score=Math.max(score,85+field.length);
+    }
+    if(score>bestScore){best=key;bestScore=score}
+  }
+  return best||candidates[0]||ALL_KEYS[0];
+}
 function spend(t,usedS,usedP){if(isCreative())return;t.canvas=Math.max(0,canvases(t)-1);for(const k in usedS)t.shapes[k]=Math.max(0,(t.shapes[k]||0)-usedS[k]);for(const c in usedP)t.paint[c]=Math.max(0,(t.paint[c]||0)-usedP[c])}
 function hangArt(a,t){a.id=state.seq++;if(!t.cpu&&!isCreative())lifeAdd('art');if(t.up&&t.up.frames&&!t.cpu)a.framed=true;a.value=valueFor(a);a.fresh=true;delete a.usedS;delete a.usedP;a.round=state.settings.solo?state.settings.solo.round:null;t.gallery.push(a);t.lastId=a.id;
   if(!t.history)t.history=[];t.history.push({id:a.id,key:a.key||null,title:a.title,tier:a.tier,parts:a.parts,aiParts:a.aiParts||null,value:a.value,status:'wall',source:a.source||null});save()}
@@ -1623,12 +1734,9 @@ async function paintBonus(){
   const prob=supplyProblem(t);if(prob){toast(prob);return}
   const {counts,paint}=allowedSupplies(t),pc={last:Object.keys(paint)[0]};
   if(!aiEnabled()||!sampleFn||freeBlocked){
-    const rnd=seeded(text.toLowerCase()),parts=[],usedS={},usedP={};const n=Math.min(12,Object.values(counts).reduce((s,v)=>s+v,0));
-    for(let i=0;i<n;i++){const ks=Object.keys(counts).filter(k=>counts[k]>0);if(!ks.length)break;const k=ks[Math.floor(rnd()*ks.length)];counts[k]--;usedS[k]=(usedS[k]||0)+1;
-      const cs=Object.keys(paint).filter(c=>paint[c]>0);const c=usePaint(cs.length?cs[Math.floor(rnd()*cs.length)]:pc.last,paint,usedP,pc);
-      const sz=12+rnd()*34;parts.push({kind:k,x:r1(15+rnd()*70),y:r1(15+rnd()*70),w:r1(sz),h:r1(sz*(.6+rnd()*.8)),rot:Math.round(rnd()*90-45),color:c})}
-    spend(t,usedS,usedP);if(!isCreative())t.bonus=0;
-    hangArt({parts,subs:[],colorSubs:[],missing:0,likeness:.2,title:'Abstract study of '+text,note:aiEnabled()?'The master artist was offline, so they went abstract.':'No AI mode is on, so the artist went abstract.',topic:text,tier:'abstract',tags:[],pending:true,unveil:true},t);
+    const key=matchTopicRecipe(text),rec=RECIPES[key],res=resolveRecipe(rec,t);
+    spend(t,res.usedS,res.usedP);if(!isCreative())t.bonus=0;
+    hangArt({...res,title:rec.name,note:`Built-in picture match for "${text}".`,topic:text,tier:'bonus',tags:rec.tags,cat:rec.cat,key,aiParts:rec.parts,pending:true,unveil:true},t);
     bonusTopic='';openCritic(t.lastId);return;
   }
   const ctl=new AbortController();thinking={topic:text,ctl,teamIdx:state.active};renderAll();
@@ -1667,7 +1775,7 @@ likeness is 1-10, how recognizable the picture honestly is. tags: up to 2 from a
   }catch(e){
     const code=e&&e.code;thinking=null;
     if(code==='cancelled'){renderAll();return}
-    if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(code)){freeBlocked=true;toast('The bonus round needs permission to use Claude. Try again and it will paint an abstract piece instead.')}
+    if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(code)){freeBlocked=true;toast('Claude permission is unavailable. Try again to use the built-in picture library.')}
     else if(code==='rate_limited')toast('The master artist needs a breather. Try again in a minute.');
     else if(code==='refused')toast('The master artist won\'t paint that one. Try a different idea.');
     else toast('The master artist smudged it. Try again. Nothing was used up.');
@@ -1684,6 +1792,11 @@ function startMaker(){
   if(!KINDS.some(k=>t.shapes[k]>0)){toast('You have no shapes. Buy some in the Shop.');return}
   const c=COLOR_ORDER.find(x=>t.paint[x]>0);if(!c){toast('You have no paint. Buy some in the Shop.');return}
   maker={key:sel,parts:[],selIdx:null,color:c,paintMix:[c],teamIdx:state.active,phase:'build',deadline:paintSecs()?Date.now()+paintSecs()*1000:0};renderAll();
+}
+function startBlankCanvas(){
+  const t=team();if(!isCreative()||t.gallery.length>=wallCap(t)){toast('Your gallery wall is full. Save or toss a piece before creating another.');return}
+  const c=COLOR_ORDER.find(x=>t.paint[x]>0)||'blue';
+  maker={key:null,blankCanvas:true,parts:[],selIdx:null,color:c,paintMix:[c],teamIdx:state.active,phase:'build',deadline:0};renderAll();
 }
 function toCanvas(force,id){const f=$(id||'#makerFrame');if(!f)return;const r=f.getBoundingClientRect(),vh=innerHeight;if(!(force||r.top<-20||r.bottom>vh+20))return;const target=r.height>vh*.9?r.top-8:r.top-(vh-r.height)/2;try{window.scrollBy({top:target,behavior:'smooth'})}catch(e){window.scrollBy(0,target)}setTimeout(()=>{const r2=f.getBoundingClientRect();if(r2.top<-20||r2.top>vh*.5)try{f.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}},450)}
 function makerTeam(){return state.teams[maker.teamIdx]}
@@ -1888,9 +2001,9 @@ function makerSideHTML(){
   if(maker.phase!=='build'){
     const aiReady=aiEnabled()&&sampleFn&&imagesOK&&!freeBlocked;
     return maker.phase==='judging'?`<div class="thinking" style="aspect-ratio:auto"><div class="jiggle">${iconSVG('star')}${iconSVG('heart')}${iconSVG('circle')}</div><b>The judge is studying your masterpiece…</b></div>`
-    :`<h3 style="margin-top:0">How much does it look like a ${esc(RECIPES[maker.key].name.toLowerCase())}?</h3><p class="muted">The score sets how much it's worth. Handmade pieces get a 25% bonus.</p>
+    :`${maker.blankCanvas?'<h3 style="margin-top:0">Critic review</h3><p class="muted">The critic judges your original artwork. Your score sets the cash reward.</p>':`<h3 style="margin-top:0">How much does it look like a ${esc(RECIPES[maker.key].name.toLowerCase())}?</h3><p class="muted">The score sets how much it's worth. Handmade pieces get a 25% bonus.</p>`}
       ${aiReady?`<button class="btn violet" data-act="mkAI" style="margin-bottom:12px">Ask the AI judge</button>`:''}
-      <div class="lbl" style="margin-bottom:6px">Class vote</div><div class="actions">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="mkVote" data-n="${n}">${'★'.repeat(n)}</button>`).join('')}</div>
+      ${isClassroom()?`<div class="lbl" style="margin-bottom:6px">Class vote</div><div class="actions">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="mkVote" data-n="${n}">${'★'.repeat(n)}</button>`).join('')}</div>`:`<button class="btn" data-act="mkLocalJudge">Hear the critic's review</button>`}
       <div class="actions" style="margin-top:16px"><button class="btn ghost small" data-act="mkBack">Keep building</button></div>`;
   }
   const owned=COLOR_ORDER.filter(c=>t.paint[c]>0),drops=maker.mixDrops||{},dropColors=Object.keys(drops).filter(c=>drops[c]>0),mixPreview=maker.mixStirred?makerMixHex():dropColors.length?colorValue(dropColors[0]):colorValue(maker.color),dropCount=Object.values(drops).reduce((n,v)=>n+v,0);
@@ -1902,7 +2015,7 @@ function makerSideHTML(){
       <div class="mixpreview"><i id="mkMixSwatch" style="background:${mixPreview}"></i><span>Paint preview · ${dropCount} dab${dropCount===1?'':'s'}</span><button class="btn small violet" data-act="mkMixApply" ${maker.mixStirred&&dropCount?'':'disabled'}>Use this paint</button><button class="btn small ghost" data-act="mkPaletteClear" ${dropCount?'':'disabled'}>Clear palette</button></div>
       <small class="muted">Use this paint recolors a selected wet shape; otherwise, tap a shape to add it in this color. Each shape uses one unit of every color in the mix. Dabs do not use paint until you paint with the mix.</small>`:'<p class="muted">Buy paint in the Shop to mix colors.</p>'}</section>
     <h3>2. Add a shape</h3><div class="need">${shapes}</div>
-    <div class="actions" style="margin-top:18px"><button class="btn" data-act="mkDone" ${maker.parts.length?'':'disabled'}>Hang it in the gallery!</button><button class="btn ghost" data-act="mkCancel">Cancel</button></div>
+    <div class="actions" style="margin-top:18px"><button class="btn" data-act="mkDone" ${maker.parts.length?'':'disabled'}>${maker.blankCanvas?'Ask the critic & finish':'Hang it in the gallery!'}</button><button class="btn ghost" data-act="mkCancel">Cancel</button></div>
     <p class="muted" style="font-size:13px;margin-top:8px">Nothing is used up until you finish. Numbers show what you have left.</p>`;
 }
 function drawMaker(svgOnly){
@@ -1913,9 +2026,9 @@ function drawMaker(svgOnly){
 function mkQuickHTML(){const t=makerTeam(),u=makerUsage();
   return `<span class="lbl">Tap to add</span>${KINDS.filter(k=>t.shapes[k]>0).map(k=>{const left=t.shapes[k]-(u.s[k]||0);return `<button class="mkshape sm" data-act="mkAdd" data-k="${k}" ${left>0&&maker.phase==='build'?'':'disabled'} aria-label="Add ${k}, ${left} left"><span class="sbig">${miniSVG(k,maker.color)}<i class="cnt num">${fmtN(left)}</i></span></button>`}).join('')}<span class="mqc" style="background:${colorValue(maker.color)}" title="Current paint"></span>`}
 function renderMaker(){
-  const rec=RECIPES[maker.key];
-  $('#main').innerHTML=`<section class="panel">${maker.deadline?`<div class="pcwrap">${paintClockHTML()}</div>`:''}<div class="mission"><div><div class="lbl">${esc(makerTeam().name)}, your mission</div><div class="mtitle">Build a ${esc(rec.name.toLowerCase())}!</div><div>Use only the shapes and paint you own. When you're done, it gets hung in your gallery and an art critic comes to review it and make an offer.</div></div>
-      <ol class="steps"><li><b>Pick a paint</b><span>Tap a color on the right</span></li><li><b>Add shapes</b><span>Each tap uses one of yours</span></li><li><b>Arrange fast!</b><span>${dryS()>=999?'Paint never dries here':`Paint dries in ${dryS()} seconds`}</span></li><li><b>Hang it</b><span>Then face the critic</span></li></ol></div>
+  const rec=maker.key?RECIPES[maker.key]:null;
+  $('#main').innerHTML=`<section class="panel">${maker.deadline?`<div class="pcwrap">${paintClockHTML()}</div>`:''}<div class="mission"><div><div class="lbl">${esc(makerTeam().name)}, ${maker.blankCanvas?'your blank canvas':'your mission'}</div><div class="mtitle">${maker.blankCanvas?'Create anything you like':`Build a ${esc(rec.name.toLowerCase())}!`}</div><div>${maker.blankCanvas?'Use any shapes and colors to make your own original artwork. When you finish, the critic will review it and award cash based on the result.':'Use only the shapes and paint you own. When you\'re done, it gets hung in your gallery and an art critic comes to review it and make an offer.'}</div></div>
+      <ol class="steps"><li><b>Pick a paint</b><span>Tap a color on the right</span></li><li><b>Add shapes</b><span>Each tap uses one of yours</span></li><li><b>${maker.blankCanvas?'Make your art':'Arrange fast!'}</b><span>${maker.blankCanvas?'No prompt or suggestions':dryS()>=999?'Paint never dries here':`Paint dries in ${dryS()} seconds`}</span></li><li><b>Finish</b><span>${maker.blankCanvas?'Get a critic review and cash reward':'Then face the critic'}</span></li></ol></div>
     <div class="maker"><div class="makercol"><div id="makerQuick" class="mkquick"></div><div class="frame" id="makerFrame"><div class="mat"><svg id="makerSvg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Your canvas"></svg></div></div><div id="makerTools"></div></div><div id="makerSide" class="makerside"></div></div></section>`;
   bindMakerSurface();
 }
@@ -1975,7 +2088,13 @@ async function svgBlob(parts){
   return new Promise(r=>c.toBlob(r,'image/png'));
 }
 function hangMaker(){
-  const m=maker,t=makerTeam(),rec=RECIPES[m.key],u=makerUsage();
+  const m=maker,t=makerTeam(),u=makerUsage();
+  if(m.blankCanvas){
+    const parts=m.parts.map(({wetUntil,...p})=>({...p}));
+    hangArt({parts,subs:[],colorSubs:[],missing:0,likeness:.5,title:'Blank Canvas Creation',topic:'your original blank-canvas artwork',tier:'blank',tags:[],blankCanvas:true,pending:true,unveil:true},t);
+    const id=t.lastId;maker=null;sel=null;tab='home';openCritic(id);return;
+  }
+  const rec=RECIPES[m.key];
   const referenceParts=resolveWith(rec,{shapes:{...t.shapes},paint:{...t.paint}}).parts;
   spend(t,u.s,u.c);const parts=m.parts.map(({wetUntil,...p})=>({...p}));
   t.painted[m.key]=parts;t.bonus=Math.min(3,(t.bonus||0)+1);
@@ -2030,22 +2149,33 @@ async function criticAI(){
   }catch(e){
     if(customer!==c)return;c.phase='review';
     if(['images_unavailable','not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(e&&e.code))imagesOK=false;
-    c.line='My monocle is foggy today. Let the class score it, and I shall react.';renderAll();
+    c.line=isClassroom()?'My monocle is foggy today. Let the class score it, and I shall react.':'My monocle is foggy today. I shall use my built-in critic notes.';renderAll();
   }
 }
 function panelVote(n){if(!customer||customer.phase!=='review')return;const score=n*2;applyReview(score,pick(PANEL_LINES[score<=4?'low':score<=7?'mid':'high']))}
+function criticLocal(){
+  if(!customer||customer.phase!=='review')return;
+  const a=team().gallery.find(x=>x.id===customer.artId);if(!a)return;
+  const score=localScore(a),stars=Math.max(1,Math.round(score/2));
+  applyReview(score,pick(PANEL_LINES[stars<=2?'low':stars<=3?'mid':'high']));
+}
 
 
 /* ===== Critic moment (pop-up) ===== */
 let critic=null,helpFromSetup=false,hubMore=false;
 function openCritic(id){
   const t=team(),a=t.gallery.find(x=>x.id===id);if(!a){renderAll();return}
-  const name=pick(CRITICS);critic={id,name,seed:name+Math.random(),phase:'judging',showAI:false,line:pick(a.tier==='handmade'?REVIEW_INTROS:AI_INTROS)};
+  const name=pick(CRITICS),voting=isClassroom();critic={id,name,seed:name+Math.random(),phase:voting?'vote':'judging',showAI:false,line:pick(a.tier==='handmade'?REVIEW_INTROS:AI_INTROS)};
   renderAll();renderCritic();const c=critic;
-  setTimeout(()=>{if(critic!==c)return;(aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked)?critAsk():localJudge()},700);
+  if(!voting)setTimeout(()=>{if(critic!==c)return;(!a.blankCanvas&&aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked)?critAsk():localJudge()},700);
 }
 function localScore(a){
   const R=a.key&&RECIPES[a.key]?RECIPES[a.key].parts:null;
+  if(a.blankCanvas){
+    const parts=a.parts||[],colors=new Set(parts.map(p=>p.color)).size;
+    const span=parts.length?Math.max(Math.max(...parts.map(p=>p.x))-Math.min(...parts.map(p=>p.x)),Math.max(...parts.map(p=>p.y))-Math.min(...parts.map(p=>p.y))):0;
+    return clamp(Math.round(3+Math.min(parts.length,18)*.16+Math.min(colors,7)*.35+(span>60?1:0)+rand(-.4,.8)),2,10);
+  }
   if(a.tier==='handmade'&&R){
     const U=(a.parts||[]).map(p=>({...p,used:false})),order=[...R].sort((x,y)=>y.w*y.h-x.w*x.h);let sum=0;
     for(const r of order){let best=null,bc=1e9;
@@ -2060,6 +2190,11 @@ function localJudge(){
   const c=critic,a=critArt();if(!a)return;c.phase='judging';renderCritic();
   setTimeout(()=>{if(critic!==c)return;const sc=localScore(a),n=Math.max(1,Math.round(sc/2));applyCritic(sc,pick(PANEL_LINES[n<=2?'low':n<=3?'mid':'high']))},1500);
 }
+function criticVote(n){
+  if(!isClassroom()||!critic||critic.phase!=='vote')return;
+  const score=n*2,stars=Math.max(1,Math.round(score/2));
+  applyCritic(score,pick(PANEL_LINES[stars<=2?'low':stars<=3?'mid':'high']));
+}
 function critArt(){return critic&&team().gallery.find(x=>x.id===critic.id)}
 function starsRow(n,cls){return `<div class="bigstars ${cls||''}">${[1,2,3,4,5].map(i=>`<span class="${i<=n?'on':''}">${iconSVG('star',i<=n?'yellow':'gray')}</span>`).join('')}</div>`}
 function renderCritic(){
@@ -2067,15 +2202,19 @@ function renderCritic(){
   const c=critic,t=team(),a=critArt()||c.soldArt;if(!a){critic=null;$('#modalRoot').innerHTML='';return}
   const av=avatarSVG(c.seed,true).replace('class="av"','class="cmav"');
   const art=`<div class="frame ${a.tier==='bonus'?'bonusframe':''} unveil"><div class="mat">${artSVG(a.parts,false,a.title)}</div></div>
-    ${a.aiParts&&c.phase!=='done'?(c.showAI?`<div class="aicomp"><div class="aihead"><span class="mi">${iconSVG('star','purple')}</span><b>Picture library reference</b><button class="scrap" data-act="cmAI">Hide</button></div><div class="aiframe">${artSVG(a.aiParts,true,'Picture library reference')}</div><div class="aino">Built from the game's picture recipes and your available supplies. For comparison only.</div></div>`:`<button class="aibtn" data-act="cmAI"><span class="mi">${iconSVG('star','purple')}</span>Compare with picture library</button>`):''}`;
+    ${a.aiParts&&c.phase!=='done'?(c.showAI?`<div class="aicomp"><div class="aihead"><span class="mi">${iconSVG('star','purple')}</span><b>Picture library reference</b><button class="scrap" data-act="cmAI">Hide</button></div><div class="aiframe">${artSVG(a.aiParts,true,'Picture library reference')}</div><div class="aino">From the game's picture recipe library. Not AI-generated.</div></div>`:`<button class="aibtn" data-act="cmAI"><span class="mi">${iconSVG('star','purple')}</span>Compare with picture library</button>`):''}`;
   let right='';
-  if(c.phase==='score'||c.phase==='judging'){
+  if(c.phase==='vote'){
+    const aiReady=!a.blankCanvas&&aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked;
+    right=`<div class="scorecard"><h3 style="margin:0 0 8px">Class vote</h3><p class="muted" style="margin:0 0 12px">How many stars should this artwork receive?</p><div class="actions" style="justify-content:center">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="cmVote" data-n="${n}" aria-label="${n} out of 5 stars">${'★'.repeat(n)}</button>`).join('')}</div></div>
+      <div class="actions" style="justify-content:center;margin-top:14px">${aiReady?`<button class="btn violet" data-act="cmAIJudge">Ask the AI critic</button>`:''}<button class="btn ghost" data-act="cmBuiltIn">Let the critic decide</button></div>`;
+  }else if(c.phase==='score'||c.phase==='judging'){
     right=`<div class="thinking" style="aspect-ratio:auto;padding:30px 10px"><div class="jiggle">${iconSVG('star','yellow')}${iconSVG('heart','pink')}${iconSVG('circle','red')}</div><b>The critic squints and takes notes…</b><span class="muted">Hmm… hmmm…</span></div>`;
   }else if(c.phase==='decide'){
     const sc=a.review.score,stars=Math.max(1,Math.round(sc/2));
-    right=`<div class="scorecard">${starsRow(stars)}<div class="worth">${coinSVG().replace('<svg','<svg class="mi"')} Worth $${a.value}</div></div>
+    right=`<div class="scorecard">${starsRow(stars)}<div class="worth">${coinSVG().replace('<svg','<svg class="mi"')} ${a.blankCanvas?`Cash reward +$${c.cashReward||0}`:`Worth $${a.value}`}</div></div>
       ${isCreative()?'':`<div class="influence"><span class="repgain ${c.gain?'':'zero'}"><span class="mi">${STAR_I()}</span>+${c.gain} reputation</span><span class="muted">${stars>=4?'Buyers will pay more for this one!':stars>=3?'A solid review. Buyers will pay a fair price.':'A rough review. Buyers will pay less.'}</span></div>`}
-      ${c.tip?`<div class="ctip"><span class="mi">💡</span><div><b>Psst… a tip</b><span>${esc(c.tip)}</span></div></div>`:''}
+      ${c.tip&&!a.blankCanvas?`<div class="ctip"><span class="mi">💡</span><div><b>Psst… a tip</b><span>${esc(c.tip)}</span></div></div>`:''}
       <div class="cmstep"><span class="snum">2</span><b>${isCreative()?'Save it?':'What do you want to do with it?'}</b></div>
       <div class="cmchoices">${isCreative()?`<button class="cmc keepc" data-act="cmCollect"><span class="ticon">${iconSVG('heart','red')}</span><b>Save to my collection</b><span>Keep it forever</span></button><button class="cmc" data-act="cmToss"><span class="ticon">${X_SVG}</span><b>Toss it</b><span>Try again</span></button>`
         :`<button class="cmc sell" data-act="cmKeep"><span class="ticon">${gameIcon('price')}</span><b>Put it up for sale</b><span>Find a buyer in <b>Sell</b></span></button><button class="cmc keepc" data-act="cmCollect"><span class="ticon">${iconSVG('heart','red')}</span><b>Keep it in my collection</b><span>Not for sale. It's a keeper!</span></button>`}</div>`;
@@ -2089,7 +2228,8 @@ function renderCritic(){
 }
 function applyCritic(score,text,tip){
   const c=critic,t=team(),a=critArt();if(!a)return;
-  a.likeness=score/10;a.pending=false;a.value=valueFor(a);a.review={score,text,by:c.name};a.review.tip=(tip&&tip.length>8)?tip:tipFor(a);syncHist(t,a);c.tip=a.review.tip;
+  a.likeness=score/10;a.pending=false;a.value=valueFor(a);a.review={score,text,by:c.name};if(!a.blankCanvas)a.review.tip=(tip&&tip.length>8)?tip:tipFor(a);syncHist(t,a);c.tip=a.review.tip||'';
+  if(a.blankCanvas&&!a.rewarded){a.rewarded=true;c.cashReward=Math.max(1,Math.round(score*.8+Math.min(a.parts.length,20)*.15));t.money+=c.cashReward;save()}
   const stars=Math.max(1,Math.round(score/2));c.gain=isCreative()?0:[0,1,1,2,3,4][stars];t.rep=(t.rep||0)+c.gain;
   c.line=text;
   c.phase='decide';save();renderAll();renderCritic();
@@ -2266,7 +2406,7 @@ function pitchIcon(id,a){
 
 function gameIcon(k){
   const I={
-    vocab:ART.book, mix:ART.palette,
+    vocab:ART.book, mix:ART.palette,splatter:`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="17" y="12" width="66" height="76" rx="3" fill="#fff" stroke="#8a9a96" stroke-width="4"/><path d="M50 43 C48 34 53 31 56 25 M50 43 C42 37 37 39 32 35 M50 43 C59 39 64 42 69 37 M50 43 C47 51 40 54 36 60 M50 43 C56 51 61 56 66 62" fill="none" stroke="#d8433a" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="44" r="8" fill="#d8433a"/><circle cx="35" cy="31" r="3" fill="#2e62c9"/><circle cx="68" cy="30" r="4" fill="#f2c230"/><circle cx="29" cy="66" r="3" fill="#3f9a4d"/><circle cx="74" cy="68" r="3" fill="#7d4fb3"/></svg>`,
     steady:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M12 80 L84 24" stroke="#1b2a2e" stroke-width="6" stroke-linecap="round"/><path d="M12 80 L84 24" stroke="#e3a63b" stroke-width="4" stroke-dasharray="8 7"/><circle cx="74" cy="66" r="16" fill="none" stroke="#2e62c9" stroke-width="6"/><rect x="16" y="16" width="26" height="26" fill="none" stroke="#d8433a" stroke-width="6"/></svg>`,
     sketch:`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="12" fill="none" stroke="#1b2a2e" stroke-width="6"/><path d="M50 34 V64 M50 44 L30 34 M50 44 L72 30 M50 64 L34 88 M50 64 L66 88" stroke="#1b2a2e" stroke-width="6" stroke-linecap="round" fill="none"/></svg>`,
     reveal:`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="10" width="80" height="80" rx="6" fill="#e2e8e4"/><rect x="10" y="10" width="40" height="40" fill="#9ccfee"/><polygon points="50,50 90,50 70,20" fill="#d8433a"/><rect x="50" y="50" width="40" height="40" fill="#3f9a4d"/><text x="30" y="80" font-size="34" text-anchor="middle" fill="#8d939b" font-family="system-ui" font-weight="700">?</text></svg>`,
@@ -2381,7 +2521,7 @@ function judgeCard(j){
 }
 function payTeam(idx,amt){const t=state.teams[idx];if(t&&!t.cpu){lifeAdd('games');lifeAdd('gameMoney',amt)}t.money+=amt;save();return amt}
 function stopTimers(){[typeof ol!=='undefined'?ol:null,typeof pn!=='undefined'?pn:null,typeof px!=='undefined'?px:null,typeof pa!=='undefined'?pa:null].forEach(g=>{if(g&&g.timer){clearInterval(g.timer);g.timer=null}});if(typeof mixAnim!=='undefined'&&mixAnim){cancelAnimationFrame(mixAnim);mixAnim=null}if(rev&&rev.timer){clearInterval(rev.timer);rev.timer=null}if(sketch&&sketch.timer){clearInterval(sketch.timer);sketch.timer=null}}
-let steady=null,mix=null,sketch=null,rev=null,imagesOK=null;
+let steady=null,mix=null,sketch=null,splatter=null,rev=null,imagesOK=null;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 
@@ -2541,11 +2681,61 @@ function finishSketch(score,comment,by){
   saveSketch(s.teamIdx,{title:s.subject[0].toUpperCase()+s.subject.slice(1),game:'Stickman Sketch',strokes:slim(s.strokes),score:`${score}/10`,earned:s.earned,comment});
   renderAll();
 }
+function newSplatter(){splatter={drops:[],color:'#d8433a',done:false,teamIdx:state.active,t0:Date.now()}}
+function bindSplatter(g){
+  const cv=$('#splatterPad');if(!cv)return;
+  const dpr=window.devicePixelRatio||1,size=cv.clientWidth||400;cv.width=cv.height=Math.round(size*dpr);
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  const draw=()=>{
+    const W=cv.width/dpr,H=cv.height/dpr;ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#e3e8e6';ctx.lineWidth=1;ctx.strokeRect(.5,.5,W-1,H-1);
+    for(const d of g.drops){
+      const x=d.x*W,y=d.y*H,r=d.r*W;
+      ctx.globalAlpha=.8;ctx.fillStyle=d.color;ctx.beginPath();ctx.arc(x,y,r*.65,0,Math.PI*2);ctx.fill();
+      for(const q of d.spray){ctx.globalAlpha=q.a;ctx.beginPath();ctx.arc(x+Math.cos(q.a0)*r*q.d,y+Math.sin(q.a0)*r*q.d,r*q.s,0,Math.PI*2);ctx.fill()}
+    }
+    ctx.globalAlpha=1;
+  };
+  draw();
+  if(g.done)return;
+  let last=null;
+  const point=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]};
+  const splat=(x,y)=>{
+    if(x<.025||x>.975||y<.025||y>.975)return;
+    const d={x,y,r:.009+Math.random()*.012,color:g.color,spray:Array.from({length:12+Math.floor(Math.random()*15)},()=>({a0:Math.random()*Math.PI*2,d:.7+Math.random()*3.8,s:.12+Math.random()*.35,a:.35+Math.random()*.5}))};
+    g.drops.push(d);draw();const count=$('#splatterCount');if(count)count.textContent=String(g.drops.length);
+  };
+  cv.onpointerdown=e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);last=point(e);splat(...last)};
+  cv.onpointermove=e=>{if(!last)return;e.preventDefault();const p=point(e);if(Math.hypot((p[0]-last[0])*size,(p[1]-last[1])*size)>12){splat(...p);last=p}};
+  cv.onpointerup=cv.onpointercancel=()=>{last=null};
+}
+function finishSplatter(){
+  const g=splatter;if(!g||g.done||!g.drops.length)return;
+  g.done=true;g.tEnd=Date.now();
+  const cells=new Set(g.drops.map(d=>`${Math.floor(d.x*10)},${Math.floor(d.y*10)}`));
+  const colors=new Set(g.drops.map(d=>d.color)).size;
+  const accuracy=clamp(.15+cells.size/100*.85,0,1),creativity=clamp(.2+colors*.12+Math.min(g.drops.length,20)*.015,0,1);
+  g.score=Math.round((accuracy*.55+creativity*.45)*100);
+  g.comment=pick(['The paper has officially been out-splattered. Glorious chaos!','A bold experiment in color, gravity, and not wearing white shirts.','The splats have landed, and my monocle is impressed.','Abstract! Energetic! I found paint on my notes.']);
+  g.earned=gamePay(g,accuracy,{cre:creativity,fast:8,slow:90,comment:g.comment});
+  saveSketch(g.teamIdx,{title:'Paint Splatter',game:'Paint Splatter',strokes:g.drops.map(d=>({color:d.color,w:d.r*2,pts:[[d.x,d.y]]})),score:`${g.score}/100`,earned:g.earned,comment:g.comment});
+  renderAll();
+}
 async function aiJudge(){
   if(isParty())return arcadeSketch();
-  const s=sketch,cv=$('#sketchPad');if(!cv||!aiEnabled()||!sampleFn)return;
+  const s=sketch,cv=$('#sketchPad');if(!s||!cv)return;
   if(!s.strokes.length){toast('Draw something first!');return}
   s.locked=true;s.judging=true;stopTimers();renderAll();
+  const local=()=>{
+    if(sketch!==s)return;
+    const n=s.strokes.length,pts=s.strokes.reduce((sum,x)=>sum+(x.pts?x.pts.length:0),0),colors=new Set(s.strokes.map(x=>x.color)).size;
+    const accuracy=clamp(.35+Math.min(pts,400)/900+Math.random()*.2,.1,.95);
+    const creativity=clamp(.3+n*.04+colors*.08+Math.random()*.15,.1,1);
+    const score=clamp(Math.round((accuracy*.6+creativity*.4)*10),1,10);
+    finishSketch(score,pick(['I see what you did there. I think.','Bold lines! Brave choices!','A masterpiece of stickness.','My monocle approves. Mostly.']),'Built-in critic');
+  };
+  if(!(aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,800);
   const cv2=$('#sketchPad');
   try{
     const blob=await new Promise(r=>cv2.toBlob(r,'image/png'));
@@ -2553,9 +2743,9 @@ async function aiJudge(){
     if(sketch!==s)return;
     finishSketch(clamp(Math.round(Number(data.score)||5),1,10),String(data.comment||'').slice(0,200),'The AI judge');
   }catch(e){
-    if(sketch!==s)return;s.judging=false;
+    if(sketch!==s)return;
     if(['images_unavailable','not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(e&&e.code))imagesOK=false;
-    toast(e&&e.code==='rate_limited'?'The judge needs a breather. Use the class vote this time.':'The AI judge couldn\'t score this one. Use the class vote.');renderAll();
+    toast('The AI judge could not score this drawing; the built-in critic will judge it instead.');local();
   }
 }
 /* Shape Builder (arcade) - uses the same canvas tools as Make it myself */
@@ -2995,6 +3185,7 @@ function bindPad(id,model,onEnd){
 const $=s=>document.querySelector(s);
 const TEAM_LOOK=[['circle','red'],['square','blue'],['triangle','yellow'],['star','purple'],['heart','pink'],['hexagon','green'],['diamond','orange'],['oval','sky']];
 const CAT_LOOK={animals:['heart','orange'],food:['circle','pink'],space:['star','yellow'],buildings:['square','red'],nature:['triangle','green'],vehicles:['oval','blue'],science:['hexagon','purple'],fun:['diamond','sky'],ocean:['semicircle','blue'],bugs:['oval','green'],sports:['circle','orange'],weather:['oval','gray'],toys:['heart','red'],monsters:['star','purple']};
+Object.assign(CAT_LOOK,{transportation:['oval','blue'],architecture:['square','red'],plants:['triangle','green'],cuisine:['circle','orange'],climate:['oval','gray'],'sea-life':['semicircle','blue'],astronomy:['star','yellow'],fantasy:['star','purple'],athletics:['circle','orange'],instruments:['heart','red']});
 const TAB_LOOK={studio:['Studio','triangle','#7b4fae','Make art'],gallery:['Sell','square','#c4780f','Find buyers'],collection:['Collection','heart','#c2412f','Art you keep'],shop:['Shop','circle','#2e7fc9','Buy supplies'],earn:['Earn','star','#2f8a4c','Play for cash'],myart:['Portfolio','heart','#c2416b','All your work']};
 let lastMoney={};
 function teamIcon(i){const [k,c]=TEAM_LOOK[i%TEAM_LOOK.length];return iconSVG(k,c)}
@@ -3026,7 +3217,7 @@ function reportHTML(a){
   if(a.missing)items.push(`<span class="swap miss"><span class="mi">${miniSVG('circle','red',true)}</span><b>×${a.missing}</b> left out</span>`);
   return `<div class="swaps"><div class="lbl" style="color:#cfe0dc">${items.length?'What the artist swapped':'Perfect match'}</div>${items.length?items.join(''):`<span class="swap">${checkSVG().replace('<svg','<svg class="mi"')} Every shape and color matched</span>`}</div>`;
 }
-function modeTag(a){return a.tier==='handmade'?'<span class="tag hand">Handmade</span>':a.tier==='bonus'?'<span class="tag free">Bonus</span>':a.tier==='abstract'?'<span class="tag abstract">Abstract</span>':'<span class="tag recipe">Picture</span>'}
+function modeTag(a){return a.blankCanvas?'<span class="tag free">Blank Canvas</span>':a.tier==='handmade'?'<span class="tag hand">Handmade</span>':a.tier==='bonus'?'<span class="tag free">Bonus</span>':a.tier==='abstract'?'<span class="tag abstract">Abstract</span>':'<span class="tag recipe">Picture</span>'}
 function planHTML(t){
   if(!sel)return `<div class="plan"><p class="muted" style="margin:0">Pick a picture, then choose ${artistLabel()} or Make it myself.</p></div>`;
   const rec=RECIPES[sel];
@@ -3043,12 +3234,12 @@ function planHTML(t){
 function bonusHTML(t){
   if(isCreative())t.bonus=3;
   const meter=`<div class="bmeter">${[0,1,2].map(i=>`<span class="bslot ${i<t.bonus?'lit':''}">${iconSVG('star',i<t.bonus?'yellow':'gray')}</span>`).join('<span class="bline"></span>')}<span class="bline"></span><span class="bslot master ${t.bonus>=3?'lit':''}">${ART.robot('#7d4fb3')}</span></div>`;
-  if(t.bonus<3)return `<div class="bonus"><div class="bhead"><b>Bonus round</b><span class="bplus">+50% value</span></div>${meter}<p style="margin:6px 0 0;font-size:14px">Each painting lights a star. Light all 3 and ${aiEnabled()?'the <b>master artist</b> paints <b>anything</b> you type!':'you can type any idea for an abstract shape arrangement'}.</p></div>`;
+  if(t.bonus<3)return `<div class="bonus"><div class="bhead"><b>Bonus round</b><span class="bplus">+50% value</span></div>${meter}<p style="margin:6px 0 0;font-size:14px">Each painting lights a star. Light all 3 and ${aiEnabled()?'the <b>master artist</b> paints <b>anything</b> you type!':'your idea is matched to the closest picture in the built-in library'}.</p></div>`;
   const ok=aiEnabled()&&sampleFn&&!freeBlocked;
   return `<div class="bonus ready"><div class="bhead"><b style="color:var(--violet)">Bonus round ready!</b><span class="bplus">+50% value</span></div>${meter}
-    <p style="font-size:14px">${aiEnabled()?'Type anything. The master artist uses your shapes and paints.':'Type any idea for an abstract arrangement made from your shapes and paints.'}</p>
+    <p style="font-size:14px">${aiEnabled()?'Type anything. The master artist uses your shapes and paints.':'Type anything. The picture library finds the closest match and paints it with your available supplies.'}</p>
     <div class="paintrow"><input id="bonusInput" type="text" maxlength="80" autocomplete="off" placeholder="a dragon eating tacos" value="${esc(bonusTopic)}"><button class="btn violet" data-act="bonus" ${thinking||t.gallery.length>=wallCap(t)?'disabled':''}>Paint it</button></div>
-    ${ok?'':`<p class="muted" style="margin:8px 0 0;font-size:14px">${!aiEnabled()?'No AI mode is on. The bonus piece will be an abstract arrangement of your supplies.':sampleChecked?'The master artist needs this page open in Claude. Without it, the bonus piece comes out abstract.':'Checking for the master artist…'}</p>`}</div>`;
+    ${ok?'':`<p class="muted" style="margin:8px 0 0;font-size:14px">${!aiEnabled()?'No AI mode is on. The closest built-in picture recipe will be used.':sampleChecked?'The master artist needs this page open in Claude. The built-in picture library will be used instead.':'Checking for the master artist…'}</p>`}</div>`;
 }
 function renderStudio(){
   if(maker&&maker.teamIdx===state.active){renderMaker();return}
@@ -3069,7 +3260,7 @@ function renderStudio(){
   }else{
     easel=`<div class="frame"><div class="mat"><div class="empty-easel"><div class="floaty">${iconSVG('circle','red')}${iconSVG('triangle','yellow')}${iconSVG('square','blue')}${iconSVG('star','purple')}${iconSVG('heart','pink')}</div><div><h2>Your masterpiece goes here</h2><p>Pick a picture, then choose <b>${artistLabel()}</b> or <b>Make it myself</b>.</p></div></div></div></div>`;
   }
-  $('#main').innerHTML=`<div class="studio"><section class="panel"><h2>Pick a picture to paint</h2><p class="muted">Unlock new pictures with your earnings. Already painted one? You can paint it again, or find it in your <b>Portfolio</b>.</p>${shelfHTML(t)}<div class="catbar"><div class="cathead"><b>${CATS.length} categories</b><span>Scroll for more ➜</span></div><div class="catwrap"><button class="catarrow l" data-act="catScroll" data-d="-1" aria-label="More categories left">◀</button><div class="cats" id="catRow">${cats}</div><button class="catarrow r" data-act="catScroll" data-d="1" aria-label="More categories right">▶</button></div></div><div class="pics">${pics}</div>${locked&&!isCreative()?`<p class="lockhint">🔒 <b>${locked} more ${CATS.find(c=>c[0]===cat)[1]} picture${locked===1?'':'s'}</b> to unlock with cash. Every category has more!</p>`:''}${planHTML(t)}${bonusHTML(t)}</section><section>${easel}</section></div>`;
+  $('#main').innerHTML=`<div class="studio"><section class="panel"><h2>Pick a picture to paint</h2><p class="muted">Unlock new pictures with your earnings. Already painted one? You can paint it again, or find it in your <b>Portfolio</b>.</p>${isCreative()?`<div class="actions" style="margin:10px 0 14px"><button class="btn violet" data-act="blankCanvas">＋ Blank canvas · freeform art</button></div>`:''}${shelfHTML(t)}<div class="catbar"><div class="cathead"><b>${CATS.length} categories</b><span>Scroll for more ➜</span></div><div class="catwrap"><button class="catarrow l" data-act="catScroll" data-d="-1" aria-label="More categories left">◀</button><div class="cats" id="catRow">${cats}</div><button class="catarrow r" data-act="catScroll" data-d="1" aria-label="More categories right">▶</button></div></div><div class="pics">${pics}</div>${locked&&!isCreative()?`<p class="lockhint">🔒 <b>${locked} more ${CATS.find(c=>c[0]===cat)[1]} picture${locked===1?'':'s'}</b> to unlock with cash. Every category has more!</p>`:''}${planHTML(t)}${bonusHTML(t)}</section><section>${easel}</section></div>`;
   if(last&&last.fresh)setTimeout(()=>{last.fresh=false;save()},50);
 }
 function commHTML(t){
@@ -3105,10 +3296,11 @@ function custHTML(t){
       </div>`;
     }else if((c.phase==='review'||c.phase==='reviewing')&&a){
       const aiReady=aiEnabled()&&sampleFn&&imagesOK&&!freeBlocked;
+      const classroom=isClassroom();
       controls=`<div class="spot"><div><div class="frame unveil"><div class="mat">${artSVG(a.parts,false,a.title)}</div></div>
-        ${a.aiParts?(c.showAI?`<div class="aicomp"><div class="aihead"><span class="mi">${iconSVG('star','purple')}</span><b>Picture library reference</b><button class="scrap" data-act="toggleAI">Hide</button></div><div class="aiframe">${artSVG(a.aiParts,true,'Picture library reference')}</div><div class="aino">Built from the game's picture recipes and your available supplies. For comparison only.</div></div>`:`<button class="aibtn" data-act="toggleAI"><span class="mi">${iconSVG('star','purple')}</span>Compare with picture library</button>`):''}</div><div class="spotinfo"><div class="lbl">Now unveiling</div><div class="name" style="font-size:30px">${esc(a.title)}</div><div class="muted">${a.tier==='handmade'?'Handmade by':a.tier==='bonus'?'Bonus piece by the master artist for':a.tier==='abstract'?'Abstract piece for':`Painted by the ${artistLabel()} for`} ${esc(t.name)}</div></div></div>
+        ${a.aiParts?(c.showAI?`<div class="aicomp"><div class="aihead"><span class="mi">${iconSVG('star','purple')}</span><b>Picture library reference</b><button class="scrap" data-act="toggleAI">Hide</button></div><div class="aiframe">${artSVG(a.aiParts,true,'Picture library reference')}</div><div class="aino">From the game's picture recipe library. Not AI-generated.</div></div>`:`<button class="aibtn" data-act="toggleAI"><span class="mi">${iconSVG('star','purple')}</span>Compare with picture library</button>`):''}</div><div class="spotinfo"><div class="lbl">Now unveiling</div><div class="name" style="font-size:30px">${esc(a.title)}</div><div class="muted">${a.tier==='handmade'?'Handmade by':a.tier==='bonus'?'Bonus piece by the master artist for':a.tier==='abstract'?'Abstract piece for':`Painted by the ${artistLabel()} for`} ${esc(t.name)}</div></div></div>
       ${c.phase==='reviewing'?`<div class="thinking" style="aspect-ratio:auto;padding:10px"><div class="jiggle">${iconSVG('star')}${iconSVG('heart')}${iconSVG('circle')}</div><b>The critic leans in, squints, and takes notes…</b></div>`
-      :`<div class="negot">${aiReady?`<button class="btn violet big" data-act="criticAI">Hear the critic's review</button>`:''}<div><div class="lbl">${aiReady?'Or let':'Let'} the class score it out of 5 stars</div><div class="actions">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="panel" data-n="${n}">${'★'.repeat(n)}</button>`).join('')}</div></div></div>`}`;
+      :`<div class="negot">${aiReady?`<button class="btn violet big" data-act="criticAI">Hear the critic's review</button>`:''}${!classroom?`<button class="btn ${aiReady?'ghost':''} big" data-act="criticLocal">${aiReady?'Use the built-in critic':'Hear the built-in critic'}</button>`:''}${classroom?`<div><div class="lbl">Let the class score it out of 5 stars</div><div class="actions">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="panel" data-n="${n}">${'★'.repeat(n)}</button>`).join('')}</div></div>`:''}</div>`}`;
     }else controls=c.venue==='fair'?`<div class="actions"><button class="btn" data-act="custDone">Back to your booth</button></div>`:`<div class="actions"><button class="btn" data-act="doors" ${forSale(t).length?'':'disabled'}>Next collector</button><button class="btn ghost" data-act="custDone">Done</button></div>`;
     cust=`<div class="customer enter ${critic?'critic':''}">${avatarSVG(c.seed,critic)}<div style="min-width:0">
       <div class="name">${esc(c.name)}</div><span class="trait"><span class="tico">${(TRAIT_ICON[c.trait.id]||(()=>''))()}</span>${c.trait.label}</span>
@@ -3135,10 +3327,10 @@ function renderShop(){
     <h3>Studio upgrades</h3><div class="grid upgrades">${UPGRADES.map(u=>{const own=t.up&&t.up[u.id];return `<div class="card ${own?'owned':''}"><span class="upicon">${u.icon()}</span><div class="nm">${u.name}</div><div class="muted" style="font-size:13px">${u.desc}</div>${own?'<span class="chipst sold">✓ Owned</span>':`<button class="btn small" data-act="buyUp" data-k="${u.id}" ${t.money<u.price?'disabled':''}>$${u.price}</button>`}</div>`}).join('')}</div></section>`;
 }
 function optButtons(opts,picked,correct,label){return `<div class="opts">${opts.map((o,i)=>{let c='';if(picked!==null){if(o===correct)c='right';else if(i===picked)c='wrong'}return `<button class="${c}" data-act="answer" data-i="${i}" ${picked!==null?'disabled style="opacity:1"':''}><span class="l">${'ABCD'[i]}</span><span>${esc(label?label(o):o)}</span></button>`}).join('')}</div>`}
-function cur0(){return {vocab:quiz,spot,guess,steady,mix,sketch,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame]}
+function cur0(){return {vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame]}
 function renderEarn(){
   const games=[...(isFun()?[]:[['vocab','Vocab review','Pick the right definition']]),
-    ['steady','Steady Hand','Draw the shape as close as you can'],['mix','Color Mixer','Blend paints to match'],['sketch','Stickman Sketch','Draw it, get judged'],['reveal','Speed Reveal','Name it before it\'s done'],
+    ['steady','Steady Hand','Draw the shape as close as you can'],['mix','Color Mixer','Blend paints to match'],['sketch','Stickman Sketch','Draw it, get judged'],['splatter','Paint Splatter','Scatter paint across a white canvas'],['reveal','Speed Reveal','Name it before it\'s done'],
     ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()||isCreative()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Picture Puzzle','Put 20 picture pieces together'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Dig up the hidden treasure']];
   if(isCreative()){for(let k=games.length-1;k>=0;k--)if(['auction','vocab'].includes(games[k][0]))games.splice(k,1)}
   if(!isParty()&&(!earnGame||!games.some(g=>g[0]===earnGame)))earnGame=games[0][0];
@@ -3177,6 +3369,16 @@ function renderEarn(){
         <div class="actions" style="justify-content:center"><button class="btn ghost small" data-act="mixUndo" ${n?'':'disabled'}>Undo last drop</button><button class="btn ghost small" data-act="mixClear" ${n?'':'disabled'}>Pour it out</button><button class="btn" data-act="mixDone" ${n?'':'disabled'}>That's my color</button></div>`}
       ${nextBtn(m.done)}</div>`;
     after=startMixAnim;
+  }else if(earnGame==='splatter'){
+    if(!splatter||splatter.teamIdx!==state.active)newSplatter();
+    const g=splatter,colors=['#d8433a','#2e62c9','#f2c230','#3f9a4d','#7d4fb3','#e879a9','#f28c28'];
+    body=`<div class="q"><div class="muted" style="text-align:center">${who(g.teamIdx)}: choose a paint and tap or drag on the white canvas to create scattered splats. Up to $${max}.</div>
+      ${g.done?judgeCard(g.judge):`<div class="actions" style="justify-content:center">${colors.map((c,i)=>`<button class="pen ${g.color===c?'on':''}" data-act="splatterColor" data-k="${c}" aria-label="${['Red','Blue','Yellow','Green','Purple','Pink','Orange'][i]} paint" style="background:${c}"></button>`).join('')}<span class="muted"><b id="splatterCount">${g.drops.length}</b> splat${g.drops.length===1?'':'s'}</span></div>`}
+      <canvas id="splatterPad" class="drawpad" aria-label="White paper. Tap or drag to splatter paint."></canvas>
+      ${g.done?`${result(g.score>=45,`${esc(g.comment)} ${who(g.teamIdx)} earns $${g.earned}.`)}`
+      :`<p class="muted" style="text-align:center;margin:0">Each mark scatters into a burst of paint. Make a colorful splatter painting, then call the judge!</p><div class="actions" style="justify-content:center"><button class="btn violet big" data-act="splatterDone" ${g.drops.length?'':'disabled'}>Done! Call the judge</button><button class="btn ghost" data-act="splatterClear" ${g.drops.length?'':'disabled'}>Start over</button></div>`}
+      ${nextBtn(g.done)}</div>`;
+    after=()=>bindSplatter(g);
   }else if(earnGame==='sketch'){
     if(!sketch||(!sketch.done&&sketch.teamIdx!==state.active&&!sketch.strokes.length))newSketch();
     const s=sketch,pens=[['#1b2a2e','Black'],['#d8433a','Red'],['#2e62c9','Blue'],['#3f9a4d','Green']];
@@ -3188,8 +3390,8 @@ function renderEarn(){
       ${s.done?`<div class="term" style="font-size:40px">${s.score}<span style="font-size:22px">/10</span></div>${result(s.score>=5,`${s.comment?'"'+esc(s.comment)+'" ':''}${who(s.teamIdx)} earns $${s.earned}.`)}<p class="muted" style="text-align:center;margin:0">Judged by ${esc(s.by)}.</p>`
       :s.judging?`<div class="thinking" style="aspect-ratio:auto"><div class="jiggle">${iconSVG('star')}${iconSVG('heart')}${iconSVG('circle')}</div><b>The judge is squinting at your art…</b></div>`
       :`<p class="muted" style="text-align:center;margin:0">${s.started?(s.locked?'Time\'s up! Pencils down.':'Drawing… finish whenever you\'re ready.'):'The clock starts when you start drawing.'}</p>
-        <div class="actions" style="justify-content:center">${isParty()?`<button class="btn violet big" data-act="aiJudge" ${s.strokes.length?'':'disabled'}>Done! Call the judge</button>`:`${aiReady?`<button class="btn violet" data-act="aiJudge" ${s.strokes.length?'':'disabled'}>Ask the AI judge</button>`:''}<button class="btn ghost" data-act="lockSketch" ${s.strokes.length&&!s.locked?'':'disabled'}>Done drawing</button>`}</div>
-        <div style="text-align:center" ${isParty()?'hidden':''}><div class="lbl" style="margin-bottom:6px">Or class vote</div><div class="actions" style="justify-content:center">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="vote" data-n="${n}" ${s.strokes.length?'':'disabled'}>${'★'.repeat(n)}</button>`).join('')}</div></div>`}
+        <div class="actions" style="justify-content:center">${isParty()?`<button class="btn violet big" data-act="aiJudge" ${s.strokes.length?'':'disabled'}>Done! Call the judge</button>`:isClassroom()?`${aiReady?`<button class="btn violet" data-act="aiJudge" ${s.strokes.length?'':'disabled'}>Ask the AI judge</button>`:''}<button class="btn ghost" data-act="lockSketch" ${s.strokes.length&&!s.locked?'':'disabled'}>Done drawing</button>`:`<button class="btn violet big" data-act="aiJudge" ${s.strokes.length?'':'disabled'}>Done! ${aiReady?'Call the AI judge':'Call the critic'}</button>`}</div>
+        ${isClassroom()?`<div style="text-align:center"><div class="lbl" style="margin-bottom:6px">Or class vote</div><div class="actions" style="justify-content:center">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="vote" data-n="${n}" ${s.strokes.length?'':'disabled'}>${'★'.repeat(n)}</button>`).join('')}</div></div>`:''}`}
       ${nextBtn(s.done)}</div>`;
     s.onStart=()=>{if(!s.started){startSketchTimer();const el=$('#sketchTime');if(el)el.textContent=s.secs+'s'}};
     after=()=>{bindPad('sketchPad',s,()=>{if(s.strokes.length===1)renderAll()});if(s.started&&!s.locked&&!s.done&&!s.timer)startSketchTimer()};
@@ -3364,7 +3566,7 @@ function renderEarn(){
     <div class="games">${games.map(([k,l,s])=>`<button class="${earnGame===k?'on':''}" data-act="game" data-k="${k}"><span class="gico">${gameIcon(k)}</span><span>${l}<small>${s}</small></span></button>`).join('')}</div>${body}
     <div class="tools"><span class="muted">Teacher tools for ${esc(t.name)}:</span><button class="btn ghost small" data-act="adj" data-m="5">+$5</button><button class="btn ghost small" data-act="adj" data-m="-5">−$5</button><button class="btn ghost small" data-act="adj" data-b="1">+1 bonus star</button></div></section>`;
   if(after)after();
-  if(SO){const cur={vocab:quiz,spot,guess,steady,mix,sketch,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];const fin=cur&&((cur.picked!=null&&cur.picked!==undefined)||cur.done||['done','sold','nobids'].includes(cur.phase));if(fin&&!cur.counted){cur.counted=true;SO.played=(SO.played||0)+1;SO.visitGame=(SO.visitGame||0)+1;save();renderHeader()}}
+  if(SO){const cur={vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];const fin=cur&&((cur.picked!=null&&cur.picked!==undefined)||cur.done||['done','sold','nobids'].includes(cur.phase));if(fin&&!cur.counted){cur.counted=true;SO.played=(SO.played||0)+1;SO.visitGame=(SO.visitGame||0)+1;save();renderHeader()}}
 }
 function answer(i){
   if(earnGame==='vocab'&&quiz&&quiz.picked===null){quiz.picked=i;quiz.ok=quiz.opts[i]===quiz.answer;quiz.result=quiz.ok?award(quiz.teamIdx):'Not quite. The right answer is highlighted.'}
@@ -3375,13 +3577,13 @@ function answer(i){
 }
 function turnSplash(){const t=team();$('#toastRoot').innerHTML=`<div class="splash" role="status"><span class="ti">${teamIcon(state.active)}</span><b>${esc(t.name)}</b><span>It's your turn!</span></div>`;clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toastRoot').innerHTML='',1700)}
 function nextRound(){
-  const cur={vocab:quiz,spot,guess,steady,mix,sketch,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];
+  const cur={vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];
   const finished=cur&&(cur.picked!=null&&cur.picked!==undefined||cur.done||cur.phase==='done'||cur.phase==='sold'||cur.phase==='nobids');
   stopTimers();
   if(isParty()){partyNext();return}
   if(finished&&earnGame!=='auction'&&!isSolo()&&state.settings.autoRotate){endTurn();return}
   if(finished&&isSolo()){tab='home';state.settings.solo.visit=null;renderAll();return}
-  ({vocab:newVocab,spot:newSpot,guess:newGuess,steady:()=>newSteady(),mix:newMix,sketch:newSketch,reveal:newReveal,price:newPrice,auction:newAuction,shapes:()=>newShapes('build'),copycat:()=>newShapes('copy'),mirror:()=>newShapes('mirror'),oneline:newOneLine,paintnum:newPaintNum,frameit:newFrame,pixel:newPixel,pxart:newPixArt,treasure:newTreasure})[earnGame]();
+  ({vocab:newVocab,spot:newSpot,guess:newGuess,steady:()=>newSteady(),mix:newMix,sketch:newSketch,splatter:newSplatter,reveal:newReveal,price:newPrice,auction:newAuction,shapes:()=>newShapes('build'),copycat:()=>newShapes('copy'),mirror:()=>newShapes('mirror'),oneline:newOneLine,paintnum:newPaintNum,frameit:newFrame,pixel:newPixel,pxart:newPixArt,treasure:newTreasure})[earnGame]();
   renderAll();
 }
 let artFilter='all',pfAI={},openPieceId=null;
@@ -3399,7 +3601,7 @@ function openPiece(id){
   const status=h.kind==='sketch'?`<span class="chipst sold">${checkSVG().replace('<svg','<svg class="mi"')} ${h.score} · earned $${h.earned}</span>`:h.status==='kept'?`<span class="chipst kept">♥ In your collection</span>`:h.status==='wall'?`<span class="chipst wall">For sale${h.pending?' · waiting for the critic':''}</span>`:h.status==='sold'?`<span class="chipst sold">Sold for $${h.soldFor}</span>`:h.status==='commission'?`<span class="chipst sold">Commission · $${h.soldFor}</span>`:'<span class="chipst scrap">Scrapped</span>';
   $('#modalRoot').innerHTML=`<div class="modal" data-act="closeBg"><div class="sheet piecesheet" role="dialog" aria-label="${esc(h.title)}">
     <div class="psgrid"><div><div class="frame ${h.kind==='sketch'?'sketchframe':h.tier==='bonus'?'bonusframe':''} ${h.status==='scrapped'?'faded':''}"><div class="mat">${h.kind==='sketch'?strokesSVG(h.strokes):artSVG(h.parts,false,h.title)}</div></div>
-      ${h.aiParts?(pfAI[h.id]?`<div class="aicomp"><div class="aihead"><span class="mi">${iconSVG('star','purple')}</span><b>Picture library reference</b><button class="scrap" data-act="pfAI" data-id="${h.id}">Hide</button></div><div class="aiframe">${artSVG(h.aiParts,true,'Picture library reference')}</div><div class="aino">Built from the game's picture recipes and your available supplies.</div></div>`:`<button class="aibtn" data-act="pfAI" data-id="${h.id}"><span class="mi">${iconSVG('star','purple')}</span>Compare with picture library</button>`):''}</div>
+      ${h.aiParts?(pfAI[h.id]?`<div class="aicomp"><div class="aihead"><span class="mi">${iconSVG('star','purple')}</span><b>Picture library reference</b><button class="scrap" data-act="pfAI" data-id="${h.id}">Hide</button></div><div class="aiframe">${artSVG(h.aiParts,true,'Picture library reference')}</div><div class="aino">From the game's picture recipe library. Not AI-generated.</div></div>`:`<button class="aibtn" data-act="pfAI" data-id="${h.id}"><span class="mi">${iconSVG('star','purple')}</span>Compare with picture library</button>`):''}</div>
     <div class="psinfo"><h2 style="margin:0">${esc(h.title)}</h2>${h.kind==='sketch'?`<span class="tag abstract">${esc(h.game)}</span>`:modeTag(h)}
       ${status}
       ${h.soldTo?`<div class="infoline"><span class="mi">${avatarSVG(h.soldTo,false).replace('class="av"','')}</span>Bought by ${esc(h.soldTo)}</div>`:''}
@@ -3435,7 +3637,7 @@ function renderHome(){
   if(isCreative()){
     $('#main').innerHTML=`<section class="hub"><div class="hubgrid">
       ${btn('studio',ART.palette,'#7b4fae','Studio','Paint a picture',`${ALL_KEYS.length} pictures to choose from`)}
-      ${btn('imagine',ART.robot('#7d4fb3'),'#c2416b','Imagine','Type anything','The AI paints your idea','', 'imagine')}
+      ${btn('imagine',ART.robot('#7d4fb3'),'#c2416b','Imagine','Type anything',aiEnabled()?'The AI paints your idea':'The picture library finds the closest match','', 'imagine')}
       ${btn('earn',gameIcon('steady'),'#2f8a4c','Arcade','Play any game','All the art games, just for fun')}
       ${btn('collection',iconSVG('heart','red'),'#2e7fc9','Collection','Your saved art',`${(t.kept||[]).length} saved`)}
     </div>${shelfHTML(t)}</section>`;return;
@@ -3732,7 +3934,7 @@ function openSetupInner(){
     ${f.who==='creative'?`<div class="sstep"><span class="snum">2</span><b>Your artist name</b></div><div class="field"><input id="soloName" maxlength="20" value="${esc(f.name==='You'?'Artist':f.name)}" aria-label="Artist name"></div>
       <div class="optrow"><span class="optlbl">Timer</span>${[[0,'No timer','∞'],[60,'1 min','1'],[90,'90 sec','1½'],[180,'3 min','3'],[300,'5 min','5']].map(([v,l,ic])=>setupOpt('ctime',v,'',`<span class="tclock">⏱<b>${ic}</b></span><small>${l}</small>`)).join('')}</div>
       <div class="optrow"><span class="optlbl">Paint dries</span>${[[6,'6 sec'],[9,'9 sec'],[15,'15 sec'],[999,'Never']].map(([v,l])=>setupOpt('cdry',v,'',`<span class="tclock">💧</span><small>${l}</small>`)).join('')}</div>
-      <div class="creainfo">${[['palette','Every shape and color, never runs out'],['star','The critic still reviews your art'],['heart','Save favorites to your collection'],['x','No money, no selling']].map(([k,l])=>`<span><span class="mi">${k==='palette'?ART.palette:k==='star'?STAR_I():k==='heart'?iconSVG('heart','red'):X_SVG}</span>${l}</span>`).join('')}</div>`:`
+      <div class="creainfo">${[['palette','Every shape and color, never runs out'],['star','The critic reviews your art'],['heart','Save favorites to your collection'],['x','Blank Canvas pays a critic reward; no selling']].map(([k,l])=>`<span><span class="mi">${k==='palette'?ART.palette:k==='star'?STAR_I():k==='heart'?iconSVG('heart','red'):X_SVG}</span>${l}</span>`).join('')}</div>`:`
     ${f.who==='teams'||f.who==='arcade'?`<div class="sstep"><span class="snum">2</span><b>Choose how many teams</b></div>
       <div class="teamcount"><button class="bigstep" data-act="setupStep" data-d="-1" ${f.teams<=1?'disabled':''} aria-label="Fewer teams">−</button><div class="tcbox"><span class="num tcnum">${f.teams}</span><div class="tsrow">${teamIcons}</div></div><button class="bigstep" data-act="setupStep" data-d="1" ${f.teams>=8?'disabled':''} aria-label="More teams">+</button></div>`
     :`<div class="sstep"><span class="snum">2</span><b>Set up your journey</b></div>
@@ -3754,11 +3956,11 @@ function startGame(){
   else if(f.who==='solo'){const n2=$('#soloName2'),n3=$('#soloName3');if(n2)f.n2=n2.value.trim().slice(0,20)||'Player 2';if(n3)f.n3=n3.value.trim().slice(0,20)||'Player 3';s.teams=[newTeam(f.name,30),...(+f.players>=2?[newTeam(f.n2,30)]:[]),...(+f.players>=3?[newTeam(f.n3,30)]:[]),...CPU_NAMES.slice(0,+f.rivals).map(n=>({...newTeam(n,30),cpu:true}))]}
   else s.teams=Array.from({length:+f.teams},(_,i)=>newTeam(TEAM_NAMES[i]||('Team '+(i+1)),30));
   if(party)s.teams.forEach(t=>t.money=0);
-  state=s;quiz=spot=guess=steady=mix=sketch=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;customer=null;thinking=null;maker=null;sel=null;earnGame=null;lastMoney={};tab='home';TT.team=-1;
+  state=s;quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;customer=null;thinking=null;maker=null;sel=null;earnGame=null;lastMoney={};tab='home';TT.team=-1;
   if(party){tab='earn';earnGame=party.games[0];$('#modalRoot').innerHTML='';renderAll();partyIntro();return}
   $('#modalRoot').innerHTML='';startTurnTimer();renderAll();toast(f.who==='creative'?'Welcome to your studio! Make anything you like.':f.who==='solo'?(+f.rivals?(+f.rounds?`Game on! Most money after ${f.rounds} days wins.`:'Game on! Race the robots to the top.'):'Your journey begins on a street corner. Good luck!'):`Game on! ${state.teams[0].name} goes first.`);
 }
-const GAME_NAMES={copycat:'Copycat',mirror:'Mirror Me',oneline:'One-Line Wonder',paintnum:'Paint by Number Race',frameit:'Picture Puzzle',pixel:'Pixel Mystery',pxart:'Pixel Artist',treasure:'Treasure Dig',shapes:'Shape Builder',steady:'Steady Hand',mix:'Color Mixer',sketch:'Stickman Sketch',reveal:'Speed Reveal',guess:'Guess the Masterpiece',price:'Price Is Right',spot:'Shape Spotter'};
+const GAME_NAMES={copycat:'Copycat',mirror:'Mirror Me',oneline:'One-Line Wonder',paintnum:'Paint by Number Race',frameit:'Picture Puzzle',pixel:'Pixel Mystery',pxart:'Pixel Artist',treasure:'Treasure Dig',shapes:'Shape Builder',steady:'Steady Hand',mix:'Color Mixer',sketch:'Stickman Sketch',splatter:'Paint Splatter',reveal:'Speed Reveal',guess:'Guess the Masterpiece',price:'Price Is Right',spot:'Shape Spotter'};
 const DIRS={
   copycat:[['👀','A little shape picture appears for 6 seconds. Memorize it!'],['🙈','It disappears. Rebuild it on the canvas with the same shapes, colors and spots.'],['🎯','The closer your copy (and the faster), the more you win.']],
   mirror:[['🦋','Half of a picture is already on the canvas.'],['🪞','Build the other half so it is a perfect mirror image.'],['🎯','Match the shapes, colors and spots. Faster = more!']],
@@ -3770,6 +3972,7 @@ const DIRS={
   pixel:[['❓','A pixel picture is hiding under 64 gray tiles.'],['👆','Tap tiles to uncover pixels one at a time. Every tile you flip makes the prize smaller!'],['🔔','Hit "I know it!" and pick the answer. Fewer tiles = more money. Wrong = $1.']],
   shapes:[['🧩','You get a few random shapes and a picture to build.'],['👆','Same tools as the Studio: drag to move, tap to turn, pinch or drag the corner to resize, plus the toolbar.'],['⏱','You have 90 seconds. Tap "Done! Call the judge" when finished.']],
   sketch:[['✏️','You get a silly thing to draw, like a stickman surfing.'],['⏱','You have 60 seconds. The clock starts when you start drawing.'],['🧑‍⚖️','Tap "Done! Call the judge" when you finish.']],
+  splatter:[['📄','A clean white sheet is ready for your painting.'],['🎨','Choose a paint color, then tap or drag on the paper. Each impact scatters droplets around the page.'],['🧑‍⚖️','Build up colorful splats and call the judge. Creativity, coverage and color variety determine your score.']],
   steady:[['🔷','You get a shape to draw: a star, heart, hexagon, crescent, triangle, line and more.'],['☝️','One try only! No redos.'],['⚡','Smoother wins more. Faster wins a little more.']],
   mix:[['🎨','Look at the target color.'],['💧','Tap paint buttons to drop colors into the bowl.'],['🥄','Drag inside the bowl to stir, then lock it in.']],
   reveal:[['👀','A picture appears one shape at a time.'],['🔔','Hit "I know it!" as soon as you can guess it.'],['✅','Pick the right answer. Sooner = more money!']],
@@ -3781,7 +3984,7 @@ function partyDirs(){
   const P=state.settings.party,g=P.games[P.idx];
   return `<section class="panel">${partyBar()}<div class="dirs"><div class="dirhead"><span class="gico big">${gameIcon(g)}</span><div><small>How to play</small><h2>${GAME_NAMES[g]}</h2></div></div>
     <ol class="dirsteps">${DIRS[g].map(([ic,t],i)=>`<li><span class="dnum">${i+1}</span><span class="dico">${ic}</span><span>${t}</span></li>`).join('')}</ol>
-    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'||g==='copycat'||g==='mirror'||g==='paintnum'?'Judged on 🎯 accuracy and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 10 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
+    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'||g==='splatter'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'||g==='copycat'||g==='mirror'||g==='paintnum'?'Judged on 🎯 accuracy and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 10 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
     <div class="dirorder"><b>Order:</b> ${state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(state.active).concat(state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(0,state.active)).join(' ▸ ')}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn big readgo" data-act="partyGo">✓ We read it! Start ${GAME_NAMES[g]}</button></div></div></section>`;
 }
@@ -3800,7 +4003,7 @@ function partyBar(){
     <div class="pturn"><span class="ti">${teamIcon(state.active)}</span><span><small>Now playing</small><b>${esc(team().name)}</b></span><span class="pleft">${state.teams.length-P.plays} team${state.teams.length-P.plays===1?'':'s'} left this game</span></div>${P.ready===P.idx?`<div><button class="btn ghost small" data-act="partyHelp">? Directions</button></div>`:''}</div>`;
 }
 function partyNext(){
-  const P=state.settings.party;stopTimers();if(maker&&maker.arcade)maker=null;quiz=spot=guess=steady=mix=sketch=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;
+  const P=state.settings.party;stopTimers();if(maker&&maker.arcade)maker=null;quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;
   P.plays++;
   if(P.plays>=state.teams.length){P.plays=0;P.idx++;
     if(P.idx>=P.games.length){P.over=true;P.idx=P.games.length-1;save();partyOver();return}
@@ -3982,7 +4185,7 @@ document.addEventListener('click',e=>{
     case 'team':if(state.teams[+el.dataset.i].cpu){rivalGallery(+el.dataset.i);break}if(isSolo()){if(+el.dataset.i!==state.active)toast(`It's ${team().name}'s turn. Tap ${endLbl().replace(' ▸','')} when you're done.`);break}stopTimers();state.active=+el.dataset.i;customer=null;sel=null;off={colors:[],shapes:[]};tab='home';startTurnTimer();renderAll();break;
     case 'home':{stopTimers();if(maker&&maker.arcade&&!isParty()){maker=null;if(sb&&sb.timer){clearInterval(sb.timer);sb.timer=null}}const S=state.settings.solo;if(isSolo()&&S&&S.visit&&S.visit.snap===snapVisit()&&!critic&&!maker){S.left=Math.min(DAY_ACTIONS,actLeft()+1);toast('Nothing done there, so you got that action back.')}if(S)S.visit=null;tab='home';customer=null;renderAll();break}
     case 'tab':{const nt=el.dataset.tab;if(maker&&maker.arcade&&!isParty()){maker=null;if(sb&&sb.timer){clearInterval(sb.timer);sb.timer=null}}
-      if(isSolo()&&tab==='home'&&['studio','gallery','shop','earn'].includes(nt)){const S=state.settings.solo;if(actLeft()<=0){toast('No actions left today. Tap End day to start tomorrow.');break}S.left--;S.visit={snap:snapVisit(),tab:nt};S.visitGame=0;if(nt==='earn'){const pool=['steady','mix','sketch','reveal','guess','price','spot','auction','shapes','copycat','mirror','oneline','paintnum','frameit','pixel','pxart','treasure',...(isFun()?[]:['vocab'])].filter(g=>g!==S.lastGame||Math.random()<.15);earnGame=pick(pool);S.lastGame=earnGame;quiz=spot=guess=steady=mix=sketch=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;S.rolled=Date.now()}save()}
+      if(isSolo()&&tab==='home'&&['studio','gallery','shop','earn'].includes(nt)){const S=state.settings.solo;if(actLeft()<=0){toast('No actions left today. Tap End day to start tomorrow.');break}S.left--;S.visit={snap:snapVisit(),tab:nt};S.visitGame=0;if(nt==='earn'){const pool=['steady','mix','sketch','splatter','reveal','guess','price','spot','auction','shapes','copycat','mirror','oneline','paintnum','frameit','pixel','pxart','treasure',...(isFun()?[]:['vocab'])].filter(g=>g!==S.lastGame||Math.random()<.15);earnGame=pick(pool);S.lastGame=earnGame;quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;S.rolled=Date.now()}save()}
       stopTimers();tab=nt;if(tab!=='gallery')customer=null;renderAll();break}
     case 'cat':cat=el.dataset.k;renderAll();break;
     case 'sel':sel=el.dataset.k;renderAll();break;
@@ -4036,6 +4239,9 @@ document.addEventListener('click',e=>{
     case 'keepPiece':keepPiece(t,+el.dataset.id);toast('Added to your collection ♥');renderAll();break;
     case 'cmAsk':critAsk();break;
     case 'cmAI':if(critic){critic.showAI=!critic.showAI;renderCritic()}break;
+    case 'cmVote':criticVote(+el.dataset.n);break;
+    case 'cmAIJudge':critAsk();break;
+    case 'cmBuiltIn':localJudge();break;
     case 'cmSell':if(critic&&critic.phase==='decide')critSell();break;
     case 'cmKeep':if(critic&&critic.phase==='decide'){critic.result='hung';critic.phase='done';critic.line='Very well. Keep your little treasure. For now.';renderAll();renderCritic()}break;
     case 'cmHaggle':if(critic&&critic.phase==='decide')critHaggle();break;
@@ -4056,12 +4262,15 @@ document.addEventListener('click',e=>{
     case 'mixUndo':if(mix&&mix.history.length){undoDrop(mix);renderAll()}break;
     case 'mixClear':if(mix){mix.drops={};mix.history=[];mix.parts=[];renderAll()}break;
     case 'mixDone':if(mix&&!mix.done){scoreMix();renderAll()}break;
+    case 'splatterColor':if(splatter&&!splatter.done){splatter.color=el.dataset.k;renderAll()}break;
+    case 'splatterClear':if(splatter&&!splatter.done){splatter.drops=[];renderAll()}break;
+    case 'splatterDone':finishSplatter();break;
     case 'pen':if(sketch){sketch.color=el.dataset.k;renderAll()}break;
     case 'sketchUndo':if(sketch&&!sketch.locked){sketch.strokes.pop();renderAll()}break;
     case 'sketchClear':if(sketch&&!sketch.locked){sketch.strokes=[];renderAll()}break;
     case 'lockSketch':if(sketch){sketch.locked=true;stopTimers();renderAll()}break;
     case 'aiJudge':aiJudge();break;
-    case 'vote':if(sketch&&!sketch.done&&sketch.strokes.length)finishSketch(+el.dataset.n*2,'','class vote');break;
+    case 'vote':if(isClassroom()&&sketch&&!sketch.done&&sketch.strokes.length)finishSketch(+el.dataset.n*2,'','class vote');break;
     case 'revStart':startReveal();break;
     case 'mkStart':startMaker();break;
     case 'mkPick':$('#modalRoot').innerHTML='';sel=el.dataset.k;tab='studio';startMaker();if(maker)setTimeout(()=>toCanvas(true),60);break;
@@ -4074,8 +4283,11 @@ document.addEventListener('click',e=>{
     case 'mkPaletteClear':if(maker){maker.mixDrops={};maker.mixParts=[];maker.mixHistory=[];maker.mixStirred=false;drawMaker()}break;
     case 'mkOp':if(maker)makerOp(el.dataset.k);break;
     case 'mkDone':if(maker&&maker.parts.length)hangMaker();break;
+    case 'blankCanvas':startBlankCanvas();break;
+    case 'mkLocalJudge':if(maker&&maker.blankCanvas)hangMaker();break;
     case 'criticAI':criticAI();break;
-    case 'panel':panelVote(+el.dataset.n);break;
+    case 'criticLocal':criticLocal();break;
+    case 'panel':if(isClassroom())panelVote(+el.dataset.n);break;
     case 'callCritic':summonCritic(+el.dataset.id);break;
     case 'help':helpFromSetup=!!$('.setup');openHelp();break;
     case 'closeHelp':state.seenIntro=true;save();$('#modalRoot').innerHTML='';if(!state.setupDone||helpFromSetup)openSetup();helpFromSetup=false;break;
@@ -4092,7 +4304,7 @@ document.addEventListener('click',e=>{
     case 'deliver':deliver(+el.dataset.c,+el.dataset.id);break;
     case 'commRefresh':if(t.money>=2){t.money-=2;t.commissions=[];ensureComms(t);renderAll()}break;
     case 'buzz':buzz();break;
-    case 'game':stopTimers();earnGame=el.dataset.k;renderAll();break;
+    case 'game':stopTimers();earnGame=el.dataset.k;if(earnGame==='splatter')newSplatter();renderAll();break;
     case 'answer':answer(+el.dataset.i);break;
     case 'next':nextRound();break;
     case 'tdGuess':tdBonus(el.dataset.k);break;
@@ -4120,7 +4332,7 @@ document.addEventListener('click',e=>{
     case 'sbDone':finishShapes();break;
     case 'partyGo':{const P=state.settings.party;P.ready=P.idx;save();renderAll();break}
     case 'partyHelp':{const P=state.settings.party;P.ready=-1;stopTimers();if(sb&&sb.timer){clearInterval(sb.timer);sb.timer=null}renderAll();break}
-    case 'partyAgain':{const P=state.settings.party;state.teams.forEach(x=>x.money=0);Object.assign(P,{games:shuffle([...PARTY_POOL]).slice(0,PARTY_N),idx:0,plays:0,over:false,ready:-1,_counted:false});state.active=0;earnGame=P.games[0];quiz=spot=guess=steady=mix=sketch=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;save();renderAll();partyIntro();break}
+    case 'partyAgain':{const P=state.settings.party;state.teams.forEach(x=>x.money=0);Object.assign(P,{games:shuffle([...PARTY_POOL]).slice(0,PARTY_N),idx:0,plays:0,over:false,ready:-1,_counted:false});state.active=0;earnGame=P.games[0];quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;save();renderAll();partyIntro();break}
     case 'adj':if(el.dataset.m)t.money=Math.max(0,t.money+ +el.dataset.m);if(el.dataset.b)t.bonus=Math.min(3,t.bonus+1);renderAll();break;
     case 'settings':openSettings();break;
     case 'closeSet':$('#modalRoot').innerHTML='';rivalGallery.ret=null;break;
