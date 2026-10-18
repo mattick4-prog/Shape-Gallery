@@ -1543,6 +1543,8 @@ let profiles=null;
 function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 const stateKey=id=>KEY+'_'+id;
+const journeyKey=id=>KEY+'_journey_'+id;
+function savedJourney(id=profiles.cur){const s=lsGet(journeyKey(id));return s&&s.setupDone&&s.settings&&s.settings.solo&&Array.isArray(s.teams)?s:null}
 function saveProfiles(){lsSet(PKEY,profiles)}
 function curProfile(){return profiles&&profiles.list.find(x=>x.id===profiles.cur)}
 function makeProfile(name,look){return{id:'p'+Date.now().toString(36)+Math.floor(Math.random()*1e4),name:name||'Player',look:look||PLOOKS[0],created:Date.now(),life:newLife(),snap:null}}
@@ -1562,7 +1564,7 @@ function snapProfile(){const pr=curProfile();if(!pr||!state||!state.teams)return
   const top=Math.max(0,...hum.map(t=>t.money||0));if(top>L.best)L.best=top;
   pr.snap={mode:state.setupDone?(state.settings.creative?'Creative studio':state.settings.solo?'Artist journey':state.settings.party?'Arcade game show':'Classroom teams'):null,money:hum[0]?hum[0].money:0,at:Date.now()};
 }
-function save(){snapProfile();lsSet(stateKey(profiles.cur),state);saveProfiles()}
+function save(){if(state&&state.settings&&state.settings.solo)lsSet(journeyKey(profiles.cur),state);snapProfile();lsSet(stateKey(profiles.cur),state);saveProfiles()}
 function lifeAdd(k,n){const pr=curProfile();if(!pr)return;if(!pr.life)pr.life=newLife();pr.life[k]=(pr.life[k]||0)+(n==null?1:n)}
 function switchProfile(id){if(id===profiles.cur)return;if(curProfile())save();profiles.cur=id;saveProfiles();
   state=lsGet(stateKey(id));if(!state||!state.teams)state=freshState();
@@ -1572,7 +1574,7 @@ const team=()=>state.teams[state.active]||state.teams[0];
 const isFun=()=>state.settings.mode==='fun';
 const isClassroom=()=>state.settings.mode==='classroom'&&!isCreative()&&!isSolo()&&!isParty();
 const isParty=()=>!!(state.settings&&state.settings.party);
-const PARTY_POOL=['steady','mix','sketch','splatter','reveal','guess','price','spot','shapes','copycat','mirror','oneline','paintnum','frameit','pixel','pxart','treasure'],PARTY_N=5;
+const PARTY_POOL=['steady','mix','sketch','splatter','reveal','guess','price','spot','shapes','copycat','mirror','half','oneline','paintnum','frameit','pixel','pxart','treasure'],PARTY_N=5;
 
 let tab='home',cat='animals',sel=null,off={colors:[],shapes:[]},bonusTopic='',thinking=null,customer=null,scrapArm=null,freeBlocked=false;
 let earnGame=null,quiz=null,spot=null,guess=null;
@@ -1964,7 +1966,7 @@ function makerSVGInner(){
   }
   const now=Date.now();
   const timers=maker.arcade||dryS()>=999?[]:maker.parts.map(p=>{if(!isWet(p))return '';const left=clamp((p.wetUntil-now)/dryMs(),0,1),r=3.2,c=2*Math.PI*r;return `<g pointer-events="none" transform="translate(${r1(clamp(p.x,5,95))} ${r1(clamp(p.y-selBoxDims(p)[1]/2-5,5,95))})"><circle r="${r+1}" fill="#fff" opacity=".9"/><circle r="${r}" fill="none" stroke="#9ccfee" stroke-width="1.6"/><circle r="${r}" fill="none" stroke="#2e62c9" stroke-width="1.6" stroke-dasharray="${r1(c*left)} ${r1(c)}" transform="rotate(-90)"/><path d="M0 -1.8 C0.9 -0.4 1.3 0.3 1.3 0.8 A1.3 1.3 0 0 1 -1.3 0.8 C-1.3 0.3 -0.9 -0.4 0 -1.8 Z" fill="#2e62c9"/></g>`}).join('');
-  return `<rect width="100" height="100" fill="${maker.arcade?COLORS[maker.bg||'white']:'#fdfdfb'}"/>${(maker.guide||[]).map(p=>`<g pointer-events="none"><g transform="${xf(p)}">${shapeMarkup(p)}</g></g>`).join('')}${maker.mirrorLine?'<path d="M50 0 V100" stroke="#7b4fae" stroke-width=".6" stroke-dasharray="2 1.5" pointer-events="none"/>':''}${maker.parts.map((p,i)=>`<g data-pi="${i}" class="${isWet(p)?'wet':'dry'}" style="cursor:${isWet(p)?'grab':'pointer'}"><g transform="${xf(p)}">${shapeMarkup(p)}</g></g>`).join('')}${selBox}${timers}${!maker.parts.length?`<text x="50" y="50" text-anchor="middle" font-size="4.4" fill="#9aaba7" font-family="system-ui,sans-serif">Tap a shape on the right to add it</text>`:''}`;
+  return `<rect width="100" height="100" fill="${maker.arcade?COLORS[maker.bg||'white']:'#fdfdfb'}"/>${(maker.guide||[]).map(p=>`<g pointer-events="none"><g transform="${xf(p)}">${shapeMarkup(p)}</g></g>`).join('')}${maker.mirrorLine?'<path d="M50 0 V100" stroke="#7b4fae" stroke-width=".6" stroke-dasharray="2 1.5" pointer-events="none"/>':''}${maker.parts.map((p,i)=>`<g data-pi="${i}" class="${isWet(p)?'wet':'dry'}" style="cursor:${isWet(p)?'grab':'pointer'}"><g transform="${xf(p)}"><rect x="${r1(p.x-Math.max(p.w,8)/2)}" y="${r1(p.y-Math.max(p.h,8)/2)}" width="${r1(Math.max(p.w,8))}" height="${r1(Math.max(p.h,8))}" fill="transparent" pointer-events="all"/>${shapeMarkup(p)}</g></g>`).join('')}${selBox}${timers}${!maker.parts.length?`<text x="50" y="50" text-anchor="middle" font-size="4.4" fill="#9aaba7" font-family="system-ui,sans-serif">Tap a shape on the right to add it</text>`:''}`;
 }
 function mkToolsHTML(){
   const p=maker.parts[maker.selIdx],dis=p?'':'disabled';
@@ -2105,9 +2107,12 @@ function hangMaker(){
 const AI_INTROS=['I hear your artist just finished something. Unveil it!','A new piece? Painted with leftovers, I\'m told. Let me see.','Ahem. I have come to judge your latest acquisition.','Out of my way. I must see this fresh canvas.'];
 const REVIEW_INTROS=['Ahem. I heard there was a HANDMADE piece in here. Let me see it.','Out of my way. I was told someone made this with their own two hands.','A fresh piece, still wet. Let\'s see what you\'ve done.','Unveil it. I haven\'t got all day.'];
 const PANEL_LINES={
-  low:['It is… a brave attempt. Very brave. Possibly too brave.','I sense potential. Tiny, tiny potential. Like a seed. A seed of art.','My monocle fell out. Not in a good way.','I have seen better art on a foggy window. But I have also seen worse. Once.','Is it upside down? I turned my head both ways. Still not sure.','My cat looked at this and left the room.','Fascinating. I have no idea what it is, but fascinating.'],
-  mid:['I am torn. It has a certain… charm.','Respectable. I have seen worse in actual museums.','Not bad! I only gasped a little.','It is… fine. And fine is a fine place to start.','I would hang this in my hallway. Maybe not the front hallway.','My eyebrows went up. Only one, but still.','Like a sandwich with no mustard. Good, but needs a zing.'],
-  high:['Magnificent! I would frame it twice.','Bravo! The shapes practically sing.','I am speechless. Well, nearly. I am a critic.','Stunning. I may need to sit down.','I just cried a single, fancy tear.','I am adding this to my list of favorite things, right after cheese.','Someone call the museum. And my mother.']};
+  low:['It is… a brave attempt. Very brave. Possibly too brave.','I sense potential. Tiny, tiny potential. Like a seed. A seed of art.','My monocle fell out. Not in a good way.','I have seen better art on a foggy window. But I have also seen worse. Once.','Is it upside down? I turned my head both ways. Still not sure.','My cat looked at this and left the room.','Fascinating. I have no idea what it is, but fascinating.',
+    'This canvas has asked for a second opinion. I recommend listening to it.','The shapes appear to have arrived separately and never met.','A bold choice to let the empty space do most of the work.','The paint is colorful; the plan seems to be on vacation.','I admire the confidence of this composition. The composition does not return the feeling.','I have seen more convincing geometry in a dropped sandwich.','This picture looks like the shapes lost a bet.','The composition is a pile-up of decisions, and none of them signaled.','The canvas is clean. The shapes are… present.','I would call this abstract, but the abstraction might object.','My favorite part is the part that is not trying to be a picture.','A fascinating arrangement. I shall arrange to stand farther away.','The colors are doing all the talking, and none of them are making sense.','This artwork has the energy of a map with no destinations.'],
+  mid:['I am torn. It has a certain… charm.','Respectable. I have seen worse in actual museums.','Not bad! I only gasped a little.','It is… fine. And fine is a fine place to start.','I would hang this in my hallway. Maybe not the front hallway.','My eyebrows went up. Only one, but still.','Like a sandwich with no mustard. Good, but needs a zing.',
+    'The shapes are getting along. They have not yet become friends.','There is a clever idea in here, hiding behind a very busy hat.','A promising picture; a few shapes seem to have missed their cue.','I see what you were going for, and I respect the journey.','This has a nice rhythm, like a song played with one surprising note.','The colors work well together. The layout is still negotiating.','A little more detail and this could fool my monocle.','A curious composition. I shall pretend I understood it immediately.','The picture is almost there; it may have stopped for snacks.','A fine use of shapes, if slightly adventurous with the map.','There is a story here. The shapes are keeping the ending secret.','Quite charming. I would like to meet the artist’s next draft.','The colors are lovely; the shapes could use a tiny committee meeting.'],
+  high:['Magnificent! I would frame it twice.','Bravo! The shapes practically sing.','I am speechless. Well, nearly. I am a critic.','Stunning. I may need to sit down.','I just cried a single, fancy tear.','I am adding this to my list of favorite things, right after cheese.','Someone call the museum. And my mother.',
+    'Excellent work. The shapes have clearly been practicing.','A delightful picture with enough charm to disarm my snobbery.','The colors and composition make a splendid little team.','Remarkable! I may have to compliment it in public.','This piece has personality, polish, and excellent manners.','A clever arrangement that makes simple shapes look grand.','The details are superb. My monocle is applauding.','I would happily give this a very important wall.','A delightful surprise at every glance. Do make more.','You have made geometry look positively glamorous.','The composition is balanced, the colors sing, and I am jealous.','A genuine masterpiece. I shall brag that I discovered it.','This painting belongs in a gallery, preferably the one I frequent.']};
 const pl=n=>n===1?'':'s';
 function tipFor(a){
   const subs=a.subs||[],cs=(a.colorSubs||[]),sc=a.review?a.review.score:a.likeness*10,stars=Math.max(1,Math.round(sc/2)),T=[];
@@ -2143,7 +2148,7 @@ async function criticAI(){
   c.phase='reviewing';renderAll();
   try{
     const blob=await svgBlob(a.parts);
-    const data=await sampleFn.json(`You are ${c.name}, a dramatic, snooty, but secretly kind art critic in a 9th-grade classroom game. ${a.tier==='handmade'?'Students built this picture themselves by arranging simple geometric shapes (circles, squares, triangles, and so on)':'An AI artist painted this using only the simple geometric shapes and paints the students had left, swapping in whatever they had, so it may look odd'} to show: "${a.topic}". Score it 1-10 for how recognizable it is as that subject, giving credit for clever use of shapes and creativity. Write a review of one or two short sentences in your snooty critic voice. Keep it funny, kind, and school appropriate. Reply with only JSON: {"score": 7, "review": "your review"}`,{images:blob,cache:false});
+    const data=await sampleFn.json(`You are ${c.name}, a dramatic, snooty, but secretly kind art critic in a 9th-grade classroom game. ${a.tier==='handmade'?'Students built this picture themselves by arranging simple geometric shapes (circles, squares, triangles, and so on)':'An AI artist painted this using only the simple geometric shapes and paints available'} to show: "${a.topic}". Score it 1-10 for how recognizable it is as that subject, giving credit for clever use of shapes and creativity. Write a review of one or two short sentences in your snooty critic voice. Keep it funny, school appropriate, and focused on the artwork—not the artist. Its tone may range from warmly complimentary to playful, sharp snark, but never insult or shame the student. Reply with only JSON: {"score": 7, "review": "your review"}`,{images:blob,cache:false});
     if(customer!==c)return;
     applyReview(clamp(Math.round(Number(data.score)||5),1,10),String(data.review||'').slice(0,240));
   }catch(e){
@@ -2415,6 +2420,7 @@ function gameIcon(k){
     auction:`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="22" y="14" width="44" height="22" rx="4" fill="#8a5a35" transform="rotate(-30 44 25)"/><rect x="40" y="34" width="10" height="46" fill="#a86f45" transform="rotate(-30 45 57)"/><rect x="12" y="80" width="56" height="10" rx="3" fill="#5c3d22"/></svg>`,
     copycat:`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="6" y="20" width="40" height="40" rx="4" fill="#9ccfee"/><circle cx="26" cy="40" r="10" fill="#d8433a"/><rect x="54" y="40" width="40" height="40" rx="4" fill="#e2e8e4" stroke="#1b2a2e" stroke-width="3" stroke-dasharray="5 4"/><circle cx="74" cy="60" r="10" fill="#d8433a" opacity=".6"/><path d="M40 70 Q48 84 60 82" stroke="#7b4fae" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`,
     mirror:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 50 C30 18 8 26 14 48 C18 64 36 66 50 58 Z" fill="#7d4fb3"/><path d="M50 50 C70 18 92 26 86 48 C82 64 64 66 50 58 Z" fill="none" stroke="#7d4fb3" stroke-width="4" stroke-dasharray="6 4"/><path d="M50 8 V92" stroke="#1b2a2e" stroke-width="3" stroke-dasharray="4 4"/></svg>`,
+    half:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 14 V86" stroke="#1b2a2e" stroke-width="4" stroke-dasharray="5 4"/><path d="M48 24 C28 12 12 25 16 42 L31 50 L15 65 C18 82 36 86 48 75 Z" fill="#f2c230" stroke="#d18c18" stroke-width="3"/><path d="M22 34 L31 39 M24 70 L35 62 M38 28 L44 33 M38 70 L45 65" stroke="#d8433a" stroke-width="5" stroke-linecap="round"/></svg>`,
     oneline:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M12 76 C22 30 38 30 40 54 S56 84 62 52 S76 18 88 30" stroke="#1b2a2e" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="12" cy="76" r="6" fill="#3f9a4d"/><circle cx="88" cy="30" r="6" fill="#d8433a"/></svg>`,
     paintnum:`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="8" width="84" height="84" rx="6" fill="#fff" stroke="#1b2a2e" stroke-width="3"/><path d="M8 50 H92 M50 8 V92" stroke="#1b2a2e" stroke-width="3"/><rect x="11" y="11" width="37" height="37" fill="#f2c230"/><text x="70" y="38" font-size="24" text-anchor="middle" font-family="sans-serif" font-weight="700">2</text><text x="30" y="80" font-size="24" text-anchor="middle" font-family="sans-serif" font-weight="700">3</text><rect x="52" y="52" width="38" height="38" fill="#2e62c9"/></svg>`,
     frameit:`<svg viewBox="0 0 100 100" aria-hidden="true">${Array.from({length:20},(_,i)=>`<rect x="${14+(i%5)*14}" y="${16+Math.floor(i/5)*16}" width="12" height="14" rx="2" fill="${i%2?'#7d4fb3':'#e3a63b'}" stroke="#1b2a2e" stroke-width="1.5"/>`).join('')}</svg>`,
@@ -2752,10 +2758,10 @@ async function aiJudge(){
 let sb=null;
 const SB_TOPICS=['house','tree','sun','fish','rocket','snowman','car','flower','icecream','boat','robot','cat','castle','ghost','cupcake','owl','penguin','butterfly','kite','trophy','umbrella','monster','crab','octopus'];
 const SB_COLORS=['red','orange','yellow','green','blue','purple','pink','brown','black','white','gray','sky'];
-function matchScore(T,U){
+function matchScore(T,U,checkRotation=false){
   const us=U.map(p=>({...p,used:false}));let sum=0;
   for(const r of [...T].sort((a,b)=>b.w*b.h-a.w*a.h)){let best=null,bc=1e9;
-    for(const u of us){if(u.used)continue;const c=Math.hypot(u.x-r.x,u.y-r.y)/100*1.3+(u.kind!==r.kind?.35:0)+(u.color!==r.color?.25:0)+Math.min(.3,Math.abs(Math.log((u.w*u.h+4)/(r.w*r.h+4)))*.15);if(c<bc){bc=c;best=u}}
+    for(const u of us){if(u.used)continue;const d=Math.abs(((u.rot||0)-(r.rot||0))%360),rot=checkRotation?Math.min(d,360-d)/180*.25:0,c=Math.hypot(u.x-r.x,u.y-r.y)/100*1.3+(u.kind!==r.kind?.35:0)+(u.color!==r.color?.25:0)+Math.min(.3,Math.abs(Math.log((u.w*u.h+4)/(r.w*r.h+4)))*.15)+rot;if(c<bc){bc=c;best=u}}
     if(best&&bc<.7){best.used=true;sum+=1-bc/.7}}
   return clamp(sum/T.length-.06*Math.max(0,U.length-T.length),0,1);
 }
@@ -2765,12 +2771,25 @@ function genMirror(){const n=3+Math.floor(Math.random()*2),kinds=shuffle(['circl
   const left=Array.from({length:n},(_,i)=>{const k=kinds[i],[w0,h0]=DEFAULT_SIZE[k]||[24,24],f=.7+Math.random()*.4;return{kind:k,x:Math.round(rand(14,38)),y:Math.round(12+i*(76/(n-1||1))+rand(-4,4)),w:r1(w0*f),h:r1(h0*f),rot:0,color:cols[i]}});
   const center={kind:pick(['circle','hexagon','diamond']),x:50,y:Math.round(rand(30,70)),w:14,h:14,rot:0,color:pick(['black','navy','brown'])};
   return{guide:[center,...left],target:left.map(p=>({...p,x:100-p.x}))}}
+function genHalf(){
+  const candidates=ALL_KEYS.map(key=>({key,rec:RECIPES[key]})).map(({key,rec})=>{
+    const detail=rec.parts.filter(p=>!(p.w>=95&&p.h>=95));
+    const left=detail.filter(p=>p.x<49&&p.x+Math.max(p.w,p.h)/2<50);
+    const right=detail.filter(p=>p.x>51&&p.x-Math.max(p.w,p.h)/2>50);
+    return{key,rec,left,right};
+  }).filter(({rec,left,right})=>rec.parts.length>=10&&Math.max(left.length,right.length)>=6);
+  const {key,rec,left,right}=pick(candidates);
+  const reflect=p=>({...p,x:100-p.x,rot:-((p.rot||0)),flip:!!p.flip});
+  const guide=right.length>left.length?right.map(reflect):left;
+  const target=guide.map(reflect);
+  return{key,title:rec.name,guide,target};
+}
 function newShapes(mode){
   mode=mode||'build';
-  if(mode!=='build'){let target,guide=[];if(mode==='copy')target=genCopy();else{const m=genMirror();target=m.target;guide=m.guide}
-    const tray={};target.forEach(p=>tray[p.kind]=(tray[p.kind]||0)+1);const total=mode==='copy'?60:75;
+  if(mode!=='build'){let target,guide=[],title='';if(mode==='copy')target=genCopy();else if(mode==='half'){const m=genHalf();target=m.target;guide=m.guide;title=m.title}else{const m=genMirror();target=m.target;guide=m.guide}
+    const tray={};target.forEach(p=>tray[p.kind]=(tray[p.kind]||0)+1);const total=mode==='copy'?60:mode==='half'?105:75;
     sb={mode,key:null,target,tray,done:false,judging:false,teamIdx:state.active,left:total,total,timer:null,phase:mode==='copy'?'show':'build',
-      mk:{arcade:true,key:null,parts:[],guide,mirrorLine:mode==='mirror',selIdx:null,color:'red',bg:'white',teamIdx:state.active,phase:'build',deadline:0}};return}
+      title,mk:{arcade:true,key:null,parts:[],guide,mirrorLine:mode==='mirror'||mode==='half',selIdx:null,color:'red',bg:'white',teamIdx:state.active,phase:'build',deadline:0}};return}
   const key=pick(SB_TOPICS),rec=RECIPES[key],kinds={};
   rec.parts.filter(p=>!(p.w>=95&&p.h>=95)).forEach(p=>kinds[p.kind]=(kinds[p.kind]||0)+1);
   let tray={};Object.entries(kinds).forEach(([k,n])=>tray[k]=Math.min(n,3));
@@ -2796,7 +2815,7 @@ async function finishShapes(){
   const g=sb;if(!g||g.done||g.judging)return;if(!g.mk.parts.length){toast('Add some shapes first!');return}
   if(g.timer){clearInterval(g.timer);g.timer=null}g.judging=true;g.mk.phase='done';g.mk.selIdx=null;g.tEnd=Date.now();g.t0=g.tEnd-(g.total-g.left)*1000;
   if(g.mode!=='build'){g.parts=g.mk.parts.map(({wetUntil,...p})=>({...p}));g.final=[...(g.mk.guide||[]),...g.parts];if(maker===g.mk)maker=null;renderAll();
-    setTimeout(()=>{if(sb!==g)return;const acc=matchScore(g.target,g.parts);g.judging=false;g.done=true;g.earned=gamePay(g,acc,{fast:15,slow:g.total,w:.25,comment:acc>=.8?(g.mode==='copy'?'A photographic memory! Spooky.':'Perfectly symmetrical. A butterfly would be jealous.'):acc>=.5?'Pretty close! A few things wandered off.':acc>=.25?'I see some of it… if I squint.':'Did the picture get scrambled in a blender?'});save();renderAll()},900);return}
+    setTimeout(()=>{if(sb!==g)return;const acc=matchScore(g.target,g.parts,g.mode==='half');g.judging=false;g.done=true;const title=g.mode==='half'?'the other half of the picture':'the mirror image';g.earned=gamePay(g,acc,{fast:15,slow:g.total,w:.25,comment:acc>=.8?(g.mode==='copy'?'A photographic memory! Spooky.':`A perfect match! You completed ${title}.`):acc>=.5?'Pretty close! A few things wandered off.':acc>=.25?'I see some of it… if I squint.':'Did the picture get scrambled in a blender?'});save();renderAll()},900);return}
   g.parts=g.mk.parts.map(({wetUntil,...p})=>({...p}));
   const rec=RECIPES[g.key],parts=[{kind:'rectangle',x:50,y:50,w:100,h:100,rot:0,color:g.mk.bg},...g.parts];g.final=parts;if(maker===g.mk)maker=null;renderAll();
   const done=(acc,cre,comment)=>{if(sb!==g)return;g.judging=false;g.done=true;g.earned=gamePay(g,acc,{cre,fast:20,slow:90,comment});save();renderAll()};
@@ -3327,11 +3346,11 @@ function renderShop(){
     <h3>Studio upgrades</h3><div class="grid upgrades">${UPGRADES.map(u=>{const own=t.up&&t.up[u.id];return `<div class="card ${own?'owned':''}"><span class="upicon">${u.icon()}</span><div class="nm">${u.name}</div><div class="muted" style="font-size:13px">${u.desc}</div>${own?'<span class="chipst sold">✓ Owned</span>':`<button class="btn small" data-act="buyUp" data-k="${u.id}" ${t.money<u.price?'disabled':''}>$${u.price}</button>`}</div>`}).join('')}</div></section>`;
 }
 function optButtons(opts,picked,correct,label){return `<div class="opts">${opts.map((o,i)=>{let c='';if(picked!==null){if(o===correct)c='right';else if(i===picked)c='wrong'}return `<button class="${c}" data-act="answer" data-i="${i}" ${picked!==null?'disabled style="opacity:1"':''}><span class="l">${'ABCD'[i]}</span><span>${esc(label?label(o):o)}</span></button>`}).join('')}</div>`}
-function cur0(){return {vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame]}
+function cur0(){return {vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,half:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame]}
 function renderEarn(){
   const games=[...(isFun()?[]:[['vocab','Vocab review','Pick the right definition']]),
     ['steady','Steady Hand','Draw the shape as close as you can'],['mix','Color Mixer','Blend paints to match'],['sketch','Stickman Sketch','Draw it, get judged'],['splatter','Paint Splatter','Scatter paint across a white canvas'],['reveal','Speed Reveal','Name it before it\'s done'],
-    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()||isCreative()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Picture Puzzle','Put 20 picture pieces together'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Dig up the hidden treasure']];
+    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()||isCreative()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['half','Finish the Picture','Complete a detailed picture’s missing half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Picture Puzzle','Put 20 picture pieces together'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Dig up the hidden treasure']];
   if(isCreative()){for(let k=games.length-1;k>=0;k--)if(['auction','vocab'].includes(games[k][0]))games.splice(k,1)}
   if(!isParty()&&(!earnGame||!games.some(g=>g[0]===earnGame)))earnGame=games[0][0];
   const t=team(),R=state.settings.reward,max=isParty()?100:2*R;let body='',after=null;
@@ -3431,15 +3450,15 @@ function renderEarn(){
         <div class="bids">${state.teams.map((t,i)=>{if(t.cpu){const lead=a.high&&a.high.teamIdx===i;return `<div class="bidrow ${lead?'lead':''}"><b>${esc(t.name)} <span class="cpu">CPU</span></b><span class="num muted">$${t.money}</span><span class="muted" style="font-size:13px">${lead?'Winning bid':'Thinking…'}</span></div>`}const lead=a.high&&a.high.teamIdx===i,base=a.high?a.high.amount:0,full=t.gallery.length>=wallCap(t);return `<div class="bidrow ${lead?'lead':''}"><b>${esc(t.name)}</b><span class="num muted">$${t.money}${full?' · wall full':''}</span><div class="actions">${[1,5,10].map(inc=>{const amt=a.high?base+inc:Math.max(a.opening,inc);return `<button class="btn small ${lead?'ghost':''}" data-act="bid" data-i="${i}" data-inc="${inc}" ${lead||full||t.money<amt?'disabled':''}>${a.high?'+$'+inc:'$'+amt}</button>`}).join('')}</div></div>`}).join('')}</div>
         <div class="actions" style="justify-content:center"><button class="btn" data-act="auctionSold">${a.high?'Going once, twice… Sold!':'No bids, reveal it'}</button></div>`
       :`${res}<div style="text-align:center"><button class="btn" data-act="next">Next painting</button></div>`}</div>`;
-  }else if(earnGame==='copycat'||earnGame==='mirror'){
-    const mode=earnGame==='copycat'?'copy':'mirror';
+  }else if(earnGame==='copycat'||earnGame==='mirror'||earnGame==='half'){
+    const mode=earnGame==='copycat'?'copy':earnGame==='half'?'half':'mirror';
     if(!sb||sb.mode!==mode||(!sb.done&&!sb.judging&&sb.teamIdx!==state.active&&!sb.mk.parts.length))newShapes(mode);
     const g=sb;
     if(g.phase==='show'&&!g.showT){g.showT=setTimeout(()=>{if(sb!==g)return;g.phase='build';if(tab==='earn')renderAll()},6000)}
     if(!g.done&&!g.judging&&g.phase==='build'){maker=g.mk;if(g.mk.parts.length&&!g.timer&&(!isParty()||state.settings.party.ready===state.settings.party.idx))sbStartTimer()}
     const tgt=[...(g.mk.guide||[]),...g.target];
-    body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">${mode==='copy'?(g.phase==='show'?'Memorize this!':'Rebuild it from memory!'):'Finish the mirror image!'}</div>
-      <div class="muted" style="text-align:center">${who(g.teamIdx)}: ${mode==='copy'?(g.phase==='show'?'It disappears in 6 seconds…':`same shapes, colors and spots. <b>${g.total} seconds</b>.`):`build the right half so it mirrors the left. <b>${g.total} seconds</b>.`} The clock starts with your first shape.</div>
+    body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">${mode==='copy'?(g.phase==='show'?'Memorize this!':'Rebuild it from memory!'):mode==='half'?`Complete the other half of this ${esc(g.title.toLowerCase())}!`:'Finish the mirror image!'}</div>
+      <div class="muted" style="text-align:center">${who(g.teamIdx)}: ${mode==='copy'?(g.phase==='show'?'It disappears in 6 seconds…':`same shapes, colors and spots. <b>${g.total} seconds</b>.`):mode==='half'?`A detailed picture is split down the middle. Recreate every shape, color, size, position and rotation on the empty side. <b>${g.total} seconds</b>.`:`build the right half so it mirrors the left. <b>${g.total} seconds</b>.`} The clock starts with your first shape.</div>
       ${g.phase==='show'?`<div class="gameart"><div class="frame"><div class="mat">${artSVG(g.target,false,'Memorize this')}</div></div></div><div class="timer"><i style="animation-duration:6s"></i></div>`
       :g.done||g.judging?`<div class="sbwrap"><div class="sbleft"><div class="cmpair"><div><div class="lbl">Target</div><div class="frame"><div class="mat">${artSVG(tgt,false,'Target')}</div></div></div><div><div class="lbl">Yours</div><div class="frame"><div class="mat">${artSVG(g.final||[],false,'Yours')}</div></div></div></div></div><div class="sbright">${g.done?(g.judge?judgeCard(g.judge):''):`<div class="thinking" style="aspect-ratio:auto;padding:24px"><div class="jiggle">${iconSVG('star')}${iconSVG('heart')}${iconSVG('circle')}</div><b>Comparing…</b></div>`}</div></div>`
       :`<div class="maker"><div class="makercol"><div class="frame" id="makerFrame"><div class="mat"><svg id="makerSvg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Building board"></svg></div></div><div id="makerTools"></div></div><div id="makerSide" class="makerside"></div></div>`}
@@ -3553,10 +3572,10 @@ function renderEarn(){
     body=`<div class="q"><div class="muted" style="text-align:center">${who(guess.teamIdx)}: the artist only had 3 shapes and 3 paints. What were they trying to paint? Worth $${R}.</div><div class="gameart"><div class="frame"><div class="mat">${artSVG(guess.parts,guess.fresh,'Mystery painting')}</div></div></div>${optButtons(guess.opts,guess.picked,guess.key,k=>RECIPES[k].name)}${result(guess.ok,guess.result)}${nextBtn(guess.picked!==null)}</div>`;
     guess.fresh=false;
   }
-  if(isParty()){const P=state.settings.party,cg={spot,guess,steady,mix,sketch,reveal:rev,price,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];
+  if(isParty()){const P=state.settings.party,cg={spot,guess,steady,mix,sketch,reveal:rev,price,shapes:sb,copycat:sb,mirror:sb,half:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];
     if(cg&&!cg.t0&&!(earnGame==='spot'&&cg.phase==='show')&&!(earnGame==='reveal'&&cg.phase==='ready'))cg.t0=Date.now()+(earnGame==='reveal'?0:1500);
     body=body.replace(/Worth \$\d+\./,'Up to $100. Faster pays more!');
-    if(cg&&cg.judge&&!['shapes','copycat','mirror','pixel','paintnum','frameit','oneline','pxart','treasure'].includes(earnGame)&&(cg.done||cg.picked!=null||cg.phase==='done')){const k=body.lastIndexOf('<div style="text-align:center"><button class="btn');if(k>0)body=body.slice(0,k)+judgeCard(cg.judge)+body.slice(k)}
+    if(cg&&cg.judge&&!['shapes','copycat','mirror','half','pixel','paintnum','frameit','oneline','pxart','treasure'].includes(earnGame)&&(cg.done||cg.picked!=null||cg.phase==='done')){const k=body.lastIndexOf('<div style="text-align:center"><button class="btn');if(k>0)body=body.slice(0,k)+judgeCard(cg.judge)+body.slice(k)}
     $('#main').innerHTML=`<section class="panel">${partyBar()}${body.replace(/>Next team</,'>'+(P.plays>=state.teams.length-1?(P.idx>=P.games.length-1?'See who won! 🏆':'Next game ▸'):'Next team ▸')+'<')}</section>`;if(after)after();return}
   if(SO){const g=games.find(x=>x[0]===earnGame)||['','',''],fresh=SO.rolled&&Date.now()-SO.rolled<1500;
     $('#main').innerHTML=`<section class="panel"><div class="todaygame ${fresh?'roll':''}"><small>🎲 Your game this time</small><div class="tgrow"><span class="gico">${gameIcon(earnGame)}</span><div><b>${g[1]}</b><span>${g[2]}</span></div></div></div>${body}</section>`;if(after)after();return}
@@ -3566,7 +3585,7 @@ function renderEarn(){
     <div class="games">${games.map(([k,l,s])=>`<button class="${earnGame===k?'on':''}" data-act="game" data-k="${k}"><span class="gico">${gameIcon(k)}</span><span>${l}<small>${s}</small></span></button>`).join('')}</div>${body}
     <div class="tools"><span class="muted">Teacher tools for ${esc(t.name)}:</span><button class="btn ghost small" data-act="adj" data-m="5">+$5</button><button class="btn ghost small" data-act="adj" data-m="-5">−$5</button><button class="btn ghost small" data-act="adj" data-b="1">+1 bonus star</button></div></section>`;
   if(after)after();
-  if(SO){const cur={vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];const fin=cur&&((cur.picked!=null&&cur.picked!==undefined)||cur.done||['done','sold','nobids'].includes(cur.phase));if(fin&&!cur.counted){cur.counted=true;SO.played=(SO.played||0)+1;SO.visitGame=(SO.visitGame||0)+1;save();renderHeader()}}
+  if(SO){const cur={vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,half:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];const fin=cur&&((cur.picked!=null&&cur.picked!==undefined)||cur.done||['done','sold','nobids'].includes(cur.phase));if(fin&&!cur.counted){cur.counted=true;SO.played=(SO.played||0)+1;SO.visitGame=(SO.visitGame||0)+1;save();renderHeader()}}
 }
 function answer(i){
   if(earnGame==='vocab'&&quiz&&quiz.picked===null){quiz.picked=i;quiz.ok=quiz.opts[i]===quiz.answer;quiz.result=quiz.ok?award(quiz.teamIdx):'Not quite. The right answer is highlighted.'}
@@ -3577,13 +3596,13 @@ function answer(i){
 }
 function turnSplash(){const t=team();$('#toastRoot').innerHTML=`<div class="splash" role="status"><span class="ti">${teamIcon(state.active)}</span><b>${esc(t.name)}</b><span>It's your turn!</span></div>`;clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toastRoot').innerHTML='',1700)}
 function nextRound(){
-  const cur={vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];
+  const cur={vocab:quiz,spot,guess,steady,mix,sketch,splatter,reveal:rev,price,auction,shapes:sb,copycat:sb,mirror:sb,half:sb,oneline:ol,paintnum:pn,frameit:fr,pixel:px,pxart:pa,treasure:td}[earnGame];
   const finished=cur&&(cur.picked!=null&&cur.picked!==undefined||cur.done||cur.phase==='done'||cur.phase==='sold'||cur.phase==='nobids');
   stopTimers();
   if(isParty()){partyNext();return}
   if(finished&&earnGame!=='auction'&&!isSolo()&&state.settings.autoRotate){endTurn();return}
   if(finished&&isSolo()){tab='home';state.settings.solo.visit=null;renderAll();return}
-  ({vocab:newVocab,spot:newSpot,guess:newGuess,steady:()=>newSteady(),mix:newMix,sketch:newSketch,splatter:newSplatter,reveal:newReveal,price:newPrice,auction:newAuction,shapes:()=>newShapes('build'),copycat:()=>newShapes('copy'),mirror:()=>newShapes('mirror'),oneline:newOneLine,paintnum:newPaintNum,frameit:newFrame,pixel:newPixel,pxart:newPixArt,treasure:newTreasure})[earnGame]();
+  ({vocab:newVocab,spot:newSpot,guess:newGuess,steady:()=>newSteady(),mix:newMix,sketch:newSketch,splatter:newSplatter,reveal:newReveal,price:newPrice,auction:newAuction,shapes:()=>newShapes('build'),copycat:()=>newShapes('copy'),mirror:()=>newShapes('mirror'),half:()=>newShapes('half'),oneline:newOneLine,paintnum:newPaintNum,frameit:newFrame,pixel:newPixel,pxart:newPixArt,treasure:newTreasure})[earnGame]();
   renderAll();
 }
 let artFilter='all',pfAI={},openPieceId=null;
@@ -3919,13 +3938,14 @@ function openSetup(){
 }
 function openSetupInner(){
   const f=setupForm;if(f._pid!==profiles.cur){f._pid=profiles.cur;f.name=curProfile().name}
+  const journey=savedJourney();
   const teamIcons=Array.from({length:f.teams},(_,i)=>`<span class="tsi">${teamIcon(i)}</span>`).join('');
   const stars=n=>Array.from({length:3},(_,i)=>`<span class="dstar ${i<n?'':'dim'}">${iconSVG('star',i<n?'yellow':'gray')}</span>`).join('');
   const bars=n=>`<span class="lenbars">${Array.from({length:4},(_,i)=>`<i class="${i<n?'':'dim'}"></i>`).join('')}</span>`;
   $('#modalRoot').innerHTML=`<div class="modal"><div class="sheet intro setup" role="dialog" aria-label="New game">
     <div class="introhead"><div class="introshapes">${iconSVG('star','yellow')}${iconSVG('heart','pink')}${iconSVG('hexagon','green')}</div><h2>Odd Shapes Gallery</h2><p>Choose how you want to play</p></div>
     ${profilesHTML()}
-    <div class="startrow">${state.setupDone?`<button class="startbtn cont" data-act="continueGame"><span class="sbi">▶</span><span><b>Continue my game</b><small>${isCreative()?'Creative studio':isSolo()?'Artist journey · '+roundLbl():isParty()?'Game show · game '+(state.settings.party.idx+1)+' of 5':'Class teams · '+state.teams.length+' teams'}</small></span></button>`:''}<button class="startbtn help" data-act="help"><span class="sbi">?</span><span><b>How to play</b><small>Learn the game in 1 minute</small></span></button></div>
+    <div class="startrow">${state.setupDone?`<button class="startbtn cont" data-act="continueGame"><span class="sbi">▶</span><span><b>Continue my game</b><small>${isCreative()?'Creative studio':isSolo()?'Artist journey · '+roundLbl():isParty()?'Game show · game '+(state.settings.party.idx+1)+' of 5':'Class teams · '+state.teams.length+' teams'}</small></span></button>`:''}${journey&&!isSolo()?`<button class="startbtn cont" data-act="resumeJourney"><span class="sbi">↩</span><span><b>Resume Artist Journey</b><small>${esc(journey.teams[0].name)} · day ${journey.settings.solo.round||1}</small></span></button>`:''}<button class="startbtn help" data-act="help"><span class="sbi">?</span><span><b>How to play</b><small>Learn the game in 1 minute</small></span></button></div>
     <div class="sstep"><span class="snum">1</span><b>${state.setupDone?'Or start a new game: pick a mode':'Pick a mode'}</b></div>
     <div class="whocards modes4"><button class="whocard ${f.who==='teams'?'on':''}" data-act="setup" data-k="who" data-v="teams"><div class="wci">${iconSVG('circle','red')}${iconSVG('square','blue')}${iconSVG('triangle','yellow')}</div><b>Classroom teams</b><span>Paint, sell and grow your art career. Vocab earns cash.</span></button>
       <button class="whocard ${f.who==='arcade'?'on':''}" data-act="setup" data-k="who" data-v="arcade"><div class="wci">${gameIcon('sketch')}${gameIcon('mix')}${gameIcon('shapes')}</div><b>Arcade game show</b><span>5 random art games. Most money wins!</span></button>
@@ -3946,24 +3966,33 @@ function openSetupInner(){
       <div class="optrow"><span class="optlbl">Length</span>${[[0,4,'No limit'],[10,1,'10 days'],[15,2,'15 days'],[20,3,'20 days']].map(([v,n,l])=>setupOpt('rounds',v,'',`${bars(n)}<small>${l}</small>`)).join('')}</div>`}`}
     <div style="text-align:center;margin-top:18px"><button class="btn big" data-act="startGame">Start the game! ▸</button></div>
 
-    <p class="muted" style="text-align:center;font-size:13px;margin:10px 0 0">Starting a new game erases the current one. You can switch modes later in Settings.</p></div></div>`;
+    <p class="muted" style="text-align:center;font-size:13px;margin:10px 0 0">Starting a new game replaces the current game. Your Artist Journey is saved separately and can be resumed later.</p></div></div>`;
 }
 function startGame(){
   const f=setupForm;const nm=$('#soloName');if(nm)f.name=nm.value.trim().slice(0,20)||'You';
+  save();
   const party=f.who==='arcade'?{games:shuffle([...PARTY_POOL]).slice(0,PARTY_N),idx:0,plays:0,over:false,ready:-1}:null;
   const s={settings:{party,turnSecs:f.who==='teams'?90:0,paintSecs:f.who==='solo'?0:f.who==='creative'?+f.ctime:90,drySecs:f.who==='creative'?+f.cdry:9,mode:f.who==='teams'?'classroom':'fun',reward:4,startMoney:15,autoRotate:f.who==='teams'||f.who==='arcade',creative:f.who==='creative',solo:f.who==='solo'?{rounds:+f.rounds,round:1,diff:f.diff}:null},vocabText:state.vocabText||DEFAULT_VOCAB,active:0,seq:1,turnNo:0,seenIntro:true,setupDone:true};
   if(f.who==='creative'){s.teams=[creativeTeam(f.name==='You'?'Artist':f.name)]}
   else if(f.who==='solo'){const n2=$('#soloName2'),n3=$('#soloName3');if(n2)f.n2=n2.value.trim().slice(0,20)||'Player 2';if(n3)f.n3=n3.value.trim().slice(0,20)||'Player 3';s.teams=[newTeam(f.name,30),...(+f.players>=2?[newTeam(f.n2,30)]:[]),...(+f.players>=3?[newTeam(f.n3,30)]:[]),...CPU_NAMES.slice(0,+f.rivals).map(n=>({...newTeam(n,30),cpu:true}))]}
   else s.teams=Array.from({length:+f.teams},(_,i)=>newTeam(TEAM_NAMES[i]||('Team '+(i+1)),30));
   if(party)s.teams.forEach(t=>t.money=0);
-  state=s;quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;customer=null;thinking=null;maker=null;sel=null;earnGame=null;lastMoney={};tab='home';TT.team=-1;
+  state=s;quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;customer=null;thinking=null;maker=null;sel=null;earnGame=null;lastMoney={};tab='home';TT.team=-1;save();
   if(party){tab='earn';earnGame=party.games[0];$('#modalRoot').innerHTML='';renderAll();partyIntro();return}
   $('#modalRoot').innerHTML='';startTurnTimer();renderAll();toast(f.who==='creative'?'Welcome to your studio! Make anything you like.':f.who==='solo'?(+f.rivals?(+f.rounds?`Game on! Most money after ${f.rounds} days wins.`:'Game on! Race the robots to the top.'):'Your journey begins on a street corner. Good luck!'):`Game on! ${state.teams[0].name} goes first.`);
 }
-const GAME_NAMES={copycat:'Copycat',mirror:'Mirror Me',oneline:'One-Line Wonder',paintnum:'Paint by Number Race',frameit:'Picture Puzzle',pixel:'Pixel Mystery',pxart:'Pixel Artist',treasure:'Treasure Dig',shapes:'Shape Builder',steady:'Steady Hand',mix:'Color Mixer',sketch:'Stickman Sketch',splatter:'Paint Splatter',reveal:'Speed Reveal',guess:'Guess the Masterpiece',price:'Price Is Right',spot:'Shape Spotter'};
+function resumeJourney(){
+  const journey=savedJourney();if(!journey){toast('There is no saved Artist Journey for this player.');openSetup();return}
+  save();stopTimers();if(sb&&sb.timer){clearInterval(sb.timer);sb.timer=null}
+  state=journey;setupForm.who='solo';setupForm.name=state.teams[0].name;
+  quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;customer=null;thinking=null;maker=null;critic=null;sel=null;earnGame=null;lastMoney={};tab='home';TT.team=-1;
+  $('#modalRoot').innerHTML='';save();if(state.settings.solo.rounds&&state.settings.solo.round>state.settings.solo.rounds){gameOver();return}startTurnTimer();renderAll();toast('Artist Journey resumed.');
+}
+const GAME_NAMES={copycat:'Copycat',mirror:'Mirror Me',half:'Finish the Picture',oneline:'One-Line Wonder',paintnum:'Paint by Number Race',frameit:'Picture Puzzle',pixel:'Pixel Mystery',pxart:'Pixel Artist',treasure:'Treasure Dig',shapes:'Shape Builder',steady:'Steady Hand',mix:'Color Mixer',sketch:'Stickman Sketch',splatter:'Paint Splatter',reveal:'Speed Reveal',guess:'Guess the Masterpiece',price:'Price Is Right',spot:'Shape Spotter'};
 const DIRS={
   copycat:[['👀','A little shape picture appears for 6 seconds. Memorize it!'],['🙈','It disappears. Rebuild it on the canvas with the same shapes, colors and spots.'],['🎯','The closer your copy (and the faster), the more you win.']],
   mirror:[['🦋','Half of a picture is already on the canvas.'],['🪞','Build the other half so it is a perfect mirror image.'],['🎯','Match the shapes, colors and spots. Faster = more!']],
+  half:[['🖼️','A detailed picture is split down the middle. Study the visible half.'],['✏️','Recreate its missing half by matching every shape, color, size, position and rotation. You have 105 seconds.'],['🎯','The judge compares your drawing to the original. Accurate and fast earns more!']],
   oneline:[['✏️','You get something to draw, like a cat or a bike.'],['☝️','Draw it in ONE line. As soon as you lift your finger, you are done!'],['🧑‍⚖️','The judge scores creativity, accuracy and speed.']],
   paintnum:[['🔢','Every part of the picture has a number. The key tells you which color each number is, like "3 = navy".'],['🎨','The paints have NO numbers, and some are tricky look-alikes! Pick the right one, then tap the parts.'],['⏱','45 seconds. A wrong color costs 3 seconds. Fill everything correctly, fast!']],
   frameit:[['🧩','A picture is scrambled into 20 pieces.'],['👆','Drag pieces from the tray onto the grid. You can move or swap placed pieces whenever you need.'],['⏱','Put the picture together in 90 seconds. More correct spaces and faster solving earn more!']],
@@ -3984,7 +4013,7 @@ function partyDirs(){
   const P=state.settings.party,g=P.games[P.idx];
   return `<section class="panel">${partyBar()}<div class="dirs"><div class="dirhead"><span class="gico big">${gameIcon(g)}</span><div><small>How to play</small><h2>${GAME_NAMES[g]}</h2></div></div>
     <ol class="dirsteps">${DIRS[g].map(([ic,t],i)=>`<li><span class="dnum">${i+1}</span><span class="dico">${ic}</span><span>${t}</span></li>`).join('')}</ol>
-    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'||g==='splatter'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'||g==='copycat'||g==='mirror'||g==='paintnum'?'Judged on 🎯 accuracy and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 10 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
+    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'||g==='splatter'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'||g==='copycat'||g==='mirror'||g==='half'||g==='paintnum'?'Judged on 🎯 accuracy and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 10 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
     <div class="dirorder"><b>Order:</b> ${state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(state.active).concat(state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(0,state.active)).join(' ▸ ')}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn big readgo" data-act="partyGo">✓ We read it! Start ${GAME_NAMES[g]}</button></div></div></section>`;
 }
@@ -4185,7 +4214,7 @@ document.addEventListener('click',e=>{
     case 'team':if(state.teams[+el.dataset.i].cpu){rivalGallery(+el.dataset.i);break}if(isSolo()){if(+el.dataset.i!==state.active)toast(`It's ${team().name}'s turn. Tap ${endLbl().replace(' ▸','')} when you're done.`);break}stopTimers();state.active=+el.dataset.i;customer=null;sel=null;off={colors:[],shapes:[]};tab='home';startTurnTimer();renderAll();break;
     case 'home':{stopTimers();if(maker&&maker.arcade&&!isParty()){maker=null;if(sb&&sb.timer){clearInterval(sb.timer);sb.timer=null}}const S=state.settings.solo;if(isSolo()&&S&&S.visit&&S.visit.snap===snapVisit()&&!critic&&!maker){S.left=Math.min(DAY_ACTIONS,actLeft()+1);toast('Nothing done there, so you got that action back.')}if(S)S.visit=null;tab='home';customer=null;renderAll();break}
     case 'tab':{const nt=el.dataset.tab;if(maker&&maker.arcade&&!isParty()){maker=null;if(sb&&sb.timer){clearInterval(sb.timer);sb.timer=null}}
-      if(isSolo()&&tab==='home'&&['studio','gallery','shop','earn'].includes(nt)){const S=state.settings.solo;if(actLeft()<=0){toast('No actions left today. Tap End day to start tomorrow.');break}S.left--;S.visit={snap:snapVisit(),tab:nt};S.visitGame=0;if(nt==='earn'){const pool=['steady','mix','sketch','splatter','reveal','guess','price','spot','auction','shapes','copycat','mirror','oneline','paintnum','frameit','pixel','pxart','treasure',...(isFun()?[]:['vocab'])].filter(g=>g!==S.lastGame||Math.random()<.15);earnGame=pick(pool);S.lastGame=earnGame;quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;S.rolled=Date.now()}save()}
+      if(isSolo()&&tab==='home'&&['studio','gallery','shop','earn'].includes(nt)){const S=state.settings.solo;if(actLeft()<=0){toast('No actions left today. Tap End day to start tomorrow.');break}S.left--;S.visit={snap:snapVisit(),tab:nt};S.visitGame=0;if(nt==='earn'){const pool=['steady','mix','sketch','splatter','reveal','guess','price','spot','auction','shapes','copycat','mirror','half','oneline','paintnum','frameit','pixel','pxart','treasure',...(isFun()?[]:['vocab'])].filter(g=>g!==S.lastGame||Math.random()<.15);earnGame=pick(pool);S.lastGame=earnGame;quiz=spot=guess=steady=mix=sketch=splatter=rev=price=auction=sb=ol=pn=fr=px=pa=td=null;S.rolled=Date.now()}save()}
       stopTimers();tab=nt;if(tab!=='gallery')customer=null;renderAll();break}
     case 'cat':cat=el.dataset.k;renderAll();break;
     case 'sel':sel=el.dataset.k;renderAll();break;
@@ -4319,7 +4348,7 @@ document.addEventListener('click',e=>{
     case 'pCreate':{const nm=($('#pName').value||'').trim().slice(0,18);if(!nm){toast('Type a name first!');break}if(profiles.list.some(x=>x.name.toLowerCase()===nm.toLowerCase())){toast('That name is taken. Try another!');break}save();const pr=makeProfile(nm,profileForm.look);profiles.list.push(pr);saveProfiles();profiles.cur=null;switchProfile(pr.id);toast(`Welcome, ${nm}!`);break}
     case 'pSave':{const nm=($('#pName').value||'').trim().slice(0,18);if(!nm){toast('Type a name first!');break}const pr=curProfile();pr.name=nm;pr.look=profileForm.look;saveProfiles();renderAll();openSetup();break}
     case 'pDel':{if(!el.dataset.arm){el.dataset.arm='1';el.textContent='Tap again to delete forever';setTimeout(()=>{if(el.isConnected){delete el.dataset.arm;el.textContent='🗑 Delete player'}},3000);break}
-      const id=profiles.cur;try{localStorage.removeItem(stateKey(id))}catch(e){}profiles.list=profiles.list.filter(x=>x.id!==id);profiles.cur=null;switchProfile(profiles.list[0].id);toast('Player deleted.');break}
+      const id=profiles.cur;try{localStorage.removeItem(stateKey(id));localStorage.removeItem(journeyKey(id))}catch(e){}profiles.list=profiles.list.filter(x=>x.id!==id);profiles.cur=null;switchProfile(profiles.list[0].id);toast('Player deleted.');break}
     case 'pnSel':if(pn){pn.sel=el.dataset.k;document.querySelectorAll('[data-act=pnSel]').forEach(b=>b.classList.toggle('on',b===el))}break;
     case 'pnDone':finishPaintNum();break;
     case 'puzzlePiece':puzzleSelect(+el.dataset.n,el);break;
@@ -4337,6 +4366,7 @@ document.addEventListener('click',e=>{
     case 'settings':openSettings();break;
     case 'closeSet':$('#modalRoot').innerHTML='';rivalGallery.ret=null;break;
     case 'continueGame':$('#modalRoot').innerHTML='';if(isParty()&&state.settings.party.over)partyOver();else if(isSolo()&&state.settings.solo.rounds&&state.settings.solo.round>state.settings.solo.rounds)gameOver();else{startTurnTimer();renderAll()}break;
+    case 'resumeJourney':resumeJourney();break;
     case 'saveSet':saveSettings();break;
     case 'reset':if(resetArm){const m=$('#sMode').value;state=freshState(m);quiz=spot=guess=null;customer=null;thinking=null;sel=null;earnGame=null;$('#modalRoot').innerHTML='';renderAll();toast('New game started.')}else{resetArm=true;el.textContent='Tap again to erase everything';el.style.color='var(--bad)'}break;
   }
