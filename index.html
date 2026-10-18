@@ -1066,7 +1066,7 @@ body.party .chip{pointer-events:none}
 .puzzle-board,.puzzle-tray{aspect-ratio:1;grid-template-rows:repeat(4,minmax(0,1fr))}
 .puzzle-tray{background:#f0f3f1}
 .puzzle-piece,.puzzle-slot{position:relative;min-width:0;min-height:0;border:2px solid #fff;border-radius:5px;background-color:#fff;box-shadow:0 1px 3px #172b2d33;padding:0;overflow:hidden}
-.puzzle-piece{width:100%;height:100%;cursor:grab;touch-action:pan-y}
+.puzzle-piece{width:100%;height:100%;cursor:grab;touch-action:none}
 .puzzle-piece svg,.puzzle-slot svg{display:block;width:100%;height:100%}
 .puzzle-piece.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1;transform:scale(.94)}
 .puzzle-slot.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1}
@@ -2661,26 +2661,37 @@ function puzzlePlace(slot){
 let puzzleSuppressClick=false;
 function bindPuzzleDrag(){
   const root=$('.puzzle-layout');if(!root)return;
-  let drag=null,ghost=null,target=null;
+  let drag=null,ghost=null,target=null,scrollFrame=null;
   const clearTarget=()=>{if(target)target.classList.remove('puzzle-drop-target');target=null};
   const point=(e)=>{if(ghost){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px'}clearTarget();const hit=document.elementFromPoint(e.clientX,e.clientY),slot=hit&&hit.closest('[data-act="puzzleSlot"]');if(slot&&!slot.disabled){slot.classList.add('puzzle-drop-target');target=slot}};
+  const autoScroll=()=>{
+    if(!drag||!drag.moved){scrollFrame=null;return}
+    const edge=76,y=drag.y,h=innerHeight;
+    const delta=y<edge?-Math.ceil((edge-y)/3):y>h-edge?Math.ceil((y-(h-edge))/3):0;
+    if(!delta){scrollFrame=null;return}
+    window.scrollBy(0,Math.sign(delta)*Math.min(20,Math.max(4,Math.abs(delta))));point({clientX:drag.x,clientY:drag.y});
+    scrollFrame=requestAnimationFrame(autoScroll);
+  };
+  const stopAutoScroll=()=>{if(scrollFrame!=null){cancelAnimationFrame(scrollFrame);scrollFrame=null}};
   root.onpointerdown=e=>{
     const piece=e.target.closest('[data-puzzle-piece]');if(!piece||!root.contains(piece)||fr.done)return;
-    if(e.pointerType==='touch')return;
     e.preventDefault();const id=+piece.dataset.puzzlePiece,from=fr.board.indexOf(id);
-    drag={id,from,x:e.clientX,y:e.clientY,moved:false,pointerId:e.pointerId};if(root.setPointerCapture)root.setPointerCapture(e.pointerId);
+    drag={id,from,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,moved:false,pointerId:e.pointerId};if(root.setPointerCapture)root.setPointerCapture(e.pointerId);
   };
   root.onpointermove=e=>{
     if(!drag||drag.pointerId!==e.pointerId)return;
-    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7){
+    drag.x=e.clientX;drag.y=e.clientY;
+    if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)>7){
       drag.moved=true;
       if(!ghost){ghost=document.createElement('div');ghost.className='puzzle-drag-ghost';ghost.innerHTML=puzzlePieceSVG(fr,drag.id);document.body.appendChild(ghost);root.classList.add('dragging')}
       point(e);
+      if(scrollFrame==null)scrollFrame=requestAnimationFrame(autoScroll);
     }
   };
   const up=e=>{
     if(!drag||drag.pointerId!==e.pointerId)return;
     const current=drag;drag=null;
+    stopAutoScroll();
     if(current.moved){
       puzzleSuppressClick=true;setTimeout(()=>{puzzleSuppressClick=false},0);
       const hit=document.elementFromPoint(e.clientX,e.clientY),slot=hit&&hit.closest('[data-act="puzzleSlot"]'),tray=hit&&hit.closest('.puzzle-tray');
