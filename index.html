@@ -1061,15 +1061,25 @@ body.party .chip{pointer-events:none}
 .pnsw{width:54px;height:54px;border-radius:14px;border:3px solid #fff;box-shadow:0 0 0 2px var(--paper-2);background:var(--c);display:grid;place-items:center;cursor:pointer;padding:0}
 .pnsw span{background:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:800;font-size:15px}
 .pnsw.on{box-shadow:0 0 0 4px var(--ink);transform:scale(1.08)}
-.frgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:12px}
-.frbtn{background:none;border:3px solid transparent;border-radius:16px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
-.frbtn:hover:not(:disabled){border-color:var(--paper-2)}
-.frbtn.picked{border-color:#7b4fae;background:#f8f3ff}
-.frbtn:disabled{cursor:default}
-.frbox{display:block;width:100%;padding:9%;background:linear-gradient(135deg,var(--fc),var(--fc2));border-radius:4px;box-shadow:0 6px 14px #0003,inset 0 0 0 3px #0001}
-.frmat{display:block;background:var(--mc);padding:8%;box-shadow:inset 0 2px 6px #0002}
-.frmat svg{display:block;width:100%}
-.frscore{background:#f2c230;border-radius:99px;padding:2px 10px;font-weight:700}
+.puzzle-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start;margin:10px auto 0;max-width:1100px}
+.puzzle-board,.puzzle-tray{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;background:#d6dfdb;padding:5px;border-radius:12px}
+.puzzle-board{aspect-ratio:1}
+.puzzle-tray{background:#f0f3f1}
+.puzzle-piece,.puzzle-slot{position:relative;min-width:0;aspect-ratio:4/5;border:2px solid #fff;border-radius:5px;background-color:#fff;box-shadow:0 1px 3px #172b2d33;padding:0;overflow:hidden}
+.puzzle-piece{cursor:pointer;touch-action:manipulation;background-repeat:no-repeat;background-size:500% 400%}
+.puzzle-piece.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1;transform:scale(.94)}
+.puzzle-slot{background-image:none;background-color:#e9efec;border:2px dashed #aab9b4}
+.puzzle-slot.filled{background-repeat:no-repeat;background-size:500% 400%;border:2px solid #fff}
+.puzzle-slot .puzzle-num{position:absolute;inset:0;display:grid;place-items:center;color:#637572;font-weight:800;font-size:clamp(12px,2vw,20px);text-shadow:0 1px #fff}
+.puzzle-slot.filled .puzzle-num{display:none}
+.puzzle-aside{display:flex;flex-direction:column;gap:12px;min-width:0}
+.puzzle-reference{width:min(150px,40%);margin:0 auto;text-align:center}
+.puzzle-reference .frame{padding:5px}
+.puzzle-reference .mat{padding:4px}
+.puzzle-reference svg{display:block;width:100%}
+.puzzle-count{text-align:center;font-weight:700}
+.puzzle-tray[aria-label]{touch-action:manipulation}
+@media (max-width:760px){.puzzle-layout{grid-template-columns:1fr;gap:10px}.puzzle-reference{width:min(100px,28%)}.puzzle-board,.puzzle-tray{gap:3px;padding:4px}.puzzle-piece,.puzzle-slot{border-radius:3px}}
 .pxwrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start;margin-top:10px}
 @media (max-width:760px){.pxwrap{grid-template-columns:1fr 1fr}.pxside{grid-column:1/-1}}
 .pxwrap .lbl{text-align:center;margin-bottom:4px}
@@ -2229,7 +2239,7 @@ function gameIcon(k){
     mirror:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 50 C30 18 8 26 14 48 C18 64 36 66 50 58 Z" fill="#7d4fb3"/><path d="M50 50 C70 18 92 26 86 48 C82 64 64 66 50 58 Z" fill="none" stroke="#7d4fb3" stroke-width="4" stroke-dasharray="6 4"/><path d="M50 8 V92" stroke="#1b2a2e" stroke-width="3" stroke-dasharray="4 4"/></svg>`,
     oneline:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M12 76 C22 30 38 30 40 54 S56 84 62 52 S76 18 88 30" stroke="#1b2a2e" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="12" cy="76" r="6" fill="#3f9a4d"/><circle cx="88" cy="30" r="6" fill="#d8433a"/></svg>`,
     paintnum:`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="8" width="84" height="84" rx="6" fill="#fff" stroke="#1b2a2e" stroke-width="3"/><path d="M8 50 H92 M50 8 V92" stroke="#1b2a2e" stroke-width="3"/><rect x="11" y="11" width="37" height="37" fill="#f2c230"/><text x="70" y="38" font-size="24" text-anchor="middle" font-family="sans-serif" font-weight="700">2</text><text x="30" y="80" font-size="24" text-anchor="middle" font-family="sans-serif" font-weight="700">3</text><rect x="52" y="52" width="38" height="38" fill="#2e62c9"/></svg>`,
-    frameit:`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="10" width="80" height="80" rx="3" fill="#b9802c"/><rect x="18" y="18" width="64" height="64" fill="#f6efe0"/><rect x="26" y="26" width="48" height="48" fill="#9ccfee"/><circle cx="50" cy="52" r="12" fill="#f2c230"/></svg>`,
+    frameit:`<svg viewBox="0 0 100 100" aria-hidden="true">${Array.from({length:20},(_,i)=>`<rect x="${14+(i%5)*14}" y="${16+Math.floor(i/5)*16}" width="12" height="14" rx="2" fill="${i%2?'#7d4fb3':'#e3a63b'}" stroke="#1b2a2e" stroke-width="1.5"/>`).join('')}</svg>`,
     pixel:`<svg viewBox="0 0 100 100" aria-hidden="true">${['.rr..rr.','rrrrrrrr','rrrrrrrr','.rrrrrr.','..rrrr..','...rr...'].map((r,y)=>[...r].map((c,x)=>c==='r'?`<rect x="${10+x*10}" y="${20+y*10}" width="10" height="10" fill="#d8433a" stroke="#fff" stroke-width="1"/>`:'').join('')).join('')}</svg>`,
     pxart:`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="6" y="18" width="40" height="40" rx="4" fill="#9ccfee"/><circle cx="26" cy="34" r="9" fill="#f2c230"/><rect x="6" y="46" width="40" height="12" fill="#3f9a4d"/><path d="M48 38 H54" stroke="#1b2a2e" stroke-width="4"/>${[[0,0,'#9ccfee'],[1,0,'#9ccfee'],[2,0,'#9ccfee'],[0,1,'#9ccfee'],[1,1,'#f2c230'],[2,1,'#9ccfee'],[0,2,'#3f9a4d'],[1,2,'#3f9a4d'],[2,2,'#3f9a4d']].map(([x,y,c])=>`<rect x="${58+x*12}" y="${22+y*12}" width="12" height="12" fill="${c}" stroke="#fff" stroke-width="1.5"/>`).join('')}</svg>`,
     treasure:`<svg viewBox="0 0 100 100" aria-hidden="true">${Array.from({length:16},(_,i)=>`<rect x="${10+(i%4)*20}" y="${10+Math.floor(i/4)*20}" width="19" height="19" fill="${i===6?'#f2c230':i===5||i===10?'#e3a63b':'#8a5a35'}" rx="2"/>`).join('')}<text x="60" y="47" font-size="16" text-anchor="middle">💎</text></svg>`,
@@ -2604,20 +2614,37 @@ function pnTap(i){const g=pn;if(!g||g.done||g.auto[i])return;if(!g.sel){toast('P
 function finishPaintNum(){const g=pn;if(!g||g.done)return;if(g.timer){clearInterval(g.timer);g.timer=null}g.tEnd=Date.now();g.done=true;
   let ok=0;g.parts.forEach((p,i)=>{if(!g.auto[i]&&g.fills[i]===p.color)ok++});const acc=ok/g.need;
   g.earned=gamePay(g,acc,{fast:15,slow:45,w:.3,comment:acc>=1?'Every number, perfectly painted! Are you a robot?':acc>=.7?'Nicely done! Just a few mix-ups.':acc>=.4?'Some numbers got very creative colors.':'Were the numbers just suggestions?'});save();renderAll()}
-/* Frame it */
-const FRAMES=[{id:'gold',name:'Fancy gold',c:'#e3a63b',c2:'#b9802c',mat:'#fffaf0',tone:'warm'},{id:'black',name:'Modern black',c:'#262626',c2:'#000',mat:'#ffffff',tone:'neutral'},{id:'wood',name:'Cozy wood',c:'#8a5a35',c2:'#5e3c22',mat:'#f6efe0',tone:'warm'},{id:'white',name:'Gallery white',c:'#f4f4f0',c2:'#d8d8d0',mat:'#ffffff',tone:'neutral'},{id:'neon',name:'Neon pink',c:'#ff4fa3',c2:'#c2186b',mat:'#fff0f7',tone:'pink'},{id:'ocean',name:'Ocean blue',c:'#2e62c9',c2:'#1d3f8a',mat:'#eef5ff',tone:'blue'},{id:'silver',name:'Shiny silver',c:'#c9ced3',c2:'#8d939b',mat:'#ffffff',tone:'neutral'},{id:'red',name:'Bold red',c:'#d8433a',c2:'#9c2a23',mat:'#fff5f3',tone:'red'},{id:'leaf',name:'Leafy green',c:'#3f9a4d',c2:'#2a6b35',mat:'#f1fbf2',tone:'green'},{id:'grape',name:'Royal purple',c:'#7d4fb3',c2:'#55327e',mat:'#f7f1ff',tone:'purple'},{id:'sun',name:'Sunny yellow',c:'#f2c230',c2:'#c99a14',mat:'#fffbea',tone:'yellow'}];
-function newFrame(){const key=pick(ALL_KEYS),rec=RECIPES[key];fr={key,title:rec.name,parts:rec.parts,opts:shuffle(FRAMES).slice(0,4),picked:null,scores:null,done:false,judging:false,teamIdx:state.active}}
-function frameLocal(g){const area={};g.parts.forEach(p=>area[p.color]=(area[p.color]||0)+p.w*p.h);const top=Object.entries(area).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
-  const near={red:['red','orange','pink'],blue:['blue','sky','navy'],green:['green'],purple:['purple','pink'],pink:['pink','red','purple'],yellow:['yellow','orange']};
-  return g.opts.map(f=>{let sc=f.tone==='neutral'?6.5:f.tone==='warm'?(top.slice(0,3).some(c=>['brown','orange','yellow','red','green'].includes(c))?7.5:5.5):(top.slice(0,3).some(c=>(near[f.tone]||[]).includes(c))?(top[0]&&(near[f.tone]||[]).includes(top[0])?5:8):3.5);return clamp(Math.round(sc+rand(-1,1)),1,10)})}
-async function pickFrame(i){const g=fr;if(!g||g.picked!=null)return;g.picked=i;g.tEnd=Date.now();g.judging=true;renderAll();
-  const done=(scores,comment)=>{if(fr!==g)return;g.scores=scores;g.judging=false;g.done=true;g.earned=gamePay(g,scores[i]/10,{fast:4,slow:25,w:.2,comment});save();renderAll()};
-  const local=()=>{const sc=frameLocal(g);done(sc,sc[i]>=8?'Exquisite taste! The painting thanks you.':sc[i]>=6?'A solid choice. Very classy.':'Hmm. The painting looks a little embarrassed.')};
-  if(!(sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,1000);
-  try{const blob=await svgBlob(g.parts);
-    const data=await sampleFn.json(`You are ${JUDGE}, a funny, dramatic game-show art judge in a 9th-grade classroom arcade. Here is a simple shape painting of "${g.title}". A student must choose a frame. The options are: ${g.opts.map((f,k)=>`${k+1}) ${f.name}`).join(', ')}. Score how well EACH frame suits this painting from 1-10 (think about color harmony and style). The student picked option ${i+1} (${g.opts[i].name}). Write one short, funny, kind comment about their pick (under 18 words). Reply with only JSON: {"scores":[7,5,8,4],"comment":"..."}`,{images:blob,cache:false});
-    const sc=(Array.isArray(data.scores)?data.scores:[]).slice(0,4).map(n=>clamp(Math.round(Number(n)||5),1,10));while(sc.length<4)sc.push(5);done(sc,String(data.comment||'').slice(0,160));
-  }catch(e){if(['images_unavailable','not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(e&&e.code))imagesOK=false;local()}
+/* Picture Puzzle */
+const PUZZLE_PIECES=20,PUZZLE_COLS=5,PUZZLE_ROWS=4;
+function newFrame(){
+  const key=pick(ALL_KEYS),rec=RECIPES[key];
+  fr={key,title:rec.name,parts:rec.parts,image:`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(artSVG(rec.parts,false,rec.name))}")`,
+    tray:shuffle(Array.from({length:PUZZLE_PIECES},(_,i)=>i)),placed:Array(PUZZLE_PIECES).fill(false),selected:null,
+    done:false,started:false,teamIdx:state.active,left:90,total:90,timer:null};
+}
+function puzzlePieceStyle(g,i){const x=i%PUZZLE_COLS,y=Math.floor(i/PUZZLE_COLS);return `background-image:${g.image};background-position:${x/(PUZZLE_COLS-1)*100}% ${y/(PUZZLE_ROWS-1)*100}%`}
+function puzzleStart(g){if(g.started)return;g.started=true;g.t0=Date.now();gClock(g,'frameTime',finishPicturePuzzle)}
+function puzzleSelect(i){
+  const g=fr;if(!g||g.done||g.placed[i]||!g.tray.includes(i))return;
+  puzzleStart(g);g.selected=g.selected===i?null:i;renderAll();
+}
+function puzzlePlace(slot){
+  const g=fr;if(!g||g.done||g.selected==null)return;
+  puzzleStart(g);
+  if(g.selected!==slot){toast('Not quite. Compare the piece with the picture and try another space.');return}
+  g.placed[slot]=true;g.tray=g.tray.filter(i=>i!==slot);g.selected=null;
+  if(g.placed.every(Boolean)){finishPicturePuzzle();return}
+  renderAll();
+}
+function finishPicturePuzzle(){
+  const g=fr;if(!g||g.done)return;
+  if(g.timer){clearInterval(g.timer);g.timer=null}
+  g.tEnd=Date.now();g.done=true;
+  const placed=g.placed.filter(Boolean).length,accuracy=placed/PUZZLE_PIECES;
+  const comment=placed===PUZZLE_PIECES?'A perfect picture! Did you have the original hiding under the table?':
+    placed>=15?'So close! Those last few pieces were being dramatic.':
+    placed>=8?'A good start. That picture almost came together.':'The picture is still a little scrambled. Keep practicing!';
+  g.earned=gamePay(g,accuracy,{fast:15,slow:g.total,w:.25,comment});save();renderAll();
 }
 /* Pixel copy */
 const PIXEL_ART={
@@ -2982,7 +3009,7 @@ function cur0(){return {vocab:quiz,spot,guess,steady,mix,sketch,reveal:rev,price
 function renderEarn(){
   const games=[...(isFun()?[]:[['vocab','Vocab review','Pick the right definition']]),
     ['steady','Steady Hand','Draw the shape as close as you can'],['mix','Color Mixer','Blend paints to match'],['sketch','Stickman Sketch','Draw it, get judged'],['reveal','Speed Reveal','Name it before it\'s done'],
-    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()||isCreative()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Frame It','Pick the perfect frame'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Dig up the hidden treasure']];
+    ['guess','Guess the Masterpiece','Name the wonky picture'],['price','Price Is Right','Guess the appraisal'],['auction','Art Auction',isSolo()?'Risky! Bid on a mystery painting':'All teams bid on a mystery painting'],['spot','Shape Spotter','Remember what you saw'],...(isSolo()||isCreative()?[['shapes','Shape Builder','Build a picture from a few shapes']]:[]),['copycat','Copycat','Rebuild it from memory'],['mirror','Mirror Me','Finish the other half'],['oneline','One-Line Wonder','Draw it without lifting'],['paintnum','Paint by Number Race','Fill every number fast'],['frameit','Picture Puzzle','Put 20 picture pieces together'],['pixel','Pixel Mystery','Uncover pixels, guess the picture'],['pxart','Pixel Artist','Make a pixel version of a picture'],['treasure','Treasure Dig','Hot or cold? Dig up the hidden treasure']];
   if(isCreative()){for(let k=games.length-1;k>=0;k--)if(['auction','vocab'].includes(games[k][0]))games.splice(k,1)}
   if(!isParty()&&(!earnGame||!games.some(g=>g[0]===earnGame)))earnGame=games[0][0];
   const t=team(),R=state.settings.reward,max=isParty()?100:2*R;let body='',after=null;
@@ -3112,13 +3139,20 @@ function renderEarn(){
       ${nextBtn(g.done)}</div>`;
     after=()=>{const b=$('#pnBoard');if(b)b.onclick=e=>{const t=e.target.closest('[data-pp]');if(t)pnTap(+t.dataset.pp)}};
   }else if(earnGame==='frameit'){
-    if(!fr||(fr.picked==null&&fr.teamIdx!==state.active))newFrame();
-    const g=fr;
-    body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">Which frame fits best?</div>
-      <div class="muted" style="text-align:center">${who(g.teamIdx)}: pick the frame that makes this painting look its best. Up to $${max}.</div>
-      <div class="frgrid">${g.opts.map((f,i)=>`<button class="frbtn ${g.picked===i?'picked':''}" data-act="frPick" data-n="${i}" ${g.picked!=null?'disabled':''}><span class="frbox" style="--fc:${f.c};--fc2:${f.c2};--mc:${f.mat}"><span class="frmat">${artSVG(g.parts,false,g.title)}</span></span><b>${f.name}</b>${g.scores?`<span class="frscore num">${g.scores[i]}/10</span>`:''}</button>`).join('')}</div>
-      ${g.judging?`<div class="thinking" style="aspect-ratio:auto"><div class="jiggle">${iconSVG('star')}${iconSVG('heart')}${iconSVG('circle')}</div><b>The judge is holding up each frame…</b></div>`:''}
-      ${g.done&&g.judge?judgeCard(g.judge):''}${nextBtn(g.done)}</div>`;
+    if(!fr||(!fr.done&&fr.teamIdx!==state.active&&!fr.started))newFrame();
+    const g=fr,placed=g.placed.filter(Boolean).length;
+    if(g.started&&!g.done&&!g.timer)gClock(g,'frameTime',finishPicturePuzzle);
+    const slots=g.placed.map((isPlaced,i)=>`<button class="puzzle-slot ${isPlaced?'filled':''}" data-act="puzzleSlot" data-n="${i}" style="${isPlaced?puzzlePieceStyle(g,i):''}" aria-label="${isPlaced?`Piece ${i+1} placed`:`Puzzle space ${i+1}`}" ${g.done||isPlaced?'disabled':''}><span class="puzzle-num">${i+1}</span></button>`).join('');
+    const pieces=g.tray.map(i=>`<button class="puzzle-piece ${g.selected===i?'selected':''}" data-act="puzzlePiece" data-n="${i}" style="${puzzlePieceStyle(g,i)}" aria-label="Puzzle piece ${i+1}${g.selected===i?', selected':''}" aria-pressed="${g.selected===i}" ${g.done?'disabled':''}></button>`).join('');
+    body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">Put the picture together!</div>
+      <div class="muted" style="text-align:center">${who(g.teamIdx)}: tap a piece, then tap where it belongs. There are <b>20 pieces</b> and 90 seconds. Up to $${max}.</div>
+      <div class="puzzle-count">${placed} of ${PUZZLE_PIECES} pieces placed${g.selected!=null&&!g.done?' · Now choose its matching space.':''}</div>
+      ${g.done?judgeCard(g.judge):`<div class="sbclock"><span>⏱</span><b id="frameTime" class="num">${g.left}s</b></div>`}
+      <div class="puzzle-layout"><div><div class="lbl">Put the pieces here</div><div class="puzzle-board" aria-label="Picture puzzle board">${slots}</div></div>
+        <div class="puzzle-aside"><div class="puzzle-reference"><div class="lbl">Picture to make</div><div class="frame"><div class="mat">${artSVG(g.parts,false,g.title)}</div></div></div>
+          <div><div class="lbl">Mixed-up pieces</div><div class="puzzle-tray" aria-label="Shuffled puzzle pieces">${pieces}</div></div>
+          ${g.done?`<div class="feedback resultbox ${placed===PUZZLE_PIECES?'okr':'badr'}"><span class="ricon">${placed===PUZZLE_PIECES?checkSVG():X_SVG}</span><span>${placed===PUZZLE_PIECES?`Picture complete! ${who(g.teamIdx)} earns $${g.earned}.`:`Time! You placed ${placed} of ${PUZZLE_PIECES} pieces. ${who(g.teamIdx)} earns $${g.earned}.`}</span></div>`:''}
+        </div></div>${nextBtn(g.done)}</div>`;
   }else if(earnGame==='pixel'){
     if(!px||!px.shown||(!px.done&&px.teamIdx!==state.active&&!px.shown.some(Boolean)))newPixel();
     const g=px,n=g.shown.filter(Boolean).length;
@@ -3592,13 +3626,13 @@ function startGame(){
   if(party){tab='earn';earnGame=party.games[0];$('#modalRoot').innerHTML='';renderAll();partyIntro();return}
   $('#modalRoot').innerHTML='';startTurnTimer();renderAll();toast(f.who==='creative'?'Welcome to your studio! Make anything you like.':f.who==='solo'?(+f.rivals?(+f.rounds?`Game on! Most money after ${f.rounds} days wins.`:'Game on! Race the robots to the top.'):'Your journey begins on a street corner. Good luck!'):`Game on! ${state.teams[0].name} goes first.`);
 }
-const GAME_NAMES={copycat:'Copycat',mirror:'Mirror Me',oneline:'One-Line Wonder',paintnum:'Paint by Number Race',frameit:'Frame It',pixel:'Pixel Mystery',pxart:'Pixel Artist',treasure:'Treasure Dig',shapes:'Shape Builder',steady:'Steady Hand',mix:'Color Mixer',sketch:'Stickman Sketch',reveal:'Speed Reveal',guess:'Guess the Masterpiece',price:'Price Is Right',spot:'Shape Spotter'};
+const GAME_NAMES={copycat:'Copycat',mirror:'Mirror Me',oneline:'One-Line Wonder',paintnum:'Paint by Number Race',frameit:'Picture Puzzle',pixel:'Pixel Mystery',pxart:'Pixel Artist',treasure:'Treasure Dig',shapes:'Shape Builder',steady:'Steady Hand',mix:'Color Mixer',sketch:'Stickman Sketch',reveal:'Speed Reveal',guess:'Guess the Masterpiece',price:'Price Is Right',spot:'Shape Spotter'};
 const DIRS={
   copycat:[['👀','A little shape picture appears for 6 seconds. Memorize it!'],['🙈','It disappears. Rebuild it on the canvas with the same shapes, colors and spots.'],['🎯','The closer your copy (and the faster), the more you win.']],
   mirror:[['🦋','Half of a picture is already on the canvas.'],['🪞','Build the other half so it is a perfect mirror image.'],['🎯','Match the shapes, colors and spots. Faster = more!']],
   oneline:[['✏️','You get something to draw, like a cat or a bike.'],['☝️','Draw it in ONE line. As soon as you lift your finger, you are done!'],['🧑‍⚖️','The judge scores creativity, accuracy and speed.']],
   paintnum:[['🔢','Every part of the picture has a number. The key tells you which color each number is, like "3 = navy".'],['🎨','The paints have NO numbers, and some are tricky look-alikes! Pick the right one, then tap the parts.'],['⏱','45 seconds. A wrong color costs 3 seconds. Fill everything correctly, fast!']],
-  frameit:[['🖼️','A painting needs a frame!'],['🤔','Look at the 4 frames and pick the one that suits it best.'],['🧑‍⚖️','The judge rates your taste. Quick picks earn a bit more.']],
+  frameit:[['🧩','A picture is scrambled into 20 pieces.'],['👆','Tap a piece, then tap the space where it belongs. Use the small picture as your guide.'],['⏱','Put the picture together in 90 seconds. More pieces placed and faster solving earn more!']],
   pxart:[['🖼️','You see a picture.'],['🟦','Make your best pixel version of it on the 12×12 grid. Pick a color, then tap or drag. Use 🪣 Fill to color big areas fast.'],['🧑‍⚖️','90 seconds. The judge scores accuracy, creativity and speed.']],
   treasure:[['💎','Your goal: find the ONE hidden treasure under these 196 dirt tiles.'],['⛏️','Tap a tile to dig. Each dig tells you how far away the treasure is, counting squares in ANY direction, even diagonally: 🔥 HOT = 1 or 2 squares away. 🌤️ WARM = 3 to 5 away. ❄️ COLD = more than 5 away. Every 3rd dig is a 🧭 COMPASS dig that tells you to head North, South, East or West.'],['🖼️','Fewer digs = more money. Only 10 digs! Then a BONUS: guess the painting buried under the dirt from the bits you dug up!']],
   pixel:[['❓','A pixel picture is hiding under 64 gray tiles.'],['👆','Tap tiles to uncover pixels one at a time. Every tile you flip makes the prize smaller!'],['🔔','Hit "I know it!" and pick the answer. Fewer tiles = more money. Wrong = $1.']],
@@ -3615,7 +3649,7 @@ function partyDirs(){
   const P=state.settings.party,g=P.games[P.idx];
   return `<section class="panel">${partyBar()}<div class="dirs"><div class="dirhead"><span class="gico big">${gameIcon(g)}</span><div><small>How to play</small><h2>${GAME_NAMES[g]}</h2></div></div>
     <ol class="dirsteps">${DIRS[g].map(([ic,t],i)=>`<li><span class="dnum">${i+1}</span><span class="dico">${ic}</span><span>${t}</span></li>`).join('')}</ol>
-    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'?'Judged on 👌 taste and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 10 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':['copycat','mirror','paintnum'].includes(g)?'Judged on 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
+    <div class="dirmoney"><span class="mi">${coinSVG()}</span><div><b>${JUDGE} pays $1 to $100</b><span>${g==='sketch'||g==='shapes'||g==='oneline'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='frameit'||g==='copycat'||g==='mirror'||g==='paintnum'?'Judged on 🎯 accuracy and ⚡ speed.':g==='pixel'?'Fewer tiles uncovered = bigger prize. Wrong answers get $1.':g==='treasure'?'Fewer digs = bigger prize, plus a bonus for naming the buried painting. Not found in 10 digs = $1.':g==='pxart'?'Judged on 🎨 creativity, 🎯 accuracy and ⚡ speed.':g==='steady'||g==='mix'||g==='price'?'Judged on 🎯 accuracy and ⚡ speed.':'Right answers pay more the ⚡ faster you are. Wrong answers get $1.'}</span></div></div>
     <div class="dirorder"><b>Order:</b> ${state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(state.active).concat(state.teams.map((x,i)=>`<span class="ti sm">${teamIcon(i)}</span>${esc(x.name)}`).slice(0,state.active)).join(' ▸ ')}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn big readgo" data-act="partyGo">✓ We read it! Start ${GAME_NAMES[g]}</button></div></div></section>`;
 }
@@ -3940,7 +3974,8 @@ document.addEventListener('click',e=>{
       const id=profiles.cur;try{localStorage.removeItem(stateKey(id))}catch(e){}profiles.list=profiles.list.filter(x=>x.id!==id);profiles.cur=null;switchProfile(profiles.list[0].id);toast('Player deleted.');break}
     case 'pnSel':if(pn){pn.sel=el.dataset.k;document.querySelectorAll('[data-act=pnSel]').forEach(b=>b.classList.toggle('on',b===el))}break;
     case 'pnDone':finishPaintNum();break;
-    case 'frPick':pickFrame(+el.dataset.n);break;
+    case 'puzzlePiece':puzzleSelect(+el.dataset.n);break;
+    case 'puzzleSlot':puzzlePlace(+el.dataset.n);break;
     case 'pxKnow':if(px&&!px.done){px.guessing=true;renderAll()}break;
     case 'pxGuess':guessPixel(el.dataset.k);break;
     case 'rivalG':{const fromReport=!!document.querySelector('#modalRoot [aria-label="Rival report"]');if(fromReport)rivalGallery.ret=$('#modalRoot').innerHTML;rivalGallery(+el.dataset.i);break}
