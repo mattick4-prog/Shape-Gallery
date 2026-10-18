@@ -1061,14 +1061,18 @@ body.party .chip{pointer-events:none}
 .pnsw{width:54px;height:54px;border-radius:14px;border:3px solid #fff;box-shadow:0 0 0 2px var(--paper-2);background:var(--c);display:grid;place-items:center;cursor:pointer;padding:0}
 .pnsw span{background:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:800;font-size:15px}
 .pnsw.on{box-shadow:0 0 0 4px var(--ink);transform:scale(1.08)}
-.puzzle-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start;margin:10px auto 0;width:100%;max-width:1000px}
+.puzzle-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start;margin:10px auto 0;width:100%;max-width:780px}
 .puzzle-board,.puzzle-tray{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;background:#d6dfdb;padding:5px;border-radius:12px}
 .puzzle-board,.puzzle-tray{aspect-ratio:1;grid-template-rows:repeat(4,minmax(0,1fr))}
 .puzzle-tray{background:#f0f3f1}
 .puzzle-piece,.puzzle-slot{position:relative;min-width:0;min-height:0;border:2px solid #fff;border-radius:5px;background-color:#fff;box-shadow:0 1px 3px #172b2d33;padding:0;overflow:hidden}
-.puzzle-piece{cursor:pointer;touch-action:manipulation}
+.puzzle-piece{width:100%;height:100%;cursor:grab;touch-action:none}
 .puzzle-piece svg,.puzzle-slot svg{display:block;width:100%;height:100%}
 .puzzle-piece.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1;transform:scale(.94)}
+.puzzle-slot.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1}
+.puzzle-drop-target{outline:4px solid #3f9a4d;outline-offset:1px}
+.puzzle-drag-ghost{position:fixed;z-index:10000;width:clamp(56px,12vw,110px);aspect-ratio:4/5;pointer-events:none;transform:translate(-50%,-50%) scale(1.06);opacity:.9;filter:drop-shadow(0 4px 5px #0005)}
+.puzzle-layout.dragging{user-select:none}
 .puzzle-slot{background-image:none;background-color:#e9efec;border:2px dashed #aab9b4}
 .puzzle-slot.filled{border:2px solid #fff}
 .puzzle-slot .puzzle-num{position:absolute;inset:0;display:grid;place-items:center;color:#637572;font-weight:800;font-size:clamp(12px,2vw,20px);text-shadow:0 1px #fff}
@@ -2616,7 +2620,7 @@ const PUZZLE_PIECES=20,PUZZLE_COLS=5,PUZZLE_ROWS=4;
 function newFrame(){
   const key=pick(ALL_KEYS),rec=RECIPES[key];
   fr={key,title:rec.name,parts:rec.parts,
-    tray:shuffle(Array.from({length:PUZZLE_PIECES},(_,i)=>i)),placed:Array(PUZZLE_PIECES).fill(false),selected:null,
+    tray:shuffle(Array.from({length:PUZZLE_PIECES},(_,i)=>i)),board:Array(PUZZLE_PIECES).fill(null),selected:null,drag:null,
     done:false,started:false,teamIdx:state.active,left:90,total:90,timer:null};
 }
 function puzzlePieceSVG(g,i){
@@ -2625,22 +2629,69 @@ function puzzlePieceSVG(g,i){
 }
 function puzzleStart(g){if(g.started)return;g.started=true;g.t0=Date.now();gClock(g,'frameTime',finishPicturePuzzle)}
 function puzzleSelect(i){
-  const g=fr;if(!g||g.done||g.placed[i]||!g.tray.includes(i))return;
+  const g=fr;if(!g||g.done||!g.tray.includes(i))return;
   puzzleStart(g);g.selected=g.selected===i?null:i;renderAll();
 }
 function puzzlePlace(slot){
   const g=fr;if(!g||g.done||g.selected==null)return;
   puzzleStart(g);
-  if(g.selected!==slot){toast('Not quite. Compare the piece with the picture and try another space.');return}
-  g.placed[slot]=true;g.tray=g.tray.filter(i=>i!==slot);g.selected=null;
-  if(g.placed.every(Boolean)){finishPicturePuzzle();return}
+  const piece=g.selected,from=g.board.indexOf(piece);
+  if(from>=0){const displaced=g.board[slot];g.board[slot]=piece;g.board[from]=displaced}
+  else{g.tray=g.tray.filter(i=>i!==piece);if(g.board[slot]!=null)g.tray.push(g.board[slot]);g.board[slot]=piece}
+  g.selected=null;
+  if(g.board.every((tile,i)=>tile===i)){finishPicturePuzzle();return}
   renderAll();
+}
+let puzzleSuppressClick=false;
+function bindPuzzleDrag(){
+  const root=$('.puzzle-layout');if(!root)return;
+  let drag=null,ghost=null,target=null;
+  const clearTarget=()=>{if(target)target.classList.remove('puzzle-drop-target');target=null};
+  const point=(e)=>{if(ghost){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px'}clearTarget();const hit=document.elementFromPoint(e.clientX,e.clientY),slot=hit&&hit.closest('[data-act="puzzleSlot"]');if(slot&&!slot.disabled){slot.classList.add('puzzle-drop-target');target=slot}};
+  root.onpointerdown=e=>{
+    const piece=e.target.closest('[data-puzzle-piece]');if(!piece||!root.contains(piece)||fr.done)return;
+    e.preventDefault();const id=+piece.dataset.puzzlePiece,from=fr.board.indexOf(id);
+    drag={id,from,x:e.clientX,y:e.clientY,moved:false,pointerId:e.pointerId};if(root.setPointerCapture)root.setPointerCapture(e.pointerId);
+  };
+  root.onpointermove=e=>{
+    if(!drag||drag.pointerId!==e.pointerId)return;
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7){
+      drag.moved=true;
+      if(!ghost){ghost=document.createElement('div');ghost.className='puzzle-drag-ghost';ghost.innerHTML=puzzlePieceSVG(fr,drag.id);document.body.appendChild(ghost);root.classList.add('dragging')}
+      point(e);
+    }
+  };
+  const up=e=>{
+    if(!drag||drag.pointerId!==e.pointerId)return;
+    const current=drag;drag=null;
+    if(current.moved){
+      puzzleSuppressClick=true;setTimeout(()=>{puzzleSuppressClick=false},0);
+      const hit=document.elementFromPoint(e.clientX,e.clientY),slot=hit&&hit.closest('[data-act="puzzleSlot"]'),tray=hit&&hit.closest('.puzzle-tray');
+      if(slot&&!slot.disabled)puzzleMove(current.id,current.from,+slot.dataset.n);
+      else if(tray&&current.from>=0)puzzleMoveToTray(current.id,current.from);
+    }
+    if(ghost)ghost.remove();ghost=null;root.classList.remove('dragging');clearTarget();
+  };
+  root.onpointerup=up;root.onpointercancel=up;
+}
+function puzzleMove(piece,from,to){
+  const g=fr;if(!g||g.done)return;
+  puzzleStart(g);
+  if(from>=0){const displaced=g.board[to];g.board[to]=piece;g.board[from]=displaced}
+  else{g.tray=g.tray.filter(i=>i!==piece);if(g.board[to]!=null)g.tray.push(g.board[to]);g.board[to]=piece}
+  g.selected=null;
+  if(g.board.every((tile,i)=>tile===i)){finishPicturePuzzle();return}
+  renderAll();
+}
+function puzzleMoveToTray(piece,from){
+  const g=fr;if(!g||g.done||from<0)return;
+  g.board[from]=null;if(!g.tray.includes(piece))g.tray.push(piece);g.selected=null;renderAll();
 }
 function finishPicturePuzzle(){
   const g=fr;if(!g||g.done)return;
   if(g.timer){clearInterval(g.timer);g.timer=null}
   g.tEnd=Date.now();g.done=true;
-  const placed=g.placed.filter(Boolean).length,accuracy=placed/PUZZLE_PIECES;
+  const placed=g.board.filter((tile,i)=>tile===i).length,accuracy=placed/PUZZLE_PIECES;
   const comment=placed===PUZZLE_PIECES?'A perfect picture! Did you have the original hiding under the table?':
     placed>=15?'So close! Those last few pieces were being dramatic.':
     placed>=8?'A good start. That picture almost came together.':'The picture is still a little scrambled. Keep practicing!';
@@ -3140,18 +3191,21 @@ function renderEarn(){
     after=()=>{const b=$('#pnBoard');if(b)b.onclick=e=>{const t=e.target.closest('[data-pp]');if(t)pnTap(+t.dataset.pp)}};
   }else if(earnGame==='frameit'){
     if(!fr||(!fr.done&&fr.teamIdx!==state.active&&!fr.started))newFrame();
-    const g=fr,placed=g.placed.filter(Boolean).length;
+    const g=fr,correct=g.board.filter((tile,i)=>tile===i).length;
     if(g.started&&!g.done&&!g.timer)gClock(g,'frameTime',finishPicturePuzzle);
-    const slots=g.placed.map((isPlaced,i)=>`<button class="puzzle-slot ${isPlaced?'filled':''}" data-act="puzzleSlot" data-n="${i}" aria-label="${isPlaced?`Piece ${i+1} placed`:`Puzzle space ${i+1}`}" ${g.done||isPlaced?'disabled':''}>${isPlaced?puzzlePieceSVG(g,i):`<span class="puzzle-num">${i+1}</span>`}</button>`).join('');
-    const pieces=g.tray.map(i=>`<button class="puzzle-piece ${g.selected===i?'selected':''}" data-act="puzzlePiece" data-n="${i}" aria-label="Puzzle piece ${i+1}${g.selected===i?', selected':''}" aria-pressed="${g.selected===i}" ${g.done?'disabled':''}>${puzzlePieceSVG(g,i)}</button>`).join('');
+    const slots=g.board.map((piece,i)=>piece==null
+      ?`<button class="puzzle-slot" data-act="puzzleSlot" data-n="${i}" aria-label="Puzzle space ${i+1}" ${g.done?'disabled':''}><span class="puzzle-num">${i+1}</span></button>`
+      :`<div class="puzzle-slot filled ${g.selected===piece?'selected':''}" data-n="${i}" aria-label="Puzzle space ${i+1}, piece ${piece+1}"><button class="puzzle-piece" data-act="puzzlePiece" data-puzzle-piece="${piece}" data-n="${piece}" aria-label="Piece ${piece+1}, placed in space ${i+1}" aria-pressed="${g.selected===piece}" ${g.done?'disabled':''}>${puzzlePieceSVG(g,piece)}</button></div>`).join('');
+    const pieces=g.tray.map(i=>`<button class="puzzle-piece ${g.selected===i?'selected':''}" data-act="puzzlePiece" data-puzzle-piece="${i}" data-n="${i}" aria-label="Puzzle piece ${i+1}${g.selected===i?', selected':''}" aria-pressed="${g.selected===i}" ${g.done?'disabled':''}>${puzzlePieceSVG(g,i)}</button>`).join('');
     body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">Put the picture together!</div>
-      <div class="muted" style="text-align:center">${who(g.teamIdx)}: tap a piece, then tap where it belongs. There are <b>20 pieces</b> and 90 seconds. Up to $${max}.</div>
-      <div class="puzzle-count">${placed} of ${PUZZLE_PIECES} pieces placed${g.selected!=null&&!g.done?' · Now choose its matching space.':''}</div>
+      <div class="muted" style="text-align:center">${who(g.teamIdx)}: drag pieces onto the grid. You can move or swap pieces anytime. There are <b>20 pieces</b> and 90 seconds. Up to $${max}.</div>
+      <div class="puzzle-count">${correct} of ${PUZZLE_PIECES} pieces in the right space${g.selected!=null&&!g.done?' · Move the selected piece to a new space.':''}</div>
       ${g.done?judgeCard(g.judge):`<div class="sbclock"><span>⏱</span><b id="frameTime" class="num">${g.left}s</b></div>`}
       <div class="puzzle-layout"><div><div class="lbl">Put the pieces here</div><div class="puzzle-board" aria-label="Picture puzzle board">${slots}</div></div>
         <div class="puzzle-aside"><div><div class="lbl">Mixed-up pieces</div><div class="puzzle-tray" aria-label="Shuffled puzzle pieces">${pieces}</div></div>
-          ${g.done?`<div class="feedback resultbox ${placed===PUZZLE_PIECES?'okr':'badr'}"><span class="ricon">${placed===PUZZLE_PIECES?checkSVG():X_SVG}</span><span>${placed===PUZZLE_PIECES?`Picture complete! ${who(g.teamIdx)} earns $${g.earned}.`:`Time! You placed ${placed} of ${PUZZLE_PIECES} pieces. ${who(g.teamIdx)} earns $${g.earned}.`}</span></div>`:''}
+          ${g.done?`<div class="feedback resultbox ${correct===PUZZLE_PIECES?'okr':'badr'}"><span class="ricon">${correct===PUZZLE_PIECES?checkSVG():X_SVG}</span><span>${correct===PUZZLE_PIECES?`Picture complete! ${who(g.teamIdx)} earns $${g.earned}.`:`Time! ${correct} of ${PUZZLE_PIECES} pieces were in the right space. ${who(g.teamIdx)} earns $${g.earned}.`}</span></div>`:''}
         </div></div>${nextBtn(g.done)}</div>`;
+    after=bindPuzzleDrag;
   }else if(earnGame==='pixel'){
     if(!px||!px.shown||(!px.done&&px.teamIdx!==state.active&&!px.shown.some(Boolean)))newPixel();
     const g=px,n=g.shown.filter(Boolean).length;
@@ -3631,7 +3685,7 @@ const DIRS={
   mirror:[['🦋','Half of a picture is already on the canvas.'],['🪞','Build the other half so it is a perfect mirror image.'],['🎯','Match the shapes, colors and spots. Faster = more!']],
   oneline:[['✏️','You get something to draw, like a cat or a bike.'],['☝️','Draw it in ONE line. As soon as you lift your finger, you are done!'],['🧑‍⚖️','The judge scores creativity, accuracy and speed.']],
   paintnum:[['🔢','Every part of the picture has a number. The key tells you which color each number is, like "3 = navy".'],['🎨','The paints have NO numbers, and some are tricky look-alikes! Pick the right one, then tap the parts.'],['⏱','45 seconds. A wrong color costs 3 seconds. Fill everything correctly, fast!']],
-  frameit:[['🧩','A picture is scrambled into 20 pieces.'],['👆','Tap a piece, then tap the space where it belongs. Use the small picture as your guide.'],['⏱','Put the picture together in 90 seconds. More pieces placed and faster solving earn more!']],
+  frameit:[['🧩','A picture is scrambled into 20 pieces.'],['👆','Drag pieces from the tray onto the grid. You can move or swap placed pieces whenever you need.'],['⏱','Put the picture together in 90 seconds. More correct spaces and faster solving earn more!']],
   pxart:[['🖼️','You see a picture.'],['🟦','Make your best pixel version of it on the 12×12 grid. Pick a color, then tap or drag. Use 🪣 Fill to color big areas fast.'],['🧑‍⚖️','90 seconds. The judge scores accuracy, creativity and speed.']],
   treasure:[['💎','Your goal: find the ONE hidden treasure under these 196 dirt tiles.'],['⛏️','Tap a tile to dig. Each dig tells you how far away the treasure is, counting squares in ANY direction, even diagonally: 🔥 HOT = 1 or 2 squares away. 🌤️ WARM = 3 to 5 away. ❄️ COLD = more than 5 away. Every 3rd dig is a 🧭 COMPASS dig that tells you to head North, South, East or West.'],['🖼️','Fewer digs = more money. Only 10 digs! Then a BONUS: guess the painting buried under the dirt from the bits you dug up!']],
   pixel:[['❓','A pixel picture is hiding under 64 gray tiles.'],['👆','Tap tiles to uncover pixels one at a time. Every tile you flip makes the prize smaller!'],['🔔','Hit "I know it!" and pick the answer. Fewer tiles = more money. Wrong = $1.']],
@@ -3838,6 +3892,7 @@ function resultScroll(){const sels=['#tdBonus','.judgecard','.resultbox','.doneb
 {const _ra=renderAll;renderAll=function(){_ra.apply(this,arguments);try{resultScroll()}catch(_){}}}
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el)return;
+  if(puzzleSuppressClick&&['puzzlePiece','puzzleSlot'].includes(el.dataset.act)){puzzleSuppressClick=false;e.preventDefault();return}
   const act=el.dataset.act,t=team();
   if(act==='closeBg'){if(e.target===el){const wasHelp=!!$('.intro');if(wasHelp){state.seenIntro=true;save()}$('#modalRoot').innerHTML='';if(wasHelp&&(!state.setupDone||helpFromSetup)){helpFromSetup=false;openSetup()}}return}
   if(act!=='scrap')scrapArm=null;
