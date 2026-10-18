@@ -34,4 +34,4 @@ Accounts and saves are stored in the browser on each computer, so they stay on t
 
 ## Note on AI features
 
-The AI art critic, AI artist and AI judge only work when the game is opened as a Claude artifact. Everywhere else (like GitHub Pages), the game automatically uses built-in scoring instead, so everything still plays.
+The AI art critic, AI artist and AI judge only work when the game is opened as a Claude artifact. Everywhere else (like GitHub Pages), the game automatically uses built-in scoring instead, so everything still plays. To disable AI in a Claude artifact too, turn on **No AI** in Settings; AI artwork and judging then use the built-in alternatives.

@@ -1447,7 +1447,7 @@ function palette(a){return new Set(a.parts.map(p=>p.color).filter(c=>c!=='unpain
 const KEY='oddShapesGallery_v2';
 function newTeam(name,money){return{name,money:12,shapes:{...START_SHAPES},paint:{...START_PAINT},unlocked:[...START_PICTURES],canvas:1,painted:{},gallery:[],kept:[],listings:[],rep:0,stage:0,lastId:null,earned:0,sold:0,bonus:0}}
 function creativeTeam(name){const t=newTeam(name,0);KINDS.forEach(k=>t.shapes[k]=999);COLOR_ORDER.forEach(c=>t.paint[c]=999);t.unlocked=[...ALL_KEYS];t.bonus=3;return t}
-function freshState(mode){const s={settings:{mode:mode||'classroom',reward:4,startMoney:30,autoRotate:true},vocabText:DEFAULT_VOCAB,active:0,seq:1};s.teams=TEAM_NAMES.slice(0,6).map(n=>newTeam(n,30));if(s.settings.mode==='fun')s.teams.length=2;return s}
+function freshState(mode){const s={settings:{mode:mode||'classroom',reward:4,startMoney:30,autoRotate:true,noAI:false},vocabText:DEFAULT_VOCAB,active:0,seq:1};s.teams=TEAM_NAMES.slice(0,6).map(n=>newTeam(n,30));if(s.settings.mode==='fun')s.teams.length=2;return s}
 let state;
 /* ===== Player accounts (saved on this computer) ===== */
 const PKEY='oddShapesProfiles',PLOOKS=[['circle','red'],['square','blue'],['triangle','yellow'],['star','purple'],['heart','pink'],['hexagon','green'],['diamond','orange'],['oval','sky'],['crescent','navy'],['semicircle','brown']];
@@ -1489,7 +1489,22 @@ const PARTY_POOL=['steady','mix','sketch','reveal','guess','price','spot','shape
 let tab='home',cat='animals',sel=null,off={colors:[],shapes:[]},bonusTopic='',thinking=null,customer=null,scrapArm=null,freeBlocked=false;
 let earnGame=null,quiz=null,spot=null,guess=null;
 let sampleFn=null,sampleChecked=false;
-(async()=>{await Promise.resolve();try{if(window.claude&&window.claude.use)sampleFn=await window.claude.use('sample')}catch(e){sampleFn=null}sampleChecked=true;if(tab==='studio')renderAll()})();
+const aiEnabled=()=>state.settings.noAI!==true;
+const artistLabel=()=>aiEnabled()?'AI artist':'Built-in artist';
+async function connectAI(){
+  if(!aiEnabled()){sampleFn=null;imagesOK=false;sampleChecked=true}
+  else{
+    try{
+      sampleFn=window.claude&&window.claude.use?await window.claude.use('sample'):null;
+      if(sampleFn){const limits=await sampleFn.limits().catch(()=>null);imagesOK=!!(limits&&limits.images)}
+      else imagesOK=false;
+    }catch(e){sampleFn=null;imagesOK=false}
+    sampleChecked=true;
+  }
+  if(tab==='studio')renderAll();
+  if(tab==='earn'&&earnGame==='sketch')renderAll();
+}
+(async()=>{await Promise.resolve();await connectAI()})();
 
 /* ================= Drawing ================= */
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -1607,13 +1622,13 @@ async function paintBonus(){
   if(!text||(t.bonus<3&&!isCreative())||!canPaintNow(t))return;
   const prob=supplyProblem(t);if(prob){toast(prob);return}
   const {counts,paint}=allowedSupplies(t),pc={last:Object.keys(paint)[0]};
-  if(!sampleFn||freeBlocked){
+  if(!aiEnabled()||!sampleFn||freeBlocked){
     const rnd=seeded(text.toLowerCase()),parts=[],usedS={},usedP={};const n=Math.min(12,Object.values(counts).reduce((s,v)=>s+v,0));
     for(let i=0;i<n;i++){const ks=Object.keys(counts).filter(k=>counts[k]>0);if(!ks.length)break;const k=ks[Math.floor(rnd()*ks.length)];counts[k]--;usedS[k]=(usedS[k]||0)+1;
       const cs=Object.keys(paint).filter(c=>paint[c]>0);const c=usePaint(cs.length?cs[Math.floor(rnd()*cs.length)]:pc.last,paint,usedP,pc);
       const sz=12+rnd()*34;parts.push({kind:k,x:r1(15+rnd()*70),y:r1(15+rnd()*70),w:r1(sz),h:r1(sz*(.6+rnd()*.8)),rot:Math.round(rnd()*90-45),color:c})}
     spend(t,usedS,usedP);if(!isCreative())t.bonus=0;
-    hangArt({parts,subs:[],colorSubs:[],missing:0,likeness:.2,title:'Abstract study of '+text,note:'The master artist was offline, so they went abstract.',topic:text,tier:'abstract',tags:[],pending:true,unveil:true},t);
+    hangArt({parts,subs:[],colorSubs:[],missing:0,likeness:.2,title:'Abstract study of '+text,note:aiEnabled()?'The master artist was offline, so they went abstract.':'No AI mode is on, so the artist went abstract.',topic:text,tier:'abstract',tags:[],pending:true,unveil:true},t);
     bonusTopic='';openCritic(t.lastId);return;
   }
   const ctl=new AbortController();thinking={topic:text,ctl,teamIdx:state.active};renderAll();
@@ -1871,7 +1886,7 @@ function makerSideHTML(){
   const colors=COLOR_ORDER.filter(c=>t.paint[c]>0).map(c=>{const left=t.paint[c]-(u.c[c]||0);return `<button class="mkjar ${maker.color===c?'pickc':''}" data-act="mkColor" data-k="${c}" ${maker.phase==='build'?'':'disabled'} aria-pressed="${maker.color===c}" aria-label="${c} paint, ${left} left">${jarSVG(c,Math.min(left,20))}<span class="num">${fmtN(left)}</span></button>`}).join('');
   const ops=[['bigger','Bigger'],['smaller','Smaller'],['wider','Wider'],['narrower','Narrower'],['taller','Taller'],['shorter','Shorter'],['rotL','⟲ Turn'],['rotR','Turn ⟳'],['front','To front'],['back','To back'],['dup','Copy'],['del','Remove']];
   if(maker.phase!=='build'){
-    const aiReady=sampleFn&&imagesOK&&!freeBlocked;
+    const aiReady=aiEnabled()&&sampleFn&&imagesOK&&!freeBlocked;
     return maker.phase==='judging'?`<div class="thinking" style="aspect-ratio:auto"><div class="jiggle">${iconSVG('star')}${iconSVG('heart')}${iconSVG('circle')}</div><b>The judge is studying your masterpiece…</b></div>`
     :`<h3 style="margin-top:0">How much does it look like a ${esc(RECIPES[maker.key].name.toLowerCase())}?</h3><p class="muted">The score sets how much it's worth. Handmade pieces get a 25% bonus.</p>
       ${aiReady?`<button class="btn violet" data-act="mkAI" style="margin-bottom:12px">Ask the AI judge</button>`:''}
@@ -2005,7 +2020,7 @@ function applyReview(score,text){
   save();renderAll();
 }
 async function criticAI(){
-  const c=customer,a=team().gallery.find(x=>x.id===c.artId);if(!a||!sampleFn)return;
+  const c=customer,a=team().gallery.find(x=>x.id===c.artId);if(!a||!aiEnabled()||!sampleFn)return;
   c.phase='reviewing';renderAll();
   try{
     const blob=await svgBlob(a.parts);
@@ -2027,7 +2042,7 @@ function openCritic(id){
   const t=team(),a=t.gallery.find(x=>x.id===id);if(!a){renderAll();return}
   const name=pick(CRITICS);critic={id,name,seed:name+Math.random(),phase:'judging',showAI:false,line:pick(a.tier==='handmade'?REVIEW_INTROS:AI_INTROS)};
   renderAll();renderCritic();const c=critic;
-  setTimeout(()=>{if(critic!==c)return;(sampleFn&&imagesOK!==false&&!freeBlocked)?critAsk():localJudge()},700);
+  setTimeout(()=>{if(critic!==c)return;(aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked)?critAsk():localJudge()},700);
 }
 function localScore(a){
   const R=a.key&&RECIPES[a.key]?RECIPES[a.key].parts:null;
@@ -2052,7 +2067,7 @@ function renderCritic(){
   const c=critic,t=team(),a=critArt()||c.soldArt;if(!a){critic=null;$('#modalRoot').innerHTML='';return}
   const av=avatarSVG(c.seed,true).replace('class="av"','class="cmav"');
   const art=`<div class="frame ${a.tier==='bonus'?'bonusframe':''} unveil"><div class="mat">${artSVG(a.parts,false,a.title)}</div></div>
-    ${a.aiParts&&c.phase!=='done'?(c.showAI?`<div class="aicomp"><div class="aihead"><span class="mi">${ART.robot('#7d4fb3')}</span><b>The AI artist's version</b><button class="scrap" data-act="cmAI">Hide</button></div><div class="aiframe">${artSVG(a.aiParts,true,'AI version')}</div><div class="aino">Just for looking. Only yours can be sold.</div></div>`:`<button class="aibtn" data-act="cmAI"><span class="mi">${ART.robot('#7d4fb3')}</span>See what the AI would have made</button>`):''}`;
+    ${aiEnabled()&&a.aiParts&&c.phase!=='done'?(c.showAI?`<div class="aicomp"><div class="aihead"><span class="mi">${ART.robot('#7d4fb3')}</span><b>The AI artist's version</b><button class="scrap" data-act="cmAI">Hide</button></div><div class="aiframe">${artSVG(a.aiParts,true,'AI version')}</div><div class="aino">Just for looking. Only yours can be sold.</div></div>`:`<button class="aibtn" data-act="cmAI"><span class="mi">${ART.robot('#7d4fb3')}</span>See what the AI would have made</button>`):''}`;
   let right='';
   if(c.phase==='score'||c.phase==='judging'){
     right=`<div class="thinking" style="aspect-ratio:auto;padding:30px 10px"><div class="jiggle">${iconSVG('star','yellow')}${iconSVG('heart','pink')}${iconSVG('circle','red')}</div><b>The critic squints and takes notes…</b><span class="muted">Hmm… hmmm…</span></div>`;
@@ -2080,7 +2095,7 @@ function applyCritic(score,text,tip){
   c.phase='decide';save();renderAll();renderCritic();
 }
 async function critAsk(){
-  const c=critic,a=critArt();if(!a||!sampleFn)return;c.phase='judging';renderCritic();
+  const c=critic,a=critArt();if(!a||!aiEnabled()||!sampleFn)return;c.phase='judging';renderCritic();
   try{
     const blob=await svgBlob(a.parts);
     const data=await sampleFn.json(`You are ${c.name}, a dramatic, snooty, but secretly kind art critic in a 9th-grade classroom game. ${a.tier==='handmade'?'Students built this picture themselves by arranging simple geometric shapes (circles, squares, triangles, and so on)':'An AI artist painted this using only the simple geometric shapes and paints the students had left, swapping in whatever they had, so it may look odd'} to show: "${a.topic}". Score it 1-10 for how recognizable it is as that subject, giving credit for clever use of shapes and creativity. ${(a.subs||[]).length||(a.colorSubs||[]).length?`Notes: the artist had to swap ${(a.subs||[]).map(x=>x.from+" to "+x.to).slice(0,4).join(", ")}${(a.colorSubs||[]).length?"; paint swaps: "+(a.colorSubs||[]).map(x=>x.from+" to "+x.to).slice(0,4).join(", "):""} because supplies ran out.`:""} Be MOSTLY FUNNY: write a silly, over-the-top one-sentence review in your snooty critic voice (jokes, dramatic reactions, silly comparisons). Then give ONE short tip that is also funny but specific and useful next time (which shape or paint to buy, where to put a shape, adding a background or details, or using bigger shapes). Keep both under 20 words each, kind, and school appropriate. Reply with only JSON: {"score": 7, "review": "funny review", "tip": "helpful tip"}`,{images:blob,cache:false});
@@ -2511,7 +2526,7 @@ async function arcadeSketch(){
     saveSketch(s.teamIdx,{title:s.subject[0].toUpperCase()+s.subject.slice(1),game:'Stickman Sketch',strokes:slim(s.strokes),score:`$${s.earned}`,earned:s.earned,comment});renderAll()};
   const local=()=>{const n=s.strokes.length,pts=s.strokes.reduce((t,x)=>t+(x.pts?x.pts.length:0),0),cols=new Set(s.strokes.map(x=>x.color)).size;
     const cre=clamp(.3+n*.04+cols*.08+Math.random()*.15,.1,1),acc=clamp(.35+Math.min(pts,400)/900+Math.random()*.2,.1,.95);done(acc,cre,pick(['I see what you did there. I think.','Bold lines! Brave choices!','A masterpiece of stickness.','My monocle approves. Mostly.']))};
-  if(!(sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,1200);
+  if(!(aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,1200);
   try{const cv=$('#sketchPad');const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
     const data=await sampleFn.json(`You are ${JUDGE}, a funny, dramatic game-show art judge in a 9th-grade classroom arcade. The image is a 60-second mouse/finger stick-figure drawing meant to show: "${s.subject}". Stick figures are expected. Score ACCURACY 1-10 (how clearly it shows the subject) and CREATIVITY 1-10 (fun ideas, extra details, humor). Then write one short, funny, kind comment (under 18 words). Reply with only JSON: {"accuracy":7,"creativity":6,"comment":"..."}`,{images:blob,cache:false});
     done(clamp(Number(data.accuracy)||5,1,10)/10,clamp(Number(data.creativity)||5,1,10)/10,String(data.comment||'').slice(0,160));
@@ -2528,7 +2543,7 @@ function finishSketch(score,comment,by){
 }
 async function aiJudge(){
   if(isParty())return arcadeSketch();
-  const s=sketch,cv=$('#sketchPad');if(!cv||!sampleFn)return;
+  const s=sketch,cv=$('#sketchPad');if(!cv||!aiEnabled()||!sampleFn)return;
   if(!s.strokes.length){toast('Draw something first!');return}
   s.locked=true;s.judging=true;stopTimers();renderAll();
   const cv2=$('#sketchPad');
@@ -2543,8 +2558,6 @@ async function aiJudge(){
     toast(e&&e.code==='rate_limited'?'The judge needs a breather. Use the class vote this time.':'The AI judge couldn\'t score this one. Use the class vote.');renderAll();
   }
 }
-(async()=>{try{const s=window.claude&&window.claude.use?await window.claude.use('sample'):null;if(!s){imagesOK=false;return}const l=await s.limits().catch(()=>null);imagesOK=!!(l&&l.images)}catch(e){imagesOK=false}if(tab==='earn'&&earnGame==='sketch')renderAll()})();
-
 /* Shape Builder (arcade) - uses the same canvas tools as Make it myself */
 let sb=null;
 const SB_TOPICS=['house','tree','sun','fish','rocket','snowman','car','flower','icecream','boat','robot','cat','castle','ghost','cupcake','owl','penguin','butterfly','kite','trophy','umbrella','monster','crab','octopus'];
@@ -2599,7 +2612,7 @@ async function finishShapes(){
   const done=(acc,cre,comment)=>{if(sb!==g)return;g.judging=false;g.done=true;g.earned=gamePay(g,acc,{cre,fast:20,slow:90,comment});save();renderAll()};
   const local=()=>{const sc=localScore({tier:'handmade',key:g.key,parts:g.parts})/10,kinds=new Set(g.parts.map(p=>p.kind)).size,cols=new Set(g.parts.map(p=>p.color)).size,tot=Object.values(g.tray).reduce((a,b)=>a+b,0);
     const cre=clamp(.25+kinds*.07+cols*.07+g.parts.length/tot*.25+(g.mk.bg!=='white'?.08:0),.1,1);done(sc,cre,pick(['Shapes! Arranged! With style!','I would hang this on my fridge. A fancy fridge.','The triangles are doing their best.','Clever use of what you had!']))};
-  if(!(sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,1200);
+  if(!(aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,1200);
   try{const blob=await svgBlob(parts);
     const data=await sampleFn.json(`You are ${JUDGE}, a funny, dramatic game-show art judge in a 9th-grade classroom arcade. A team had 90 seconds and only a few simple geometric shapes (${Object.entries(g.tray).map(([k,n])=>n+' '+k+(n>1?'s':'')).join(', ')}) to build a picture of: "${rec.name}". Score ACCURACY 1-10 (how much it looks like a ${rec.name.toLowerCase()}) and CREATIVITY 1-10 (clever use of the shapes, colors, extra ideas). Then write one short, funny, kind comment (under 18 words). Reply with only JSON: {"accuracy":7,"creativity":6,"comment":"..."}`,{images:blob,cache:false});
     done(clamp(Number(data.accuracy)||5,1,10)/10,clamp(Number(data.creativity)||5,1,10)/10,String(data.comment||'').slice(0,160));
@@ -2615,7 +2628,7 @@ async function judgeOneLine(){
   const done=(acc,cre,comment)=>{if(ol!==g)return;g.judging=false;g.done=true;g.earned=gamePay(g,acc,{cre,fast:5,slow:30,comment});saveSketch(g.teamIdx,{title:'One line: '+g.subject,game:'One-Line Wonder',strokes:slim(g.strokes),score:'$'+g.earned,earned:g.earned,comment});renderAll()};
   const local=()=>{const pts=(g.strokes[0]||{pts:[]}).pts,xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),span=pts.length?Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys)):0;let len=0;for(let i=1;i<pts.length;i++)len+=dist(pts[i],pts[i-1]);
     const acc=clamp(.2+span*.5+Math.min(len,4)*.08+Math.random()*.15,.05,.95),cre=clamp(.25+Math.min(len,5)*.1+Math.random()*.2,.1,1);done(acc,cre,pick(['One line, zero fear. Respect.','That line went on an adventure!','I followed it the whole way. I am dizzy.','A single line of pure genius. Probably.']))};
-  if(!(sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,1100);
+  if(!(aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,1100);
   try{const cv=$('#olPad');const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
     const data=await sampleFn.json(`You are ${JUDGE}, a funny, dramatic game-show art judge in a 9th-grade classroom arcade. The image is a drawing made with ONE continuous line (finger never lifted, 30 seconds max) that is supposed to show ${g.subject}. Score ACCURACY 1-10 (how clearly it shows ${g.subject}) and CREATIVITY 1-10 (clever line tricks, style, humor). One-line drawings are expected to be loopy. Then write one short, funny, kind comment (under 18 words). Reply with only JSON: {"accuracy":7,"creativity":6,"comment":"..."}`,{images:blob,cache:false});
     done(clamp(Number(data.accuracy)||5,1,10)/10,clamp(Number(data.creativity)||5,1,10)/10,String(data.comment||'').slice(0,160));
@@ -2818,7 +2831,7 @@ async function finishPixArt(){const g=pa;if(!g||g.done||g.judging)return;if(g.ti
   let localAcc=.3;try{const ref=await svgToGrid(rec.parts,PA_N),blankW=ref.filter(c=>c==='white').length/ref.length;let m=0;ref.forEach((c,i)=>{if((g.grid[i]||'white')===c)m++});const a=m/ref.length;localAcc=clamp((a-blankW)/Math.max(.2,1-blankW),0,1);g.ref=ref}catch(e){}
   const used=new Set(g.grid.filter(Boolean)).size,filled=g.grid.filter(Boolean).length/g.grid.length;
   const local=()=>done(localAcc,clamp(.2+used*.08+filled*.3+Math.random()*.1,.1,1),localAcc>=.7?'Pixel perfect-ish! A video game could use this.':localAcc>=.45?'I can totally see it! Chunky and charming.':localAcc>=.2?'It is… a bold pixel interpretation.':'Those pixels have their own ideas about this picture.');
-  if(!(sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,900);
+  if(!(aiEnabled()&&sampleFn&&imagesOK!==false&&!freeBlocked))return setTimeout(local,900);
   try{const [b1,b2]=await Promise.all([svgBlob(rec.parts),paBlob()]);
     const data=await sampleFn.json(`You are ${JUDGE}, a funny, dramatic game-show art judge in a 9th-grade classroom arcade. The first image is a picture of ${/^[aeiou]/i.test(rec.name)?'an':'a'} ${rec.name.toLowerCase()}. The second image is a student's 12x12 pixel-art version made in 90 seconds. Score ACCURACY 1-10 (how well the pixel version captures the picture: shapes, colors, layout) and CREATIVITY 1-10 (clever pixel choices, style, extra flair). Then write one short, funny, kind comment (under 18 words). Reply with only JSON: {"accuracy":7,"creativity":6,"comment":"..."}`,{images:[b1,b2],cache:false});
     done(clamp(Number(data.accuracy)||5,1,10)/10,clamp(Number(data.creativity)||5,1,10)/10,String(data.comment||'').slice(0,160));
@@ -3015,7 +3028,7 @@ function reportHTML(a){
 }
 function modeTag(a){return a.tier==='handmade'?'<span class="tag hand">Handmade</span>':a.tier==='bonus'?'<span class="tag free">Bonus</span>':a.tier==='abstract'?'<span class="tag abstract">Abstract</span>':'<span class="tag recipe">Picture</span>'}
 function planHTML(t){
-  if(!sel)return `<div class="plan"><p class="muted" style="margin:0">Pick a picture, then choose AI artist or Make it myself.</p></div>`;
+  if(!sel)return `<div class="plan"><p class="muted" style="margin:0">Pick a picture, then choose ${artistLabel()} or Make it myself.</p></div>`;
   const rec=RECIPES[sel];
   const shapeTogs=KINDS.filter(k=>t.shapes[k]>0).map(k=>{const have=t.shapes[k],isOff=off.shapes.includes(k);return `<button class="ncard ${isOff?'off':''}" data-act="togShape" data-k="${k}" aria-pressed="${!isOff}" aria-label="${k}: ${have} left${isOff?', switched off':''}"><span class="nc-top"><span class="sbig">${miniSVG(k,SHAPE_ICON_COLOR[k])}<i class="cnt num">${fmtN(have)}</i></span><span class="nc-txt">${isOff?'<span class="offtag">Off</span>':'<span class="ok">✓ Artist can use</span>'}</span></span>${stackHTML(k,SHAPE_ICON_COLOR[k],have,0,12)}</button>`}).join('')||'<p class="muted">No shapes! Visit the Shop.</p>';
   const colorTogs=COLOR_ORDER.filter(c=>t.paint[c]>0).map(c=>{const have=t.paint[c],isOff=off.colors.includes(c);return `<button class="ncard jarcard ${isOff?'off':''}" data-act="togColor" data-k="${c}" aria-pressed="${!isOff}" aria-label="${c} paint: ${have} left${isOff?', switched off':''}">${jarSVG(c,have)}<span class="nc-txt"><b style="text-transform:capitalize">${c}</b><span class="num">${fmtN(have)} left</span>${isOff?'<span class="offtag">Off</span>':''}</span></button>`}).join('')||'<p class="muted">No paint! Visit the Shop.</p>';
@@ -3030,12 +3043,12 @@ function planHTML(t){
 function bonusHTML(t){
   if(isCreative())t.bonus=3;
   const meter=`<div class="bmeter">${[0,1,2].map(i=>`<span class="bslot ${i<t.bonus?'lit':''}">${iconSVG('star',i<t.bonus?'yellow':'gray')}</span>`).join('<span class="bline"></span>')}<span class="bline"></span><span class="bslot master ${t.bonus>=3?'lit':''}">${ART.robot('#7d4fb3')}</span></div>`;
-  if(t.bonus<3)return `<div class="bonus"><div class="bhead"><b>Bonus round</b><span class="bplus">+50% value</span></div>${meter}<p style="margin:6px 0 0;font-size:14px">Each painting lights a star. Light all 3 and the <b>master artist</b> paints <b>anything</b> you type!</p></div>`;
-  const ok=sampleFn&&!freeBlocked;
+  if(t.bonus<3)return `<div class="bonus"><div class="bhead"><b>Bonus round</b><span class="bplus">+50% value</span></div>${meter}<p style="margin:6px 0 0;font-size:14px">Each painting lights a star. Light all 3 and ${aiEnabled()?'the <b>master artist</b> paints <b>anything</b> you type!':'you can type any idea for an abstract shape arrangement'}.</p></div>`;
+  const ok=aiEnabled()&&sampleFn&&!freeBlocked;
   return `<div class="bonus ready"><div class="bhead"><b style="color:var(--violet)">Bonus round ready!</b><span class="bplus">+50% value</span></div>${meter}
-    <p style="font-size:14px">Type anything. The master artist uses your shapes and paints.</p>
+    <p style="font-size:14px">${aiEnabled()?'Type anything. The master artist uses your shapes and paints.':'Type any idea for an abstract arrangement made from your shapes and paints.'}</p>
     <div class="paintrow"><input id="bonusInput" type="text" maxlength="80" autocomplete="off" placeholder="a dragon eating tacos" value="${esc(bonusTopic)}"><button class="btn violet" data-act="bonus" ${thinking||t.gallery.length>=wallCap(t)?'disabled':''}>Paint it</button></div>
-    ${ok?'':`<p class="muted" style="margin:8px 0 0;font-size:14px">${sampleChecked?'The master artist needs this page open in Claude. Without it, the bonus piece comes out abstract.':'Checking for the master artist…'}</p>`}</div>`;
+    ${ok?'':`<p class="muted" style="margin:8px 0 0;font-size:14px">${!aiEnabled()?'No AI mode is on. The bonus piece will be an abstract arrangement of your supplies.':sampleChecked?'The master artist needs this page open in Claude. Without it, the bonus piece comes out abstract.':'Checking for the master artist…'}</p>`}</div>`;
 }
 function renderStudio(){
   if(maker&&maker.teamIdx===state.active){renderMaker();return}
@@ -3043,8 +3056,8 @@ function renderStudio(){
   const cats=CATS.map(([k,l])=>{const keys=ALL_KEYS.filter(x=>RECIPES[x].cat===k),un=keys.filter(x=>t.unlocked.includes(x)&&!t.painted[x]).length;return `<button class="${cat===k?'on':''}" data-act="cat" data-k="${k}">${iconSVG(...CAT_LOOK[k])}${l} <small>${un} ready${isCreative()?'':(()=>{const lk=keys.filter(x=>!t.unlocked.includes(x)).length;return lk?` · 🔒${lk}`:''})()}</small>${state.world&&state.world.trend===k&&!isCreative()?'<span class="hot">HOT</span>':''}</button>`}).join('');
   const full=t.gallery.length>=wallCap(t),locked=ALL_KEYS.filter(k=>RECIPES[k].cat===cat&&!t.unlocked.includes(k)).length;
   const pics=ALL_KEYS.filter(k=>RECIPES[k].cat===cat).map(k=>{const r=RECIPES[k];
-    if(t.painted[k])return `<div class="pic done ${sel===k?'sel':''}"><div class="ph donebadge">${checkSVG()}</div><div class="nm">${r.name}</div><div class="st">✓ Painted · again?</div><div class="who2"><button class="btn ghost small" data-act="sel" data-k="${k}" ${full?'disabled':''}>AI artist</button><button class="btn ghost small" data-act="mkPick" data-k="${k}" ${full||thinking?'disabled':''}>Make it myself</button></div></div>`;
-    if(t.unlocked.includes(k))return `<div class="pic ready ${sel===k?'sel':''}"><div class="ph">?</div><div class="nm">${r.name}</div><div class="st">Who paints it?</div><div class="who2"><button class="btn small" data-act="sel" data-k="${k}" ${full?'disabled':''}>AI artist</button><button class="btn violet small" data-act="mkPick" data-k="${k}" ${full||thinking?'disabled':''}>Make it myself</button></div></div>`;
+    if(t.painted[k])return `<div class="pic done ${sel===k?'sel':''}"><div class="ph donebadge">${checkSVG()}</div><div class="nm">${r.name}</div><div class="st">✓ Painted · again?</div><div class="who2"><button class="btn ghost small" data-act="sel" data-k="${k}" ${full?'disabled':''}>${artistLabel()}</button><button class="btn ghost small" data-act="mkPick" data-k="${k}" ${full||thinking?'disabled':''}>Make it myself</button></div></div>`;
+    if(t.unlocked.includes(k))return `<div class="pic ready ${sel===k?'sel':''}"><div class="ph">?</div><div class="nm">${r.name}</div><div class="st">Who paints it?</div><div class="who2"><button class="btn small" data-act="sel" data-k="${k}" ${full?'disabled':''}>${artistLabel()}</button><button class="btn violet small" data-act="mkPick" data-k="${k}" ${full||thinking?'disabled':''}>Make it myself</button></div></div>`;
     return `<div class="pic locked"><div class="ph"></div><div class="nm">${r.name}</div><button class="btn small" data-act="unlock" data-k="${k}" ${t.money<r.price?'disabled':''}>Unlock $${r.price}</button></div>`}).join('');
   let easel;
   if(thinking&&thinking.teamIdx===state.active){
@@ -3054,7 +3067,7 @@ function renderStudio(){
       <div class="plaque"><b>${esc(last.title)}</b><span class="muted">${modeTag(last)}${last.pending?'Waiting for the critic in the Gallery':`Appraised at <span class="num">$${last.value}</span>`}</span></div>
       ${last.note?`<p class="statement">"${esc(last.note)}"</p>`:''}${reportHTML(last)}`;
   }else{
-    easel=`<div class="frame"><div class="mat"><div class="empty-easel"><div class="floaty">${iconSVG('circle','red')}${iconSVG('triangle','yellow')}${iconSVG('square','blue')}${iconSVG('star','purple')}${iconSVG('heart','pink')}</div><div><h2>Your masterpiece goes here</h2><p>Pick a picture, then choose <b>AI artist</b> or <b>Make it myself</b>.</p></div></div></div></div>`;
+    easel=`<div class="frame"><div class="mat"><div class="empty-easel"><div class="floaty">${iconSVG('circle','red')}${iconSVG('triangle','yellow')}${iconSVG('square','blue')}${iconSVG('star','purple')}${iconSVG('heart','pink')}</div><div><h2>Your masterpiece goes here</h2><p>Pick a picture, then choose <b>${artistLabel()}</b> or <b>Make it myself</b>.</p></div></div></div></div>`;
   }
   $('#main').innerHTML=`<div class="studio"><section class="panel"><h2>Pick a picture to paint</h2><p class="muted">Unlock new pictures with your earnings. Already painted one? You can paint it again, or find it in your <b>Portfolio</b>.</p>${shelfHTML(t)}<div class="catbar"><div class="cathead"><b>${CATS.length} categories</b><span>Scroll for more ➜</span></div><div class="catwrap"><button class="catarrow l" data-act="catScroll" data-d="-1" aria-label="More categories left">◀</button><div class="cats" id="catRow">${cats}</div><button class="catarrow r" data-act="catScroll" data-d="1" aria-label="More categories right">▶</button></div></div><div class="pics">${pics}</div>${locked&&!isCreative()?`<p class="lockhint">🔒 <b>${locked} more ${CATS.find(c=>c[0]===cat)[1]} picture${locked===1?'':'s'}</b> to unlock with cash. Every category has more!</p>`:''}${planHTML(t)}${bonusHTML(t)}</section><section>${easel}</section></div>`;
   if(last&&last.fresh)setTimeout(()=>{last.fresh=false;save()},50);
@@ -3091,9 +3104,9 @@ function custHTML(t){
         ${pitches.length&&c.showTalk!==false?`<div class="lbl" style="margin-top:2px">💬 Say something to raise the price! Pick what THIS buyer likes (each works once).</div><div class="bubbles">${pitches.map(p=>`<button class="sbub" data-act="pitch" data-k="${p.id}"><span class="bico">${pitchIcon(p.id,a)}</span><span>"${esc(p.text)}"</span></button>`).join('')}</div>`:''}
       </div>`;
     }else if((c.phase==='review'||c.phase==='reviewing')&&a){
-      const aiReady=sampleFn&&imagesOK&&!freeBlocked;
+      const aiReady=aiEnabled()&&sampleFn&&imagesOK&&!freeBlocked;
       controls=`<div class="spot"><div><div class="frame unveil"><div class="mat">${artSVG(a.parts,false,a.title)}</div></div>
-        ${a.aiParts?(c.showAI?`<div class="aicomp"><div class="aihead"><span class="mi">${ART.robot('#7d4fb3')}</span><b>The AI artist's version</b><button class="scrap" data-act="toggleAI">Hide</button></div><div class="aiframe">${artSVG(a.aiParts,true,'AI version')}</div><div class="aino">Just for looking. Only yours can be sold.</div></div>`:`<button class="aibtn" data-act="toggleAI"><span class="mi">${ART.robot('#7d4fb3')}</span>See what the AI would have made</button>`):''}</div><div class="spotinfo"><div class="lbl">Now unveiling</div><div class="name" style="font-size:30px">${esc(a.title)}</div><div class="muted">${a.tier==='handmade'?'Handmade by':a.tier==='bonus'?'Bonus piece by the master artist for':a.tier==='abstract'?'Abstract piece for':'Painted by the AI artist for'} ${esc(t.name)}</div></div></div>
+        ${aiEnabled()&&a.aiParts?(c.showAI?`<div class="aicomp"><div class="aihead"><span class="mi">${ART.robot('#7d4fb3')}</span><b>The AI artist's version</b><button class="scrap" data-act="toggleAI">Hide</button></div><div class="aiframe">${artSVG(a.aiParts,true,'AI version')}</div><div class="aino">Just for looking. Only yours can be sold.</div></div>`:`<button class="aibtn" data-act="toggleAI"><span class="mi">${ART.robot('#7d4fb3')}</span>See what the AI would have made</button>`):''}</div><div class="spotinfo"><div class="lbl">Now unveiling</div><div class="name" style="font-size:30px">${esc(a.title)}</div><div class="muted">${a.tier==='handmade'?'Handmade by':a.tier==='bonus'?'Bonus piece by the master artist for':a.tier==='abstract'?'Abstract piece for':`Painted by the ${artistLabel()} for`} ${esc(t.name)}</div></div></div>
       ${c.phase==='reviewing'?`<div class="thinking" style="aspect-ratio:auto;padding:10px"><div class="jiggle">${iconSVG('star')}${iconSVG('heart')}${iconSVG('circle')}</div><b>The critic leans in, squints, and takes notes…</b></div>`
       :`<div class="negot">${aiReady?`<button class="btn violet big" data-act="criticAI">Hear the critic's review</button>`:''}<div><div class="lbl">${aiReady?'Or let':'Let'} the class score it out of 5 stars</div><div class="actions">${[1,2,3,4,5].map(n=>`<button class="btn ghost small" data-act="panel" data-n="${n}">${'★'.repeat(n)}</button>`).join('')}</div></div></div>`}`;
     }else controls=c.venue==='fair'?`<div class="actions"><button class="btn" data-act="custDone">Back to your booth</button></div>`:`<div class="actions"><button class="btn" data-act="doors" ${forSale(t).length?'':'disabled'}>Next collector</button><button class="btn ghost" data-act="custDone">Done</button></div>`;
@@ -3167,7 +3180,7 @@ function renderEarn(){
   }else if(earnGame==='sketch'){
     if(!sketch||(!sketch.done&&sketch.teamIdx!==state.active&&!sketch.strokes.length))newSketch();
     const s=sketch,pens=[['#1b2a2e','Black'],['#d8433a','Red'],['#2e62c9','Blue'],['#3f9a4d','Green']];
-    const aiReady=sampleFn&&imagesOK&&!freeBlocked;
+    const aiReady=aiEnabled()&&sampleFn&&imagesOK&&!freeBlocked;
     body=`<div class="q"><div class="muted" style="text-align:center">${who(s.teamIdx)}: you have 60 seconds. Up to $${max}.</div>
       <div class="term" style="font-size:clamp(24px,3.6vw,38px)">Draw ${esc(s.subject)}</div>
       ${s.done?'':`<div class="actions" style="justify-content:center;align-items:center">${pens.map(([c,l])=>`<button class="pen ${s.color===c?'on':''}" data-act="pen" data-k="${c}" aria-label="${l} pen" style="background:${c}"></button>`).join('')}<button class="btn ghost small" data-act="sketchUndo" ${s.strokes.length&&!s.locked?'':'disabled'}>Undo</button><button class="btn ghost small" data-act="sketchClear" ${s.strokes.length&&!s.locked?'':'disabled'}>Clear</button><span class="num" style="font-size:22px;min-width:52px;text-align:center" id="sketchTime">${s.secs}s</span></div>`}
@@ -3395,7 +3408,7 @@ function openPiece(id){
       ${h.review?`<div class="review">"${esc(h.review.text||'')}" <span class="muted">★ ${h.review.score}/10 · ${esc(h.review.by)}</span></div>`:''}
       ${h.review&&h.review.tip?`<div class="ctip small"><span class="mi">💡</span><div><b>Psst… a tip</b><span>${esc(h.review.tip)}</span></div></div>`:''}
       ${h.comment?`<div class="review">"${esc(h.comment)}"</div>`:''}
-      ${rec&&t.unlocked.includes(h.key)?`<div class="actions pf-act"><span class="lbl">Paint it again</span><button class="btn small" data-act="again" data-k="${h.key}" ${full?'disabled':''}>AI artist</button><button class="btn violet small" data-act="mkPick" data-k="${h.key}" ${full||thinking?'disabled':''}>Make it myself</button></div>${full?'<p class="muted" style="font-size:13px;margin:0">Your wall is full. Sell or scrap a piece first.</p>':''}`:''}
+      ${rec&&t.unlocked.includes(h.key)?`<div class="actions pf-act"><span class="lbl">Paint it again</span><button class="btn small" data-act="again" data-k="${h.key}" ${full?'disabled':''}>${artistLabel()}</button><button class="btn violet small" data-act="mkPick" data-k="${h.key}" ${full||thinking?'disabled':''}>Make it myself</button></div>${full?'<p class="muted" style="font-size:13px;margin:0">Your wall is full. Sell or scrap a piece first.</p>':''}`:''}
     </div></div>
     <div style="text-align:center;margin-top:14px"><button class="btn ghost" data-act="closePiece">Close</button></div></div></div>`;
 }
@@ -3899,6 +3912,7 @@ function openSettings(){
       <div class="field"><label for="sPaint">Painting timer (Make it myself)</label><select id="sPaint">${[[0,'Off'],[60,'60 seconds'],[90,'90 seconds'],[120,'2 minutes'],[180,'3 minutes'],[300,'5 minutes']].map(([n,l])=>`<option value="${n}" ${paintSecs()===n?'selected':''}>${l}</option>`).join('')}</select></div></div>
     <label style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input id="sRotate" type="checkbox" ${s.autoRotate?'checked':''}> Pass to the next team after each Earn round</label>
     <label style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input id="sHints" type="checkbox" ${s.hints!==false?'checked':''}> Show hints (the "Do this next!" glow and how-to tips)</label>
+    <label style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input id="sNoAI" type="checkbox" ${s.noAI===true?'checked':''}> No AI (use built-in artwork and judging instead)</label>
     <h3>Team names</h3><div class="names">${state.teams.map((t,i)=>`<input id="sName${i}" value="${esc(t.name)}" aria-label="Team ${i+1} name">`).join('')}</div>
     <div class="field"><label for="sVocab">Vocab list for Classroom mode, one per line: <b>term | definition</b></label><textarea id="sVocab">${esc(state.vocabText)}</textarea></div>
     <div class="actions" style="justify-content:space-between"><button class="btn ghost" data-act="newGame">New game setup</button><div class="actions"><button class="btn ghost" data-act="closeSet">Cancel</button><button class="btn" data-act="saveSet">Save</button></div></div>
@@ -3906,12 +3920,14 @@ function openSettings(){
 }
 function saveSettings(){
   const s=state.settings,n=isSolo()?state.teams.length:+$('#sTeams').value;
-  s.hints=$('#sHints').checked;s.mode=$('#sMode').value;s.reward=Math.max(0,+$('#sReward').value||0);s.drySecs=+$('#sDry').value||9;s.turnSecs=+$('#sTurn').value;s.paintSecs=+$('#sPaint').value;if(!turnSecs())TT.left=0;else if(TT.team!==state.active||TT.left<=0)startTurnTimer();s.autoRotate=$('#sRotate').checked;
+  const wasNoAI=s.noAI===true;
+  s.hints=$('#sHints').checked;s.noAI=$('#sNoAI').checked;s.mode=$('#sMode').value;s.reward=Math.max(0,+$('#sReward').value||0);s.drySecs=+$('#sDry').value||9;s.turnSecs=+$('#sTurn').value;s.paintSecs=+$('#sPaint').value;if(!turnSecs())TT.left=0;else if(TT.team!==state.active||TT.left<=0)startTurnTimer();s.autoRotate=$('#sRotate').checked;
   state.teams.forEach((t,i)=>{const el=$('#sName'+i);if(el&&el.value.trim())t.name=el.value.trim().slice(0,24)});
   while(state.teams.length<n)state.teams.push(newTeam(TEAM_NAMES[state.teams.length]||('Team '+(state.teams.length+1)),s.startMoney));
   state.teams.length=n;if(state.active>=n)state.active=0;
   state.vocabText=$('#sVocab').value;quiz=null;earnGame=null;
-  $('#modalRoot').innerHTML='';renderAll();
+  $('#modalRoot').innerHTML='';save();renderAll();
+  if(wasNoAI!==s.noAI)connectAI();
 }
 function openHelp(){
   const steps=[['circle','yellow','Earn money','Play games in the <b>Earn money</b> tab: drawing, color mixing, guessing, auctions'+(isFun()?'':' and vocab review')+'.'],
