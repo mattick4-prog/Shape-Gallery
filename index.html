@@ -1061,25 +1061,22 @@ body.party .chip{pointer-events:none}
 .pnsw{width:54px;height:54px;border-radius:14px;border:3px solid #fff;box-shadow:0 0 0 2px var(--paper-2);background:var(--c);display:grid;place-items:center;cursor:pointer;padding:0}
 .pnsw span{background:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:800;font-size:15px}
 .pnsw.on{box-shadow:0 0 0 4px var(--ink);transform:scale(1.08)}
-.puzzle-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start;margin:10px auto 0;max-width:1100px}
+.puzzle-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start;margin:10px auto 0;width:100%;max-width:1000px}
 .puzzle-board,.puzzle-tray{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;background:#d6dfdb;padding:5px;border-radius:12px}
-.puzzle-board{aspect-ratio:1}
+.puzzle-board,.puzzle-tray{aspect-ratio:1;grid-template-rows:repeat(4,minmax(0,1fr))}
 .puzzle-tray{background:#f0f3f1}
-.puzzle-piece,.puzzle-slot{position:relative;min-width:0;aspect-ratio:4/5;border:2px solid #fff;border-radius:5px;background-color:#fff;box-shadow:0 1px 3px #172b2d33;padding:0;overflow:hidden}
-.puzzle-piece{cursor:pointer;touch-action:manipulation;background-repeat:no-repeat;background-size:500% 400%}
+.puzzle-piece,.puzzle-slot{position:relative;min-width:0;min-height:0;border:2px solid #fff;border-radius:5px;background-color:#fff;box-shadow:0 1px 3px #172b2d33;padding:0;overflow:hidden}
+.puzzle-piece{cursor:pointer;touch-action:manipulation}
+.puzzle-piece svg,.puzzle-slot svg{display:block;width:100%;height:100%}
 .puzzle-piece.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1;transform:scale(.94)}
 .puzzle-slot{background-image:none;background-color:#e9efec;border:2px dashed #aab9b4}
-.puzzle-slot.filled{background-repeat:no-repeat;background-size:500% 400%;border:2px solid #fff}
+.puzzle-slot.filled{border:2px solid #fff}
 .puzzle-slot .puzzle-num{position:absolute;inset:0;display:grid;place-items:center;color:#637572;font-weight:800;font-size:clamp(12px,2vw,20px);text-shadow:0 1px #fff}
 .puzzle-slot.filled .puzzle-num{display:none}
 .puzzle-aside{display:flex;flex-direction:column;gap:12px;min-width:0}
-.puzzle-reference{width:min(150px,40%);margin:0 auto;text-align:center}
-.puzzle-reference .frame{padding:5px}
-.puzzle-reference .mat{padding:4px}
-.puzzle-reference svg{display:block;width:100%}
 .puzzle-count{text-align:center;font-weight:700}
 .puzzle-tray[aria-label]{touch-action:manipulation}
-@media (max-width:760px){.puzzle-layout{grid-template-columns:1fr;gap:10px}.puzzle-reference{width:min(100px,28%)}.puzzle-board,.puzzle-tray{gap:3px;padding:4px}.puzzle-piece,.puzzle-slot{border-radius:3px}}
+@media (max-width:760px){.puzzle-layout{grid-template-columns:1fr;gap:10px}.puzzle-board,.puzzle-tray{gap:3px;padding:4px}.puzzle-piece,.puzzle-slot{border-radius:3px}}
 .pxwrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start;margin-top:10px}
 @media (max-width:760px){.pxwrap{grid-template-columns:1fr 1fr}.pxside{grid-column:1/-1}}
 .pxwrap .lbl{text-align:center;margin-bottom:4px}
@@ -2618,12 +2615,14 @@ function finishPaintNum(){const g=pn;if(!g||g.done)return;if(g.timer){clearInter
 const PUZZLE_PIECES=20,PUZZLE_COLS=5,PUZZLE_ROWS=4;
 function newFrame(){
   const key=pick(ALL_KEYS),rec=RECIPES[key];
-  const image=artSVG(rec.parts,false,rec.name).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ');
-  fr={key,title:rec.name,parts:rec.parts,image:`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(image)}")`,
+  fr={key,title:rec.name,parts:rec.parts,
     tray:shuffle(Array.from({length:PUZZLE_PIECES},(_,i)=>i)),placed:Array(PUZZLE_PIECES).fill(false),selected:null,
     done:false,started:false,teamIdx:state.active,left:90,total:90,timer:null};
 }
-function puzzlePieceStyle(g,i){const x=i%PUZZLE_COLS,y=Math.floor(i/PUZZLE_COLS);return `background-image:${g.image};background-position:${x/(PUZZLE_COLS-1)*100}% ${y/(PUZZLE_ROWS-1)*100}%`}
+function puzzlePieceSVG(g,i){
+  const x=i%PUZZLE_COLS*(100/PUZZLE_COLS),y=Math.floor(i/PUZZLE_COLS)*(100/PUZZLE_ROWS),w=100/PUZZLE_COLS,h=100/PUZZLE_ROWS;
+  return `<svg viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fdfdfb"/>${g.parts.map(p=>`<g transform="${xf(p)}">${shapeMarkup(p)}</g>`).join('')}</svg>`;
+}
 function puzzleStart(g){if(g.started)return;g.started=true;g.t0=Date.now();gClock(g,'frameTime',finishPicturePuzzle)}
 function puzzleSelect(i){
   const g=fr;if(!g||g.done||g.placed[i]||!g.tray.includes(i))return;
@@ -3143,8 +3142,8 @@ function renderEarn(){
     if(!fr||(!fr.done&&fr.teamIdx!==state.active&&!fr.started))newFrame();
     const g=fr,placed=g.placed.filter(Boolean).length;
     if(g.started&&!g.done&&!g.timer)gClock(g,'frameTime',finishPicturePuzzle);
-    const slots=g.placed.map((isPlaced,i)=>`<button class="puzzle-slot ${isPlaced?'filled':''}" data-act="puzzleSlot" data-n="${i}" style="${isPlaced?puzzlePieceStyle(g,i):''}" aria-label="${isPlaced?`Piece ${i+1} placed`:`Puzzle space ${i+1}`}" ${g.done||isPlaced?'disabled':''}><span class="puzzle-num">${i+1}</span></button>`).join('');
-    const pieces=g.tray.map(i=>`<button class="puzzle-piece ${g.selected===i?'selected':''}" data-act="puzzlePiece" data-n="${i}" style="${puzzlePieceStyle(g,i)}" aria-label="Puzzle piece ${i+1}${g.selected===i?', selected':''}" aria-pressed="${g.selected===i}" ${g.done?'disabled':''}></button>`).join('');
+    const slots=g.placed.map((isPlaced,i)=>`<button class="puzzle-slot ${isPlaced?'filled':''}" data-act="puzzleSlot" data-n="${i}" aria-label="${isPlaced?`Piece ${i+1} placed`:`Puzzle space ${i+1}`}" ${g.done||isPlaced?'disabled':''}>${isPlaced?puzzlePieceSVG(g,i):`<span class="puzzle-num">${i+1}</span>`}</button>`).join('');
+    const pieces=g.tray.map(i=>`<button class="puzzle-piece ${g.selected===i?'selected':''}" data-act="puzzlePiece" data-n="${i}" aria-label="Puzzle piece ${i+1}${g.selected===i?', selected':''}" aria-pressed="${g.selected===i}" ${g.done?'disabled':''}>${puzzlePieceSVG(g,i)}</button>`).join('');
     body=`<div class="q"><div class="term" style="font-size:clamp(26px,4vw,40px)">Put the picture together!</div>
       <div class="muted" style="text-align:center">${who(g.teamIdx)}: tap a piece, then tap where it belongs. There are <b>20 pieces</b> and 90 seconds. Up to $${max}.</div>
       <div class="puzzle-count">${placed} of ${PUZZLE_PIECES} pieces placed${g.selected!=null&&!g.done?' · Now choose its matching space.':''}</div>
