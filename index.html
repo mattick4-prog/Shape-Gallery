@@ -1070,6 +1070,9 @@ body.party .chip{pointer-events:none}
 .puzzle-piece svg,.puzzle-slot svg{display:block;width:100%;height:100%}
 .puzzle-piece.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1;transform:scale(.94)}
 .puzzle-slot.selected{outline:4px solid #7b4fae;outline-offset:1px;z-index:1}
+.puzzle-follow{position:fixed;z-index:10001;width:clamp(48px,10vw,84px);aspect-ratio:4/5;pointer-events:none;border:3px solid #7b4fae;border-radius:8px;background:#fff;box-shadow:0 5px 18px #172b2d55;opacity:.96}
+.puzzle-follow svg{display:block;width:100%;height:100%}
+.puzzle-follow::after{content:'Selected';position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);padding:2px 7px;border-radius:99px;background:#7b4fae;color:#fff;font:700 11px system-ui,sans-serif;white-space:nowrap}
 .puzzle-drop-target{outline:4px solid #3f9a4d;outline-offset:1px}
 .puzzle-drag-ghost{position:fixed;z-index:10000;width:clamp(56px,12vw,110px);aspect-ratio:4/5;pointer-events:none;transform:translate(-50%,-50%) scale(1.06);opacity:.9;filter:drop-shadow(0 4px 5px #0005)}
 .puzzle-layout.dragging{user-select:none}
@@ -2628,9 +2631,22 @@ function puzzlePieceSVG(g,i){
   return `<svg viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fdfdfb"/>${g.parts.map(p=>`<g transform="${xf(p)}">${shapeMarkup(p)}</g>`).join('')}</svg>`;
 }
 function puzzleStart(g){if(g.started)return;g.started=true;g.t0=Date.now();gClock(g,'frameTime',finishPicturePuzzle)}
-function puzzleSelect(i){
-  const g=fr;if(!g||g.done||!g.tray.includes(i))return;
-  puzzleStart(g);g.selected=g.selected===i?null:i;renderAll();
+let puzzleFollow=null;
+function clearPuzzleFollow(){if(puzzleFollow){puzzleFollow.remove();puzzleFollow=null}}
+function showPuzzleFollow(i,el){
+  if(!el)return;
+  clearPuzzleFollow();
+  const r=el.getBoundingClientRect(),follow=document.createElement('div');
+  follow.className='puzzle-follow';follow.setAttribute('aria-hidden','true');follow.innerHTML=puzzlePieceSVG(fr,i);
+  follow.style.left=`${Math.max(4,Math.min(innerWidth-r.width-4,r.left))}px`;
+  follow.style.top=`${Math.max(4,Math.min(innerHeight-r.height-30,r.top))}px`;
+  document.body.appendChild(follow);puzzleFollow=follow;
+}
+function puzzleSelect(i,el){
+  const g=fr;if(!g||g.done||(!g.tray.includes(i)&&!g.board.includes(i)))return;
+  puzzleStart(g);g.selected=g.selected===i?null:i;
+  if(g.selected==null)clearPuzzleFollow();else showPuzzleFollow(i,el);
+  renderAll();
 }
 function puzzlePlace(slot){
   const g=fr;if(!g||g.done||g.selected==null)return;
@@ -2638,7 +2654,7 @@ function puzzlePlace(slot){
   const piece=g.selected,from=g.board.indexOf(piece);
   if(from>=0){const displaced=g.board[slot];g.board[slot]=piece;g.board[from]=displaced}
   else{g.tray=g.tray.filter(i=>i!==piece);if(g.board[slot]!=null)g.tray.push(g.board[slot]);g.board[slot]=piece}
-  g.selected=null;
+  g.selected=null;clearPuzzleFollow();
   if(g.board.every((tile,i)=>tile===i)){finishPicturePuzzle();return}
   renderAll();
 }
@@ -2679,13 +2695,13 @@ function puzzleMove(piece,from,to){
   puzzleStart(g);
   if(from>=0){const displaced=g.board[to];g.board[to]=piece;g.board[from]=displaced}
   else{g.tray=g.tray.filter(i=>i!==piece);if(g.board[to]!=null)g.tray.push(g.board[to]);g.board[to]=piece}
-  g.selected=null;
+  g.selected=null;clearPuzzleFollow();
   if(g.board.every((tile,i)=>tile===i)){finishPicturePuzzle();return}
   renderAll();
 }
 function puzzleMoveToTray(piece,from){
   const g=fr;if(!g||g.done||from<0)return;
-  g.board[from]=null;if(!g.tray.includes(piece))g.tray.push(piece);g.selected=null;renderAll();
+  g.board[from]=null;if(!g.tray.includes(piece))g.tray.push(piece);g.selected=null;clearPuzzleFollow();renderAll();
 }
 function finishPicturePuzzle(){
   const g=fr;if(!g||g.done)return;
@@ -3889,7 +3905,7 @@ function resultScroll(){const sels=['#tdBonus','.judgecard','.resultbox','.doneb
   const present=sels.filter(x=>document.querySelector(x)&&!document.querySelector('#modalRoot .modal'));const sig=new Set(present.map(x=>x+'|'+tab+'|'+earnGame));
   if(lastResultSig){const fresh=present.find(x=>!lastResultSig.has(x+'|'+tab+'|'+earnGame));if(fresh)setTimeout(()=>scrollToEl(fresh,'center'),80)}
   lastResultSig=sig}
-{const _ra=renderAll;renderAll=function(){_ra.apply(this,arguments);try{resultScroll()}catch(_){}}}
+{const _ra=renderAll;renderAll=function(){_ra.apply(this,arguments);if(tab!=='earn'||earnGame!=='frameit'||!fr||fr.done)clearPuzzleFollow();try{resultScroll()}catch(_){}}}
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el)return;
   if(puzzleSuppressClick&&['puzzlePiece','puzzleSlot'].includes(el.dataset.act)){puzzleSuppressClick=false;e.preventDefault();return}
@@ -4028,7 +4044,7 @@ document.addEventListener('click',e=>{
       const id=profiles.cur;try{localStorage.removeItem(stateKey(id))}catch(e){}profiles.list=profiles.list.filter(x=>x.id!==id);profiles.cur=null;switchProfile(profiles.list[0].id);toast('Player deleted.');break}
     case 'pnSel':if(pn){pn.sel=el.dataset.k;document.querySelectorAll('[data-act=pnSel]').forEach(b=>b.classList.toggle('on',b===el))}break;
     case 'pnDone':finishPaintNum();break;
-    case 'puzzlePiece':puzzleSelect(+el.dataset.n);break;
+    case 'puzzlePiece':puzzleSelect(+el.dataset.n,el);break;
     case 'puzzleSlot':puzzlePlace(+el.dataset.n);break;
     case 'pxKnow':if(px&&!px.done){px.guessing=true;renderAll()}break;
     case 'pxGuess':guessPixel(el.dataset.k);break;
