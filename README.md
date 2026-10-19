@@ -26,7 +26,7 @@ A classroom art and economy game made for the big screen. Buy shapes and paint, 
 
 ## Pottery studio
 
-Pottery Studio is an arcade activity. Shape a randomly assigned vase, bowl, cup, plate, bottle, flower pot, mug, goblet or pitcher by dragging the handles on the clay silhouette. In Creative Studio, switch between the random challenge and free sculpting. Choose a clay color before firing—the glaze appears in its true color after the kiln finishes. The built-in critic scores the finished piece, awards cash, and saves it to the portfolio.
+Pottery Studio is an arcade activity. Mold a named random challenge (vase, bowl, cup, plate, bottle, flower pot, mug, goblet or pitcher) from memory, or switch to free sculpting in Creative Studio. Drag the large shaping handles side to side to widen or narrow each section, and up or down to stretch or squash it. Choose from larger labeled clay-color swatches before firing—the glaze appears in its true color after the kiln finishes. The built-in critic scores the finished piece, awards cash, and saves it to the portfolio.
 
 ## Art games (20)
 

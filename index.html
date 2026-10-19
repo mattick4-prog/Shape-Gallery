@@ -404,6 +404,22 @@ header{gap:10px 16px}
 .palette-well{width:100%;max-width:420px;display:block;margin:0 auto;touch-action:none;cursor:crosshair}
 .palette-well canvas{display:block;width:100%;height:auto;aspect-ratio:2/1;touch-action:none;cursor:crosshair}
 .palette-status{min-height:24px;text-align:center;font-size:13px;font-weight:700;color:var(--muted)}
+.pottery-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:18px;align-items:start}
+.pottery-wheel{background:#fff;border:3px solid #d9e2dd;border-radius:16px;padding:12px;touch-action:none}
+.pottery-wheel svg{display:block;width:100%;height:auto;max-height:620px;touch-action:none}
+.pottery-wheel [data-pot-handle]{cursor:grab;stroke-width:2.5}
+.pottery-wheel [data-pot-handle]:active{cursor:grabbing}
+.pottery-colors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0 16px}
+.pottery-color{display:flex;min-width:0;min-height:76px;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 3px;background:#fff;border:2px solid var(--paper-2);border-radius:12px;font-size:12px;font-weight:700;text-transform:capitalize}
+.pottery-color i{display:block;width:38px;height:38px;border:2px solid #26383a44;border-radius:50%;box-shadow:inset 0 0 0 2px #ffffff55}
+.pottery-color.on{border-color:var(--gold-deep);box-shadow:0 0 0 3px #e3a63b66}
+.pottery-color:disabled{opacity:.65}
+.pottery-pieces{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pottery-piece{width:56px;height:56px;background:#fff;border:1px solid var(--paper-2);border-radius:8px}
+.pottery-piece svg{width:100%;height:100%}
+.pottery-score{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px;background:#fff;border-radius:10px}
+.pottery-score b{font-size:24px;color:var(--good)}
+@media(max-width:760px){.pottery-layout{grid-template-columns:minmax(0,1fr)}.pottery-wheel svg{max-height:480px}}
 .mixpreview{display:flex;align-items:center;gap:8px;margin:10px 0}
 .mixpreview span{flex:1;font-size:13px;font-weight:700}
 .paintmix>small{display:block}
@@ -1698,7 +1714,7 @@ function strokesSVG(strokes,overlayTask,backgroundKey){
   const background=backgroundKey&&RECIPES[backgroundKey]?`<g opacity=".26">${RECIPES[backgroundKey].parts.map(p=>`<g transform="${xf(p)}">${shapeMarkup(p)}</g>`).join('')}</g>`:'';
   return `<svg viewBox="0 0 100 100" role="img" aria-label="Sketch"><rect width="100" height="100" fill="#fff"/>${background}${lines}</svg>`;
 }
-function historyArt(h){return h.pottery?potterySvg(h.pottery.profile,h.pottery.color,true):h.kind==='sketch'?strokesSVG(h.strokes,null,h.background):artSVG(h.parts,false,h.title)}
+function historyArt(h){return h.pottery?potterySvg(h.pottery.profile,h.pottery.color,true,h.pottery.levels):h.kind==='sketch'?strokesSVG(h.strokes,null,h.background):artSVG(h.parts,false,h.title)}
 const slim=strokes=>strokes.map(st=>({color:st.color,w:st.w,pts:st.pts.filter((q,i)=>i%2===0||i===st.pts.length-1).map(q=>[Math.round(q[0]*1000)/1000,Math.round(q[1]*1000)/1000])}));
 function hist(t,id,patch){const h=(t.history||[]).find(x=>x.id===id);if(h)Object.assign(h,patch)}
 function syncHist(t,a){hist(t,a.id,{value:a.value,review:a.review||null,pending:!!a.pending})}
@@ -2751,54 +2767,55 @@ const POTTERY_OBJECTS=[
   {name:'Pitcher',profile:[16,18,25,34,33,27,22]}
 ];
 const POTTERY_START=[14,18,27,35,34,29,22];
+const POTTERY_LEVELS=[21,30,39,48,57,66,75];
 function potteryNew(mode,avoid){
   const choices=POTTERY_OBJECTS.filter(x=>x.name!==avoid);
   const goal=mode==='challenge'?pick(choices):null;
   const pieces=state.pottery?.teamIdx===state.active?state.pottery.pieces||[]:state.potteryByTeam?.[state.active]||[];
-  return{mode,goal:goal?goal.name:null,profile:[...POTTERY_START],color:'brown',fired:false,done:false,score:null,earned:0,teamIdx:state.active,t0:Date.now(),pieces};
+  return{mode,goal:goal?goal.name:null,profile:[...POTTERY_START],levels:[...POTTERY_LEVELS],color:'brown',fired:false,done:false,score:null,earned:0,teamIdx:state.active,t0:Date.now(),pieces};
 }
-function potteryPath(profile){
-  const ys=profile.map((_,i)=>21+i*9);
+function potteryPath(profile,levels=POTTERY_LEVELS){
+  const ys=levels||POTTERY_LEVELS;
   const points=profile.map((r,i)=>[50-r,ys[i]]).concat([[50,88]],profile.map((r,i)=>[50+r,ys[i]]).reverse());
   return `M${points.map(p=>p.join(' ')).join(' L')} Z`;
 }
-function potterySvg(profile,color,fired){
-  const clay=colorValue(color),body=potteryPath(profile);
-  return `<svg viewBox="0 0 100 100" role="img" aria-label="${fired?'Fired glazed pottery':'Unfired clay vessel'}"><ellipse cx="50" cy="89" rx="39" ry="5" fill="#a9c5bd"/><path d="${body}" fill="${clay}" stroke="#493728" stroke-width="1.4" stroke-linejoin="round" style="${fired?'':'filter:saturate(.28) brightness(.88)'}"/><ellipse cx="50" cy="21" rx="${profile[0]}" ry="3.3" fill="${clay}" stroke="#493728" stroke-width="1.3"/><ellipse cx="50" cy="21" rx="${Math.max(3,profile[0]-3)}" ry="1.6" fill="#49372855"/>${fired?'<path d="M42 31 Q39 48 43 62" fill="none" stroke="#ffffffaa" stroke-width="2.4" stroke-linecap="round"/><path d="M47 29 Q45 40 47 47" fill="none" stroke="#ffffff66" stroke-width="1.2" stroke-linecap="round"/>':''}</svg>`;
+function potterySvg(profile,color,fired,levels=POTTERY_LEVELS){
+  const ys=levels||POTTERY_LEVELS,clay=colorValue(color),body=potteryPath(profile,ys);
+  return `<svg viewBox="0 0 100 100" role="img" aria-label="${fired?'Fired glazed pottery':'Unfired clay vessel'}"><ellipse cx="50" cy="89" rx="39" ry="5" fill="#a9c5bd"/><path d="${body}" fill="${clay}" stroke="#493728" stroke-width="1.4" stroke-linejoin="round" style="${fired?'':'filter:saturate(.28) brightness(.88)'}"/><ellipse cx="50" cy="${ys[0]}" rx="${profile[0]}" ry="3.3" fill="${clay}" stroke="#493728" stroke-width="1.3"/><ellipse cx="50" cy="${ys[0]}" rx="${Math.max(3,profile[0]-3)}" ry="1.6" fill="#49372855"/>${fired?'<path d="M42 31 Q39 48 43 62" fill="none" stroke="#ffffffaa" stroke-width="2.4" stroke-linecap="round"/><path d="M47 29 Q45 40 47 47" fill="none" stroke="#ffffff66" stroke-width="1.2" stroke-linecap="round"/>':''}</svg>`;
 }
 function potteryScore(){
   const p=state.pottery,goal=POTTERY_OBJECTS.find(x=>x.name===p.goal);
   if(!goal)return 0;
-  const error=p.profile.reduce((n,r,i)=>n+Math.abs(r-goal.profile[i]),0)/p.profile.length;
-  return clamp(Math.round(10-error*.22),1,10);
+  const widthError=p.profile.reduce((n,r,i)=>n+Math.abs(r-goal.profile[i]),0)/p.profile.length;
+  const levels=p.levels||POTTERY_LEVELS,heightError=levels.reduce((n,y,i)=>n+Math.abs(y-POTTERY_LEVELS[i]),0)/levels.length;
+  return clamp(Math.round(10-widthError*.18-heightError*.08),1,10);
 }
 function renderPottery(embedded=false){
   const p=state.pottery,goal=POTTERY_OBJECTS.find(x=>x.name===p.goal);
   const colors=['red','blue','yellow','green','brown','black','white','orange','pink','purple','sky','navy'];
-  const target=goal&&!p.fired?goal.profile:null;
-  const controls=p.profile.map((r,i)=>`<circle data-pot-handle="${i}" cx="${50+r}" cy="${21+i*9}" r="3.2" fill="#fff" stroke="#294a41" stroke-width="1.5"/>`).join('');
-  const gallery=(p.pieces||[]).slice(-8).reverse().map(x=>`<div class="pottery-piece" title="${esc(x.name)} · ${esc(x.color)}">${potterySvg(x.profile,x.color,true)}</div>`).join('');
+  const levels=p.levels||(p.levels=[...POTTERY_LEVELS]);
+  const controls=p.profile.map((r,i)=>`<circle data-pot-handle="${i}" cx="${50+r}" cy="${levels[i]}" r="5.2" fill="#fff" stroke="#294a41" stroke-width="2.5"/>`).join('');
+  const gallery=(p.pieces||[]).slice(-8).reverse().map(x=>`<div class="pottery-piece" title="${esc(x.name)} · ${esc(x.color)}">${potterySvg(x.profile,x.color,true,x.levels)}</div>`).join('');
   const html=`<section class="panel">
     <div class="mission"><div><div class="lbl">Pottery wheel · ${esc(team().name)}</div><div class="mtitle">${p.fired?'Your fired piece':p.mode==='challenge'?`Try to make a ${esc(p.goal.toLowerCase())}`:'Sculpt anything you like'}</div>
-      <div>${p.fired?`The kiln revealed your ${esc(p.color)} glaze. The critic awarded $${p.earned}.`:p.mode==='challenge'?'Shape the clay to match the faint outline, choose a glaze color, then fire it in the kiln.':'Choose a clay color and drag the handles to shape your own piece. Fire it when you are happy with your sculpture.'}</div></div>
+      <div>${p.fired?`The kiln revealed your ${esc(p.color)} glaze. The critic awarded $${p.earned}.`:p.mode==='challenge'?`Your challenge: mold a ${esc(p.goal.toLowerCase())}. Shape the clay from memory, choose a glaze color, then fire it in the kiln.`:'Choose a clay color and drag the handles in any direction to shape your own piece. Fire it when you are happy with your sculpture.'}</div></div>
       ${isCreative()?`<div class="actions"><button class="btn ${p.mode==='challenge'?'':'ghost'}" data-act="potMode" data-k="challenge">Random challenge</button><button class="btn ${p.mode==='free'?'':'ghost'}" data-act="potMode" data-k="free">Free sculpt</button></div>`:''}
     </div>
     <div class="pottery-layout">
       <div class="pottery-wheel" id="potteryWheel">
         <svg id="potterySvg" viewBox="0 0 100 100" aria-label="${p.fired?'Fired pottery piece':'Pottery wheel with draggable clay shaping handles'}" role="img">
           <ellipse cx="50" cy="89" rx="39" ry="5" fill="#a9c5bd"/>
-          ${target?`<path d="${potteryPath(target)}" fill="#8d939b18" stroke="#596b65" stroke-width="1.5" stroke-dasharray="3 2"/>`:''}
-          <path d="${potteryPath(p.profile)}" fill="${colorValue(p.color)}" stroke="#493728" stroke-width="1.4" stroke-linejoin="round" style="${p.fired?'':'filter:saturate(.28) brightness(.88)'}"/>
-          <ellipse cx="50" cy="21" rx="${p.profile[0]}" ry="3.3" fill="${colorValue(p.color)}" stroke="#493728" stroke-width="1.3"/>
-          <ellipse cx="50" cy="21" rx="${Math.max(3,p.profile[0]-3)}" ry="1.6" fill="#49372855"/>
+          <path class="pottery-body" d="${potteryPath(p.profile,levels)}" fill="${colorValue(p.color)}" stroke="#493728" stroke-width="1.4" stroke-linejoin="round" style="${p.fired?'':'filter:saturate(.28) brightness(.88)'}"/>
+          <ellipse data-pot-opening="outer" cx="50" cy="${levels[0]}" rx="${p.profile[0]}" ry="3.3" fill="${colorValue(p.color)}" stroke="#493728" stroke-width="1.3"/>
+          <ellipse data-pot-opening="inner" cx="50" cy="${levels[0]}" rx="${Math.max(3,p.profile[0]-3)}" ry="1.6" fill="#49372855"/>
           ${p.fired?'<path d="M42 31 Q39 48 43 62" fill="none" stroke="#ffffffaa" stroke-width="2.4" stroke-linecap="round"/><path d="M47 29 Q45 40 47 47" fill="none" stroke="#ffffff66" stroke-width="1.2" stroke-linecap="round"/>':`<ellipse cx="50" cy="88" rx="38" ry="4" fill="#718d84"/><rect x="14" y="88" width="72" height="4" rx="2" fill="#718d84"/>${controls}`}
         </svg>
-        <p class="muted" style="text-align:center;margin:3px 0 0">${p.fired?'Finished pottery':`Drag each white handle left or right to shape the wall${goal?' · dashed outline is your goal':''}`}</p>
+        <p class="muted" style="text-align:center;margin:3px 0 0">${p.fired?'Finished pottery':'Drag any white handle side to side to widen or narrow the clay, or up and down to stretch or squash it.'}</p>
       </div>
       <aside class="pottery-controls">
         <h3 style="margin:0">1. Choose colored clay</h3><p class="muted" style="margin:4px 0">Its true glaze color appears after firing.</p>
-        <div class="pottery-colors">${colors.map(c=>`<button class="pottery-color ${p.color===c?'on':''}" data-act="potColor" data-k="${c}" style="background:${colorValue(c)}" aria-label="${c} clay" aria-pressed="${p.color===c}" ${p.fired?'disabled':''}></button>`).join('')}</div>
-        ${p.fired?`<div class="pottery-score"><span>${goal?'Shape match':'Free sculpt'}</span><b>${p.score}/10</b><span>Critic's award: <strong>$${p.earned}</strong></span></div>${p.judge?judgeCard(p.judge):''}<div class="review">"${esc(p.comment)}"</div>${!isParty()&&!isSolo()?`<div class="actions"><button class="btn" data-act="potMode" data-k="${p.mode}">${p.mode==='challenge'?'New random challenge':'Sculpt another'}</button><button class="btn ghost" data-act="potReset">Make another shape</button></div>`:''}`:`<h3>2. Shape the clay</h3><p class="muted">Pull the handles wider or narrower. Try the faint outline for your challenge.</p><div class="actions"><button class="btn ghost" data-act="potReset">Reset shape</button><button class="btn" data-act="potFire">🔥 Fire in the kiln</button></div>`}
+        <div class="pottery-colors">${colors.map(c=>`<button class="pottery-color ${p.color===c?'on':''}" data-act="potColor" data-k="${c}" aria-label="${c} clay" aria-pressed="${p.color===c}" ${p.fired?'disabled':''}><i style="background:${colorValue(c)}"></i><span>${c}</span></button>`).join('')}</div>
+        ${p.fired?`<div class="pottery-score"><span>${goal?'Shape match':'Free sculpt'}</span><b>${p.score}/10</b><span>Critic's award: <strong>$${p.earned}</strong></span></div>${p.judge?judgeCard(p.judge):''}<div class="review">"${esc(p.comment)}"</div>${!isParty()&&!isSolo()?`<div class="actions"><button class="btn" data-act="potMode" data-k="${p.mode}">${p.mode==='challenge'?'New random challenge':'Sculpt another'}</button><button class="btn ghost" data-act="potReset">Make another shape</button></div>`:''}`:`<h3>2. Shape the clay</h3><p class="muted">${p.mode==='challenge'?'Mold the named object from memory—there is no outline to follow.':'Pull the handles in any direction to stretch, squash, widen, or narrow your sculpture.'}</p><div class="actions"><button class="btn ghost" data-act="potReset">Reset shape</button><button class="btn" data-act="potFire">🔥 Fire in the kiln</button></div>`}
         <div style="margin-top:18px"><b>Fired pottery (${(p.pieces||[]).length})</b><div class="pottery-pieces">${gallery||'<span class="muted">Your fired creations will collect here.</span>'}</div></div>
       </aside>
     </div>
@@ -2807,11 +2824,15 @@ function renderPottery(embedded=false){
     const svg=$('#potterySvg'),wheel=$('#potteryWheel');if(!svg||!wheel||p.fired)return;
     let active=null;
     const update=e=>{
-      const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*100;
-      p.profile[active]=clamp(Math.round(Math.abs(x-50)),5,39);
-      const shape=svg.querySelector('path:not([stroke-dasharray])');if(shape)shape.setAttribute('d',potteryPath(p.profile));
-      svg.querySelectorAll('ellipse').forEach((el,i)=>{if(i===1)el.setAttribute('rx',p.profile[0]);if(i===2)el.setAttribute('rx',Math.max(3,p.profile[0]-3))});
-      svg.querySelectorAll('[data-pot-handle]').forEach(el=>el.setAttribute('cx',50+p.profile[+el.dataset.potHandle]));
+      const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;
+      p.profile[active]=clamp(Math.round(Math.abs(x-50)),4,46);
+      const minY=active===0?12:p.levels[active-1]+3,maxY=active===p.levels.length-1?84:p.levels[active+1]-3;
+      p.levels[active]=clamp(Math.round(y),minY,maxY);
+      const shape=svg.querySelector('.pottery-body');if(shape)shape.setAttribute('d',potteryPath(p.profile,p.levels));
+      const outer=svg.querySelector('[data-pot-opening="outer"]'),inner=svg.querySelector('[data-pot-opening="inner"]');
+      if(outer){outer.setAttribute('rx',p.profile[0]);outer.setAttribute('cy',p.levels[0])}
+      if(inner){inner.setAttribute('rx',Math.max(3,p.profile[0]-3));inner.setAttribute('cy',p.levels[0])}
+      svg.querySelectorAll('[data-pot-handle]').forEach(el=>{const i=+el.dataset.potHandle;el.setAttribute('cx',50+p.profile[i]);el.setAttribute('cy',p.levels[i])});
     };
     wheel.onpointerdown=e=>{const handle=e.target.closest('[data-pot-handle]');if(!handle)return;e.preventDefault();active=+handle.dataset.potHandle;wheel.setPointerCapture(e.pointerId);update(e)};
     wheel.onpointermove=e=>{if(active!==null)update(e)};
@@ -2822,16 +2843,17 @@ function renderPottery(embedded=false){
 }
 function firePottery(){
   const p=state.pottery;if(!p||p.fired)return;
-  const match=potteryScore()/10,variation=p.profile.slice(1).reduce((n,r,i)=>n+Math.abs(r-p.profile[i]),0);
-  const changed=p.profile.filter((r,i)=>r!==POTTERY_START[i]).length;
-  const creativity=clamp(.25+variation*.008+changed*.045,.1,.95),accuracy=p.mode==='challenge'?match:creativity;
+  const levels=p.levels||POTTERY_LEVELS;
+  const match=potteryScore()/10,variation=p.profile.slice(1).reduce((n,r,i)=>n+Math.abs(r-p.profile[i]),0)+levels.slice(1).reduce((n,y,i)=>n+Math.abs((y-levels[i])-(POTTERY_LEVELS[i+1]-POTTERY_LEVELS[i])),0);
+  const changed=p.profile.filter((r,i)=>r!==POTTERY_START[i]).length+levels.filter((y,i)=>y!==POTTERY_LEVELS[i]).length;
+  const creativity=clamp(.25+variation*.008+changed*.025,.1,.95),accuracy=p.mode==='challenge'?match:creativity;
   p.score=Math.round((p.mode==='challenge'?accuracy:creativity)*10);
   p.comment=p.score>=8?'A lovely piece. The kiln brought out its full character.':p.score>=6?'A charming shape, and that glaze has real presence.':'A bold experiment. The kiln can reveal more than color!';
   p.fired=true;p.done=true;p.tEnd=Date.now();
   p.earned=gamePay(p,accuracy,{cre:creativity,fast:15,slow:90,w:.25,comment:p.comment});
-  p.pieces=p.pieces||[];p.pieces.push({name:p.goal||'Free sculpture',profile:[...p.profile],color:p.color});p.pieces=p.pieces.slice(-24);
+  p.pieces=p.pieces||[];p.pieces.push({name:p.goal||'Free sculpture',profile:[...p.profile],levels:[...levels],color:p.color});p.pieces=p.pieces.slice(-24);
   state.potteryByTeam=state.potteryByTeam||{};state.potteryByTeam[p.teamIdx]=p.pieces;
-  saveSketch(p.teamIdx,{title:p.goal?`${p.goal} pottery`:'Freeform pottery',game:'Pottery Studio',score:`${p.score}/10`,earned:p.earned,comment:p.comment,pottery:{profile:[...p.profile],color:p.color,fired:true}});
+  saveSketch(p.teamIdx,{title:p.goal?`${p.goal} pottery`:'Freeform pottery',game:'Pottery Studio',score:`${p.score}/10`,earned:p.earned,comment:p.comment,pottery:{profile:[...p.profile],levels:[...levels],color:p.color,fired:true}});
   renderAll();
 }
 async function aiJudge(){
